@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teachable Machine Clone</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Train your own computer vision model</h1>
+            <p>Train a neural network to recognize images right in your browser.</p>
+        </header>
+
+        <div class="main-grid">
+
+            <!-- 1. Data Collection Panel -->
+            <section class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>1. Classes</span>
+                    </div>
+                    <button id="btn-reset-all" class="btn btn-secondary btn-icon" title="Reset All" style="width:auto">
+                        ♻️
+                    </button>
+                </div>
+
+                <div class="add-class-form">
+                    <input type="text" id="input-class-name" class="input-text"
+                        placeholder="New Class Name (e.g. 'Cat')">
+                    <button id="btn-add-class" class="btn btn-primary" style="width: auto;">Add</button>
+                </div>
+
+                <div id="class-list" class="class-list">
+                    <!-- Classes will be injected here -->
+                </div>
+
+                <div id="initial-help"
+                    style="text-align:center; color:var(--text-muted); margin-top:2rem; font-size:0.9rem;">
+                    Add classes to start collecting data.
+                </div>
+            </section>
+
+            <!-- 2. Training Panel -->
+            <section class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>2. Training</span>
+                    </div>
+                </div>
+
+                <div class="training-settings">
+                    <div class="setting-item">
+                        <label>Epochs</label>
+                        <input type="number" id="setting-epochs" value="50" min="10" max="500">
+                    </div>
+                    <div class="setting-item">
+                        <label>Learning Rate</label>
+                        <input type="number" id="setting-lr" value="0.001" step="0.0001">
+                    </div>
+                    <div class="setting-item">
+                        <label>Batch Size</label>
+                        <select id="setting-batch-size">
+                            <option value="16">16</option>
+                            <option value="32">32</option>
+                            <option value="64">64</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="btn-train" class="btn btn-success" disabled>
+                    Train Model
+                </button>
+
+                <div class="progress-container">
+                    <div id="train-progress" class="progress-bar"></div>
+                </div>
+                <div id="train-status" class="training-stats">
+                    Waiting for data...
+                </div>
+
+                <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                    <button id="btn-export" class="btn btn-secondary" disabled>Download Model</button>
+                </div>
+            </section>
+
+            <!-- 3. Preview Panel -->
+            <section class="panel preview-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>3. Preview</span>
+                    </div>
+                    <div class="toggle-switch">
+                        <!-- Could add a toggle here if needed -->
+                    </div>
+                </div>
+
+                <div class="camera-container">
+                    <video id="webcam" autoplay playsinline muted></video>
+                    <div id="camera-placeholder" class="placeholder-text">
+                        <p>Camera off</p>
+                        <button id="btn-enable-cam" class="btn btn-primary" style="margin-top:1rem; width:auto;">Enable
+                            Camera</button>
+                    </div>
+                </div>
+
+                <button id="btn-predict" class="btn btn-primary" disabled>
+                    Start Predicting
+                </button>
+
+                <div id="prediction-results" class="prediction-list">
+                    <!-- Predictions will appear here -->
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Notification</div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
