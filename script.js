@@ -82,13 +82,17 @@ async function setupCamera() {
       UI.video.srcObject = stream;
       state.webcamElement = UI.video;
 
-      return new Promise((resolve) => {
-        UI.video.onloadedmetadata = () => {
-          UI.video.play();
-          UI.cameraPlaceholder.style.display = 'none';
+      // Wait for video metadata to load (handle race condition)
+      await new Promise((resolve) => {
+        if (UI.video.readyState >= 1) {
           resolve();
-        };
+        } else {
+          UI.video.onloadedmetadata = resolve;
+        }
       });
+
+      UI.video.play();
+      UI.cameraPlaceholder.style.display = 'none';
     } catch (err) {
       console.error(err);
       showToast('Camera access denied', 'error');
