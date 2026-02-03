@@ -79,19 +79,18 @@ async function setupCamera() {
         video: { facingMode: 'user', width: 640, height: 480 },
         audio: false
       });
-      UI.video.srcObject = stream;
       state.webcamElement = UI.video;
 
-      // Wait for video metadata to load (handle race condition)
-      await new Promise((resolve) => {
-        if (UI.video.readyState >= 1) {
-          resolve();
-        } else {
-          UI.video.onloadedmetadata = resolve;
-        }
+      // Set up event handler BEFORE srcObject to avoid race condition
+      // Use loadeddata (first frame available) not loadedmetadata (only dimensions)
+      const videoReady = new Promise((resolve) => {
+        UI.video.onloadeddata = resolve;
       });
 
-      UI.video.play();
+      UI.video.srcObject = stream;
+
+      await videoReady;
+      await UI.video.play();
       UI.cameraPlaceholder.style.display = 'none';
     } catch (err) {
       console.error(err);
