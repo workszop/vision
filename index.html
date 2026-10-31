@@ -1,0 +1,2907 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Laboratorium widzenia komputerowego: klasyfikacja, lokalizacja z klasyfikacją i segmentacja oraz dane potrzebne do ich treningu.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="theme-color" content="#FFD500">
+<title>Jak widzi komputer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap">
+<style>
+  @keyframes boot-reveal { to { visibility: visible; } }
+  html:not(.app-ready) body { visibility: hidden; animation: boot-reveal 0s 4s forwards; }
+  @media print { html:not(.app-ready) body { visibility: visible; animation: none; } }
+</style>
+<noscript><style>html:not(.app-ready) body { visibility: visible; animation: none; }</style></noscript>
+<style>
+/* ============================================================
+   edulab - Colors & Type foundation
+   Fonts (Outfit, IBM Plex Sans, Roboto Mono) load from Google Fonts
+   via the <link> tags in tokens/head.html - paste that into <head>.
+   No @import here: it chains requests and blocks rendering.
+   ============================================================ */
+
+:root {
+  /* ---- Brand fonts ---- */
+  --font-display: 'Outfit', 'IBM Plex Sans', system-ui, sans-serif;
+  --font-sans:    'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-mono:    'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ============================================================
+     RAW COLOR TOKENS
+     ============================================================ */
+
+  /* Paper - page background is white; the stone steps are bands / wells.
+     Warm neutral grey (no yellow cast) so yellow and the colour blocks stay the
+     loudest thing on the page. Stone v2 (2026-10-10) replaced the cream sand
+     (#FBF7E6 / #F5EDCB), which at 1.07:1 on white did not read as a surface. */
+  --paper:    #FFFFFF;   /* page background (white)                       */
+  --paper-2:  #F5F3F0;   /* stone band: alternating sections, card heads   */
+  --paper-3:  #EAE6E0;   /* deepest stone: wells, table heads, bar tracks  */
+  --surface:  #FFFFFF;   /* cards & sheets                                */
+
+  /* Ink - warm near-black text & lines */
+  --ink:      #1C1917;   /* primary text                                    */
+  --ink-2:    #44403C;   /* secondary text, 10.3:1 on white                 */
+  --ink-3:    #625B53;   /* muted / placeholder: >= 4.5:1 on every paper step */
+  --line:     #E0DBD3;   /* hairline: dividers, table rows, card heads      */
+  --line-2:   #C9C2B7;   /* stronger: card contours, section rules          */
+  --line-strong: #857C69;/* control boundaries (inputs, ghost buttons,
+                            answer options): >= 3:1 on paper steps (WCAG 1.4.11) */
+
+  /* ---- Brand: Yellow main · Blue + Green secondary · Red danger ----
+     Plain saturated colours. The base colour (--blue) is for large fills,
+     illustrations and large text (>= 24px, or 19px bold). "-soft" is the
+     solid fill for chips and panels that carry small text: it is the
+     AA shade (= "-600"), so its "-ink" (white; dark ink on yellow) reaches
+     4.5:1. A colour used AS text goes only on white and uses "-600".
+     Never colour-on-colour (no green text on green).
+     Gate: python3 scripts/check-contrast.py */
+
+  /* Yellow - primary (buttons, progress, values on dark panels) */
+  --yellow:      #FFD500;
+  --yellow-600:  #F0C800;  /* hover / press          */
+  --yellow-soft: #FFD500;  /* chip / panel fill      */
+  --yellow-ink:  #1C1917;  /* text on yellow         */
+
+  /* Blue - secondary (panels, chips, correct / selected state) */
+  --blue:      #1E8FC2;
+  --blue-600:  #177AA8;
+  --blue-soft: #177AA8;   /* = blue-600, white text 4.8:1 */
+  --blue-ink:  #FFFFFF;
+
+  /* Green - secondary support (chips, success) */
+  --green:      #00A651;
+  --green-600:  #078342;  /* hover / press, AA text shade */
+  --green-soft: #078342;  /* = green-600, white text 4.9:1 */
+  --green-ink:  #FFFFFF;
+
+  /* Red - danger / important / wrong (use sparingly) */
+  --red:      #E5322D;
+  --red-600:  #C92823;
+  --red-soft: #C92823;   /* = red-600, white text 5.5:1 */
+  --red-ink:  #FFFFFF;
+
+  /* Grape - 5th category tone (colour-coded groups), from the play palette */
+  --grape:      #7A5AC2;
+  --grape-soft: #7A5AC2;  /* white text 5.2:1 */
+  --grape-ink:  #FFFFFF;
+
+  /* Legacy role aliases - older edulab apps use these names */
+  --marigold: var(--yellow); --marigold-600: var(--yellow-600); --marigold-soft: var(--yellow-soft); --marigold-ink: var(--yellow-ink);
+  --teal:     var(--blue);   --teal-600:     var(--blue-600);   --teal-soft:     var(--blue-soft);   --teal-ink:     var(--blue-ink);
+  --sky:      var(--green);                                     --sky-soft:      var(--green-soft);  --sky-ink:      var(--green-ink);
+  --coral:    var(--red);    --coral-600:    var(--red-600);    --coral-soft:    var(--red-soft);    --coral-ink:    var(--red-ink);
+
+  /* Play palette - subject/category colours in the kids app */
+  --play-sun:    #FFD500;
+  --play-grass:  #00A651;
+  --play-berry:  #C6478B;
+  --play-grape:  #7A5AC2;
+  --play-sky:    #1E8FC2;
+  --play-coral:  #E5322D;
+
+  /* ---- Semantic ---- */
+  --success:      #00A651;  --success-soft: #078342;  --success-ink: #FFFFFF;
+  --warning:      #FFD500;  --warning-soft: #FFD500;  --warning-ink: #1C1917;
+  --danger:       #E5322D;  --danger-soft:  #C92823;  --danger-ink:  #FFFFFF;
+  --info:         #1E8FC2;  --info-soft:    #177AA8;  --info-ink:    #FFFFFF;
+
+  /* ---- Functional aliases ---- */
+  --bg:        var(--paper);
+  --fg:        var(--ink);
+  --fg-muted:  var(--ink-2);
+  --primary:   var(--yellow);
+  --on-primary:#1C1917;      /* dark text on yellow */
+  /* White gap + ink band: >= 3:1 on paper, sand, yellow and every chip fill.
+     Pair with `outline: 3px solid transparent` so forced-colours mode still shows focus. */
+  --focus-ring: 0 0 0 2px var(--paper), 0 0 0 5px var(--ink);
+  /* Range-slider track */
+  --track: color-mix(in srgb, var(--ink) 24%, transparent);
+
+  /* ============================================================
+     SPACING  (4pt base)
+     ============================================================ */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+  --sp-12: 48px; --sp-16: 64px; --sp-20: 80px; --sp-24: 96px;
+
+  /* ---- Radii (friendly, generous) ---- */
+  --r-xs: 6px; --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-pill: 999px;
+
+  /* ---- Elevation - warm, low, soft ---- */
+  --shadow-sm: 0 1px 2px rgba(33,30,26,.10), 0 2px 6px rgba(33,30,26,.06);
+  --shadow-md: 0 6px 18px rgba(33,30,26,.12), 0 1px 3px rgba(33,30,26,.08);
+  --shadow-lg: 0 16px 40px rgba(33,30,26,.12), 0 3px 8px rgba(33,30,26,.06);
+  --shadow-primary:  0 8px 22px color-mix(in srgb, var(--yellow) 30%, transparent);
+  --shadow-marigold: var(--shadow-primary);   /* legacy alias */
+
+  /* ============================================================
+     TYPE SCALE (semantic sizes)
+     ============================================================ */
+  --display-font:  clamp(48px, 6vw, 72px);
+  --h1: 44px; --h2: 33px; --h3: 25px; --h4: 19px;
+  --body-lg: 18px; --body: 16px; --body-sm: 14px;
+  --caption: 13px; --overline: 12px;
+}
+
+/* ============================================================
+   SEMANTIC ELEMENT STYLES
+   Apply via element selectors or .edu-prose wrapper.
+   Element defaults are wrapped in :where(.edu) (zero specificity) so any
+   single class wins: <p class="edu-overline">, <p class="edu-small">,
+   <h1 class="app-title"> keep their own font/size instead of the element default.
+   ============================================================ */
+
+.edu-display, :where(.edu) h1.display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--display-font);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+:where(.edu) h1, .edu-h1 {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: var(--h1);
+  line-height: 1.06; letter-spacing: -0.02em; color: var(--ink);
+}
+:where(.edu) h2, .edu-h2 {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: var(--h2);
+  line-height: 1.12; letter-spacing: -0.015em; color: var(--ink);
+}
+:where(.edu) h3, .edu-h3 {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: var(--h3);
+  line-height: 1.2; letter-spacing: -0.01em; color: var(--ink);
+}
+:where(.edu) h4, .edu-h4 {
+  font-family: var(--font-sans);
+  font-weight: 700; font-size: var(--h4);
+  line-height: 1.3; color: var(--ink);
+}
+:where(.edu) p, .edu-p, .edu-body {
+  font-family: var(--font-sans);
+  font-weight: 400; font-size: var(--body);
+  line-height: 1.6; color: var(--ink-2);
+}
+.edu-body-lg { font-family: var(--font-sans); font-size: var(--body-lg); line-height: 1.6; color: var(--ink-2); }
+.edu-small  { font-family: var(--font-sans); font-size: var(--body-sm); line-height: 1.5; color: var(--ink-2); }
+.edu-caption{ font-family: var(--font-sans); font-size: var(--caption); line-height: 1.45; color: var(--ink-3); }
+
+/* Overline - mono, tracked; functional labels only (never above page/section titles) */
+.edu-overline {
+  font-family: var(--font-mono);
+  font-weight: 500; font-size: var(--overline);
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink);
+}
+:where(.edu) code, .edu-mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em; color: var(--ink);
+  background: var(--paper-3); padding: 0.12em 0.4em; border-radius: var(--r-xs);
+}
+
+/* Solid colour blocks (callouts, stat cards, chips): set background: var(--X-soft) and
+   color: var(--X-ink) on the block, add .edu-block, and every heading/paragraph inside
+   inherits that text colour instead of the default ink. */
+.edu-block, .edu-block h1, .edu-block h2, .edu-block h3, .edu-block h4, .edu-block p,
+.edu-block li, .edu-block small { color: inherit; }
+
+body.edu { background: var(--paper); color: var(--ink); font-family: var(--font-sans); }
+
+/* ─── App layout (edulab components, tokens only) ─── */
+:root { --gutter: clamp(16px, 4vw, 72px); --stage: 384px; }
+* { box-sizing: border-box; }
+html { scroll-padding-top: 130px; }
+body { margin: 0; padding: 0; }
+button, input { font: inherit; }
+a { color: var(--blue-600); }
+:focus-visible { outline: 3px solid transparent; outline-offset: 2px; box-shadow: var(--focus-ring); }
+[hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.ic { width: 18px; height: 18px; flex: none; display: inline-block; }
+kbd { font-family: var(--font-mono); font-size: var(--caption); background: var(--paper-3); color: var(--ink); border-radius: var(--r-xs); padding: 1px 6px; }
+
+/* ─── Top menu ─── */
+.edu-header { position: sticky; top: 0; z-index: 50; width: 100%; background: var(--paper); border-bottom: 1px solid var(--line-2); }
+.edu-header-inner { padding: 8px var(--gutter); display: flex; align-items: center; gap: 12px; }
+.edu-logo { width: 64px; height: 64px; display: block; margin-right: -6px; flex: none; }
+.edu-wordmark { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -.02em; color: var(--ink); }
+.nav { display: flex; gap: 4px; margin-left: 18px; flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 5px; }
+.nav::-webkit-scrollbar { display: none; }
+.nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: var(--r-pill); color: var(--ink-2); text-decoration: none; white-space: nowrap; font-weight: 500; transition: background-color .15s; }
+.nav a:hover { background: var(--paper-2); }
+.nav a[aria-current="page"] { background: var(--yellow); color: var(--yellow-ink); font-weight: 600; }
+.head-tools { display: flex; align-items: center; gap: 8px; flex: none; }
+.progress-box { display: grid; gap: 4px; width: 132px; }
+.progress-label { font-family: var(--font-mono); font-size: var(--overline); color: var(--ink); letter-spacing: .04em; white-space: nowrap; }
+.bar { height: 8px; border-radius: var(--r-pill); background: var(--paper-3); overflow: hidden; }
+.bar > span { display: block; height: 100%; width: 0; background: var(--ink); border-radius: var(--r-pill); transition: width .25s ease; }
+.bar.fill-yellow > span { background: var(--yellow); }
+
+/* ─── Buttons and choices ─── */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 9px 18px; border-radius: var(--r-pill); border: 1px solid var(--line-strong); background: transparent; color: var(--ink); font-family: var(--font-display); font-weight: 600; cursor: pointer; text-decoration: none; transition: background-color .15s; }
+.btn:hover { background: var(--paper-2); }
+.btn-primary { background: var(--yellow); color: var(--on-primary); border-color: var(--yellow); }
+.btn-primary:hover { background: var(--yellow-600); }
+.btn[disabled], .btn[aria-disabled="true"] { color: var(--ink-3); background: var(--paper-2); border-color: var(--line-2); cursor: not-allowed; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.pills { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--paper-2); border-radius: var(--r-lg); }
+.pills button { border: 0; background: transparent; min-height: 44px; padding: 7px 14px; border-radius: var(--r-pill); font-weight: 600; color: var(--ink-2); cursor: pointer; }
+.pills button[aria-pressed="true"] { background: var(--yellow); color: var(--yellow-ink); }
+.class-opts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.opt { min-height: 44px; padding: 9px 10px; border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface); color: var(--ink); font-weight: 600; cursor: pointer; transition: background-color .15s; }
+.opt:hover:not([disabled]) { background: var(--paper-2); }
+.opt[aria-pressed="true"] { background: var(--blue-soft); color: var(--blue-ink); border-color: var(--blue-soft); }
+.opt[disabled] { cursor: not-allowed; }
+
+/* ─── Page head, bands, section heads ─── */
+.view-anim { animation: view-in .24s ease; }
+@keyframes view-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.page-head { padding: 40px var(--gutter) 40px; text-align: left; }
+.app-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.3rem, 5vw, 3.3rem); letter-spacing: -.025em; line-height: 1.05; color: var(--ink); margin: 0 0 14px; }
+.app-title:focus, .app-title:focus-visible { outline: 0; box-shadow: none; }
+.edu-lead { font-size: 1.15rem; line-height: 1.6; color: var(--ink-2); margin: 0; }
+.sec { margin: 0; padding: 40px 0 48px; border-top: 1px solid var(--line); }
+.sec.stone { background: var(--paper-2); }
+.sec > .wrap { padding: 0 var(--gutter); }
+.sec-head { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+.sec-head h2 { margin: 0; }
+.sec-head::after { content: ""; flex: 1; height: 1px; background: var(--line-2); }
+.tone-grape { background: var(--grape-soft); color: var(--grape-ink); }
+.tone-blue { background: var(--blue-soft); color: var(--blue-ink); }
+.tone-yellow { background: var(--yellow-soft); color: var(--yellow-ink); }
+.tone-green { background: var(--green-soft); color: var(--green-ink); }
+.tone-red { background: var(--red-soft); color: var(--red-ink); }
+.tone-ink { background: var(--ink); color: var(--paper); }
+.tone-stone { background: var(--paper-3); color: var(--ink); }
+.badge { flex: none; width: 34px; height: 34px; border-radius: var(--r-sm); display: inline-grid; place-items: center; }
+.badge-lg { width: 46px; height: 46px; border-radius: var(--r-md); }
+.badge-lg .ic { width: 24px; height: 24px; }
+.badge.tone-ink { color: var(--yellow); }
+
+/* ─── Cards ─── */
+.card { background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.card-head { padding: 12px 18px; background: var(--paper-2); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.card-head h3 { margin: 0; font-size: 20px; }
+.tile-h { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.tile-h h3 { margin: 0; font-size: 18px; line-height: 1.3; }
+.card-body { padding: 18px; flex: 1; min-width: 0; }
+.card-foot { padding: 12px 18px; border-top: 1px dashed var(--line-2); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: var(--overline); letter-spacing: .04em; padding: 4px 10px; border-radius: var(--r-pill); }
+.chip-stone { background: var(--paper-3); color: var(--ink); }
+.chip-green { background: var(--green-soft); color: var(--green-ink); }
+.chip-red { background: var(--red-soft); color: var(--red-ink); }
+.chip-yellow { background: var(--yellow-soft); color: var(--yellow-ink); }
+.chip-ink { background: var(--ink); color: var(--paper); }
+
+/* ─── Lesson rows ─── */
+.split { display: grid; grid-template-columns: minmax(22rem, 30rem) minmax(0, 1fr); gap: clamp(24px, 3vw, 44px); align-items: start; }
+.concept { display: grid; gap: 12px; min-width: 0; }
+.row-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.row-head h2 { margin: 0; font-size: 28px; }
+.tiles { display: grid; gap: 10px; }
+.tile { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 10px; background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r-md); padding: 12px 14px; }
+.tile h4 { font-family: var(--font-display); font-size: var(--body); line-height: 1.25; margin: 0; }
+.tile p { grid-column: 1 / -1; margin: 0; font-size: var(--body-sm); line-height: 1.45; }
+details.more { background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r-md); min-width: 0; }
+details.more > summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; list-style: none; min-height: 44px; padding: 8px 14px; font-family: var(--font-display); font-weight: 600; }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > summary::after { content: "+"; font-family: var(--font-mono); }
+details.more[open] > summary { border-bottom: 1px dashed var(--line-2); }
+details.more[open] > summary::after { content: "−"; }
+details.more > :not(summary) { margin: 10px 14px; font-size: var(--body-sm); }
+details.more ul { padding-left: 18px; }
+.chain { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.link { position: relative; background: var(--surface); color: var(--ink); border: 1px solid var(--line-2); border-radius: var(--r-md); padding: 12px 14px; font-size: var(--body-sm); line-height: 1.45; }
+.link b { display: block; font-family: var(--font-display); font-size: var(--body); }
+.link:not(:last-child)::after { content: "→"; position: absolute; left: 100%; top: 50%; width: 28px; text-align: center; transform: translateY(-50%); font-family: var(--font-mono); color: var(--ink-2); }
+
+/* ─── Group intro ─── */
+.group-hero { padding: 22px var(--gutter); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; }
+.group-hero p { margin: 0; }
+.group-hero .edu-overline { color: inherit; margin-bottom: 6px; }
+.group-hero .lead { font-size: var(--body-lg); line-height: 1.5; }
+.steps { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.steps a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 6px 12px; border-radius: var(--r-pill); background: var(--paper); color: var(--ink); text-decoration: none; font-weight: 600; font-size: var(--body-sm); }
+
+/* ─── Stage and canvases ─── */
+canvas { display: block; }
+.stage { width: 100%; max-width: var(--stage); aspect-ratio: 1; height: auto; border-radius: var(--r-sm); background: var(--paper-3); image-rendering: pixelated; touch-action: none; }
+.stage-free { touch-action: auto; }
+.workbench { display: grid; grid-template-columns: minmax(0, var(--stage)) minmax(0, 1fr); gap: 20px; align-items: start; }
+.workbench.has-record { grid-template-areas: "stage side" "rec side"; align-content: start; grid-template-rows: auto 1fr; }
+.has-record > .stage { grid-area: stage; }
+.has-record > .side { grid-area: side; }
+.has-record > .rec-wrap { grid-area: rec; min-width: 0; }
+.side { display: grid; gap: 14px; min-width: 0; }
+.field-label { display: block; margin-bottom: 6px; font-family: var(--font-mono); font-size: var(--overline); font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: var(--ink); }
+.readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 8px; font-size: var(--body-sm); color: var(--ink-2); }
+.readout > span { display: grid; align-content: start; gap: 2px; background: var(--paper-2); border-radius: var(--r-sm); padding: 8px 12px; min-width: 0; }
+.readout b { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; line-height: 1.15; color: var(--ink); overflow-wrap: anywhere; }
+.record { margin: 0; padding: 10px 12px; border-radius: var(--r-sm); background: var(--paper-2); font-family: var(--font-mono); font-size: var(--caption); line-height: 1.5; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 11rem; overflow-y: auto; }
+.msg { margin: 0; min-height: 1.4em; font-size: var(--body-sm); color: var(--ink); font-weight: 500; }
+.msg.bad { color: var(--red-600); }
+.msg.good { color: var(--green-600); }
+.alert { margin: 0; padding: 10px 14px; border-radius: var(--r-sm); background: var(--red-soft); color: var(--red-ink); font-size: var(--body-sm); }
+.notice { margin: 0; padding: 10px 14px; border-radius: var(--r-sm); background: var(--paper-3); color: var(--ink); font-size: var(--body-sm); }
+.slider { display: grid; gap: 2px; }
+.slider input[type=range] { width: 100%; min-height: 44px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.slider input[type=range]::-webkit-slider-runnable-track { height: 8px; background: var(--track); border-radius: var(--r-pill); }
+.slider input[type=range]::-moz-range-track { height: 8px; background: var(--track); border-radius: var(--r-pill); }
+.slider input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -7px; background: var(--paper); border: 2px solid var(--ink); border-radius: 50%; }
+.slider input[type=range]::-moz-range-thumb { width: 18px; height: 18px; background: var(--paper); border: 2px solid var(--ink); border-radius: 50%; }
+.slider input[disabled] { opacity: .5; cursor: not-allowed; }
+.ticks { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: var(--overline); color: var(--ink-3); }
+.train-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 16px 24px; }
+.metric-box { display: grid; gap: 8px; background: var(--ink); color: var(--paper); border-radius: var(--r-md); padding: 16px 18px; }
+.metric-box .edu-overline { color: var(--paper); margin: 0; }
+.metric-value { font-family: var(--font-display); font-weight: 700; font-size: 2.3rem; line-height: 1.1; color: var(--yellow); }
+.metric-box p { margin: 0; font-size: var(--body-sm); color: var(--paper); }
+.band { margin-top: 26px; display: grid; gap: 18px; }
+.band-two { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 18px; align-items: start; }
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; margin: 0; }
+.gallery figure { margin: 0; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.gallery canvas { width: 100%; height: auto; aspect-ratio: 1; border-radius: var(--r-xs); image-rendering: pixelated; }
+.gallery figcaption { font-size: var(--caption); line-height: 1.3; color: var(--ink); display: grid; gap: 3px; justify-items: start; }
+.gallery .chip { font-size: 11px; padding: 2px 8px; letter-spacing: 0; border-radius: var(--r-xs); }
+.curve { width: 100%; height: auto; display: block; }
+.curve .axis { stroke: var(--line-2); stroke-width: 1; fill: none; }
+.curve .line { stroke: var(--ink); stroke-width: 2.5; fill: none; }
+.curve text { font-family: var(--font-mono); font-size: 11px; fill: var(--ink-3); }
+.prob { display: grid; grid-template-columns: 5rem minmax(0, 1fr) 4rem; gap: 10px; align-items: center; font-size: var(--body-sm); color: var(--ink); }
+.prob b { font-family: var(--font-mono); font-weight: 500; text-align: right; }
+.probs { display: grid; gap: 8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.swatch { width: 12px; height: 12px; border-radius: var(--r-xs); display: inline-block; }
+.swatch-0 { background: var(--red); } .swatch-1 { background: var(--yellow); } .swatch-2 { background: var(--green); }
+.upload-label { position: relative; }
+.upload-label input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.upload-label:focus-within { box-shadow: var(--focus-ring); }
+.pair-canvases { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pair-canvases canvas { width: 100%; height: auto; aspect-ratio: 1; border-radius: var(--r-xs); image-rendering: pixelated; }
+.pair-canvases figure { margin: 0; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.pair-canvases figcaption { font-family: var(--font-mono); font-size: var(--overline); color: var(--ink); letter-spacing: .06em; text-transform: uppercase; }
+.placeholder { aspect-ratio: 1; display: grid; place-content: center; gap: 6px; text-align: center; padding: 10px; background: var(--paper-3); color: var(--ink); border-radius: var(--r-xs); font-size: var(--caption); line-height: 1.35; }
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.answer { margin: 10px 0 0; font-size: var(--body-sm); line-height: 1.45; color: var(--ink); overflow-wrap: anywhere; }
+.answer b { font-weight: 600; }
+.block { margin: 14px 0 0; padding: 14px 18px; border-radius: var(--r-md); }
+.block p { margin: 0; }
+.filter-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 16px; align-items: start; }
+.filter-row figure { margin: 0; display: grid; gap: 6px; }
+.filter-row canvas { width: 100%; max-width: 288px; height: auto; aspect-ratio: 1; border-radius: var(--r-sm); image-rendering: pixelated; }
+.filter-row figcaption { font-family: var(--font-mono); font-size: var(--overline); text-transform: uppercase; letter-spacing: .08em; color: var(--ink); }
+.matrix { display: grid; grid-template-columns: repeat(3, minmax(0, 3.2rem)); gap: 4px; justify-content: start; }
+.matrix span { display: grid; place-items: center; height: 3rem; border-radius: var(--r-xs); background: var(--paper-3); color: var(--ink); font-family: var(--font-mono); font-size: var(--caption); font-variant-numeric: tabular-nums; }
+
+/* ─── Ruled tables ─── */
+.scroll-x { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th { text-align: left; padding: 12px 16px; background: var(--paper-3); border-bottom: 1px solid var(--line-2); font-family: var(--font-mono); font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--ink); }
+td { padding: 12px 16px; border-bottom: 1px solid var(--line); color: var(--ink-2); vertical-align: top; }
+tbody tr:nth-child(even) td { background: var(--paper-2); }
+tbody tr:last-child td { border-bottom: none; }
+td:first-child { color: var(--ink); font-weight: 600; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+td code { font-size: 12px; overflow-wrap: anywhere; white-space: pre-wrap; display: block; padding: 6px 8px; margin-top: 4px; }
+.wide-table { min-width: 860px; }
+.mid-table { min-width: 560px; }
+
+/* ─── Calculator ─── */
+.calc-grid { display: grid; grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr); gap: 24px; align-items: start; }
+.field { margin-bottom: 14px; }
+.input { width: 100%; min-height: 44px; padding: 10px 14px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--ink); }
+.input[aria-invalid="true"] { border-color: var(--red-600); }
+.field-error { margin: 6px 0 0; font-size: var(--body-sm); color: var(--red-600); font-weight: 500; }
+.hbar { display: grid; grid-template-columns: minmax(7rem, 11rem) minmax(0, 1fr) minmax(4.5rem, auto); gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.hbar:first-child { border-top: 0; }
+.hbar-name { font-weight: 600; color: var(--ink); }
+.hbar-name small { display: block; font-weight: 400; font-size: var(--caption); color: var(--ink-2); }
+.hbar-track { height: 22px; background: var(--paper-3); border-radius: var(--r-pill); overflow: hidden; }
+.hbar-track span { display: block; height: 100%; background: var(--ink); border-radius: var(--r-pill); transition: width .2s ease; }
+.hbar-value { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+.choose-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 8px; }
+.choose-list .opt { text-align: left; font-weight: 500; }
+
+/* ─── Quiz ─── */
+.quiz-grid { display: grid; grid-template-columns: minmax(18rem, 2fr) minmax(0, 3fr); gap: 28px; align-items: start; }
+.quiz-q { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.3; color: var(--ink); margin: 0; font-weight: 700; }
+.quiz-opts { display: grid; gap: 8px; }
+.quiz-opt { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; text-align: left; min-height: 52px; padding: 10px 14px; border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface); color: var(--ink); cursor: pointer; transition: background-color .15s; }
+.quiz-opt:hover:not([disabled]) { background: var(--paper-2); }
+.quiz-opt[disabled] { cursor: default; }
+.quiz-opt[data-state="correct"] { background: var(--green-soft); color: var(--green-ink); border-color: var(--green-soft); }
+.quiz-opt[data-state="wrong"] { background: var(--red-soft); color: var(--red-ink); border-color: var(--red-soft); }
+.quiz-opt[data-state="correct"] kbd, .quiz-opt[data-state="wrong"] kbd { background: var(--paper); color: var(--ink); }
+.quiz-mark { font-family: var(--font-mono); font-size: var(--overline); }
+.quiz-score { font-family: var(--font-display); font-weight: 800; font-size: 3.3rem; line-height: 1; color: var(--ink); }
+
+/* ─── Dialog, footer, probes ─── */
+dialog { border: 1px solid var(--line-2); border-radius: var(--r-lg); padding: 0; box-shadow: var(--shadow-lg); max-width: min(30rem, calc(100vw - 32px)); color: var(--ink); background: var(--surface); }
+dialog::backdrop { background: color-mix(in srgb, var(--ink) 50%, transparent); }
+.keys { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: var(--body-sm); color: var(--ink-2); }
+.keys li { display: flex; gap: 10px; align-items: baseline; }
+.site-foot { padding: 18px var(--gutter); border-top: 1px solid var(--line-2); font-size: var(--caption); color: var(--ink-3); }
+.probe-panel { margin: 16px var(--gutter); }
+.probe-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: var(--body-sm); color: var(--ink); }
+.probe-list li { display: flex; gap: 8px; align-items: baseline; }
+
+/* ─── Narrow screens ─── */
+@media (max-width: 1100px) {
+  .edu-header-inner { flex-wrap: wrap; }
+  .nav { order: 3; flex: 1 0 100%; margin-left: 0; }
+  .head-tools { margin-left: auto; }
+  .band-two { grid-template-columns: minmax(0, 1fr); }
+  .workbench { grid-template-columns: minmax(0, 1fr); }
+  .workbench.has-record { grid-template-areas: "stage" "side" "rec"; grid-template-rows: auto; }
+  .three { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 768px) {
+  .edu-header-inner { padding: 4px 16px; gap: 8px; }
+  .edu-logo { width: 40px; height: 40px; margin-right: -4px; }
+  .edu-wordmark { font-size: 18px; }
+  .progress-box { width: 40px; }
+  .progress-word { display: none; }
+  .head-tools .btn { padding: 6px 10px; font-size: var(--body-sm); }
+  .nav { padding: 3px 0; }
+  html { scroll-padding-top: 120px; }
+  .page-head { padding: 24px 16px 24px; }
+  .sec { padding: 28px 0 32px; }
+  .sec > .wrap { padding: 0 16px; }
+  .group-hero { grid-template-columns: minmax(0, 1fr); padding: 18px 16px; gap: 12px; }
+  .sec-head { flex-wrap: wrap; }
+  .sec-head h2 { flex: 1; min-width: 0; font-size: 26px; }
+  .sec-head::after { flex: 1 0 100%; }
+  .row-head h2 { font-size: 24px; }
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .chain { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .link:not(:last-child)::after { content: "↓"; left: 50%; top: 100%; width: auto; transform: translateX(-50%); line-height: 24px; }
+  .calc-grid, .quiz-grid { grid-template-columns: minmax(0, 1fr); }
+  .card-body.stage-body { padding: 0; }
+  .card-body.stage-body .side, .card-body.stage-body .rec-wrap { padding: 14px; }
+  .card-body.stage-body .rec-wrap { padding-top: 0; }
+  .stage-body .stage { max-width: none; border-radius: 0; }
+  .hbar { grid-template-columns: minmax(0, 1fr) auto; }
+  .hbar-track { grid-column: 1 / -1; grid-row: 2; }
+  .quiz-opt kbd { display: none; }
+  .quiz-opt { grid-template-columns: minmax(0, 1fr) auto; }
+  .kbd-only { display: none; }
+  .class-opts .opt { padding: 9px 4px; font-size: var(--body-sm); }
+}
+@media (max-width: 359px) {
+  .edu-wordmark { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/lucide@1.57.0/dist/umd/lucide.min.js" integrity="sha384-Qp5jsYqEgOGiWD8YMQ6yXIycASOePxr9mmbt+Ua0Wu1IScYxo0Pxf7o3Kx6NWJID" crossorigin="anonymous" async></script>
+</head>
+<body class="edu">
+<noscript><p>Ta aplikacja wymaga włączonego JavaScriptu.</p></noscript>
+<header class="edu-header"><div class="edu-header-inner">
+  <img class="edu-logo" alt="edulab" src="data:image/png;base64,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">
+  <span class="edu-wordmark">edulab</span>
+  <nav class="nav" id="nav" aria-label="Widoki"></nav>
+  <div class="head-tools">
+    <div class="progress-box" id="progress" data-progress="0/7" role="progressbar" aria-label="Postęp" aria-valuemin="0" aria-valuemax="7" aria-valuenow="0">
+      <span class="progress-label" id="progress-label">Postęp 0/7</span>
+      <div class="bar fill-yellow"><span id="progress-fill"></span></div>
+    </div>
+    <button type="button" class="btn" id="help-open" aria-label="Skróty klawiszowe">?</button>
+    <button type="button" class="btn" id="reset-open">Od nowa</button>
+  </div>
+</div></header>
+<main id="main" data-view="start"></main>
+<footer class="site-foot">Wszystko liczy się w tej przeglądarce. Żadne dane ani zdjęcia nie opuszczają urządzenia.</footer>
+<div id="live" class="sr-only" aria-live="polite" role="status"></div>
+<dialog id="help-dialog" aria-labelledby="help-title">
+  <div class="card-head"><h3 id="help-title">Skróty klawiszowe</h3></div>
+  <div class="card-body"><ul class="keys">
+    <li><kbd>←</kbd><kbd>→</kbd> poprzedni lub następny widok</li>
+    <li><kbd>T</kbd> trenuj w bieżącym laboratorium</li>
+    <li><kbd>N</kbd> nowy obraz: w kroku „Sprawdź”, gdy jest model, inaczej w kroku „Oznacz”</li>
+    <li><kbd>1</kbd>–<kbd>4</kbd> odpowiedź w quizie, <kbd>Enter</kbd> dalej</li>
+    <li><kbd>?</kbd> ta lista, <kbd>Esc</kbd> zamknięcie</li>
+    <li>Na kanwach: strzałki, Shift+strzałki, spacja, <kbd>Enter</kbd> zatwierdza</li>
+  </ul></div>
+  <div class="card-foot"><button type="button" class="btn btn-primary" id="help-close">Zamknij</button></div>
+</dialog>
+<dialog id="reset-dialog" aria-labelledby="reset-title">
+  <div class="card-head"><h3 id="reset-title">Zacząć od nowa?</h3></div>
+  <div class="card-body"><p>Znikną postęp, modele, historia prób i wyniki.</p></div>
+  <div class="card-foot"><button type="button" class="btn" id="reset-cancel">Anuluj</button><button type="button" class="btn btn-primary" id="reset-confirm">Tak, od nowa</button></div>
+</dialog>
+<script>
+// ─── Vision core: generator, labels, measures, neural network (also runs in the worker) ───
+function cvCore() {
+  'use strict';
+  // ─── Constants ───
+  const SIZE = 32, PIXELS = SIZE * SIZE;
+  const CLASS_NAMES = ['jabłko', 'banan', 'gruszka'];
+  const TEST_SIZE = 99, BASE_SEED = 20261031, TEST_SEED = 77000000;
+  const EPOCHS = {
+    cls: { 10: 40, 50: 28, 200: 16, 500: 12 },
+    loc: { 10: 40, 50: 30, 200: 20, 500: 16 },
+    seg: { 10: 40, 50: 24, 200: 12, 500: 8 },
+  };
+  const BATCH = { cls: 16, loc: 16, seg: 8 };
+  const LEARNING_RATE = { cls: 0.003, loc: 0.003, seg: 0.004 };
+  const BG = {
+    light: [[0.86, 0.85, 0.82], [0.92, 0.90, 0.86], [0.78, 0.82, 0.84]],
+    mid: [[0.52, 0.50, 0.47], [0.44, 0.52, 0.58]],
+    dark: [[0.16, 0.16, 0.18], [0.24, 0.20, 0.17], [0.11, 0.17, 0.25]],
+  };
+  // Colour overlaps on purpose: colour alone must not settle the class.
+  const FRUIT_COLORS = [
+    [[[0.80, 0.14, 0.14], 5], [[0.46, 0.68, 0.20], 3], [[0.88, 0.70, 0.18], 2]],
+    [[[0.93, 0.78, 0.16], 7], [[0.66, 0.72, 0.20], 3]],
+    [[[0.56, 0.72, 0.24], 5], [[0.88, 0.76, 0.26], 3], [[0.72, 0.36, 0.20], 2]],
+  ];
+
+  // ─── Helpers ───
+  function rngFrom(seed) {
+    let a = seed >>> 0;
+    return function next() {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const between = (rng, a, b) => a + (b - a) * rng();
+  const pick = (rng, list) => list[Math.floor(rng() * list.length)];
+  function weighted(rng, list) {
+    let total = 0;
+    for (const item of list) total += item[1];
+    let roll = rng() * total;
+    for (const item of list) { roll -= item[1]; if (roll <= 0) return item[0]; }
+    return list[list.length - 1][0];
+  }
+  function shuffled(count, rng) {
+    const order = Array.from({ length: count }, (_, i) => i);
+    for (let i = count - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      const swap = order[i]; order[i] = order[j]; order[j] = swap;
+    }
+    return order;
+  }
+
+  // ─── Scene generator ───
+  // u,v are coordinates in the object's own frame, about -1..1.
+  function insideFruit(cls, u, v) {
+    if (cls === 0) { // apple: wide disc with a dent on top and a stem
+      const dent = u * u / 0.06 + (v + 0.92) * (v + 0.92) / 0.09 < 1;
+      const stem = Math.abs(u) < 0.09 && v > -1.18 && v < -0.7;
+      return stem || (u * u / 0.92 + v * v / 0.82 < 1 && !dent);
+    }
+    if (cls === 1) { // banana: thick crescent
+      const outer = u * u + (v + 0.55) * (v + 0.55) < 1.42 * 1.42 * 0.72;
+      const inner = u * u + (v + 0.95) * (v + 0.95) < 1.08 * 1.08 * 0.72;
+      return outer && !inner && v > -0.62;
+    }
+    // pear: small top disc melting into a large bottom disc
+    const top = u * u / 0.17 + (v + 0.52) * (v + 0.52) / 0.2 < 1;
+    const bottom = u * u / 0.5 + (v - 0.34) * (v - 0.34) / 0.42 < 1;
+    const neck = Math.abs(u) < 0.42 - 0.12 * (v + 0.3) && v > -0.5 && v < 0.2;
+    const stem = Math.abs(u) < 0.07 && v > -1.14 && v < -0.8;
+    return top || bottom || neck || stem;
+  }
+  function drawObject(target, shape, rng, skipPainted) {
+    const cos = Math.cos(shape.angle), sin = Math.sin(shape.angle);
+    const color = weighted(rng, FRUIT_COLORS[shape.cls]);
+    const tint = between(rng, -0.05, 0.05);
+    let area = 0;
+    const margin = shape.radius * 1.6;
+    const y0 = Math.floor(shape.cy - margin), y1 = Math.ceil(shape.cy + margin);
+    const x0 = Math.floor(shape.cx - margin), x1 = Math.ceil(shape.cx + margin);
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        const dx = (x + 0.5 - shape.cx) / shape.radius, dy = (y + 0.5 - shape.cy) / shape.radius;
+        const u = cos * dx + sin * dy, v = -sin * dx + cos * dy;
+        if (!insideFruit(shape.cls, u, v)) continue;
+        area++;
+        if (x < 0 || y < 0 || x >= SIZE || y >= SIZE) continue;
+        const p = y * SIZE + x;
+        if (skipPainted && target.mask[p]) continue;
+        target.mask[p] = shape.cls + 1;
+        const shade = 1.08 - 0.26 * (dy + 1) / 2 - 0.1 * Math.abs(dx);
+        for (let c = 0; c < 3; c++) target.img[p * 3 + c] = Math.min(1, Math.max(0, (color[c] + tint) * shade));
+      }
+    }
+    return area;
+  }
+  function paintBackground(img, rng, kind) {
+    const base = pick(rng, BG[kind]);
+    const stripe = between(rng, 0.03, 0.07) * (rng() < 0.5 ? -1 : 1);
+    const period = 4 + Math.floor(rng() * 5);
+    for (let y = 0; y < SIZE; y++) {
+      const band = (y % period) < 1 ? stripe : 0;
+      for (let x = 0; x < SIZE; x++) for (let c = 0; c < 3; c++) img[(y * SIZE + x) * 3 + c] = base[c] + band;
+    }
+  }
+  function addNoise(img, rng, level) {
+    for (let i = 0; i < img.length; i++) img[i] = Math.min(1, Math.max(0, img[i] + (rng() - 0.5) * level));
+  }
+  function boxOfClass(mask, value) {
+    let x0 = SIZE, y0 = SIZE, x1 = -1, y1 = -1;
+    for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+      if (mask[y * SIZE + x] === value) {
+        if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+    }
+    return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+  }
+  function countClasses(mask) {
+    const counts = [0, 0, 0, 0];
+    for (let i = 0; i < mask.length; i++) counts[mask[i]]++;
+    return counts;
+  }
+  /** opts: seed, cls (0-2 or undefined), mode normal|two|hard, background all|light */
+  function genScene(opts) {
+    const rng = rngFrom(opts.seed);
+    const mode = opts.mode || 'normal';
+    const img = new Float32Array(PIXELS * 3), mask = new Uint8Array(PIXELS);
+    const kind = opts.background === 'light' ? 'light' : pick(rng, ['light', 'light', 'mid', 'dark', 'dark']);
+    paintBackground(img, rng, kind);
+    const target = { img, mask };
+    let cls = opts.cls === undefined ? Math.floor(rng() * 3) : opts.cls;
+    const scene = { seed: opts.seed, id: 'img-' + String(opts.seed % 100000).padStart(5, '0'), mode, background: kind, img, mask, cls };
+    if (mode === 'two') {
+      const other = (cls + 1 + Math.floor(rng() * 2)) % 3;
+      const radiusA = between(rng, 6.5, 7.5), radiusB = between(rng, 5, 6);
+      const yA = between(rng, 12, 20), yB = between(rng, 12, 20);
+      drawObject(target, { cls, cx: 9, cy: yA, radius: radiusA, angle: between(rng, -0.3, 0.3) }, rng);
+      drawObject(target, { cls: other, cx: 24, cy: yB, radius: radiusB, angle: between(rng, -0.3, 0.3) }, rng);
+      const counts = countClasses(mask);
+      const a = counts[cls + 1], b = counts[other + 1];
+      const boxA = boxOfClass(mask, cls + 1), boxB = boxOfClass(mask, other + 1);
+      const main = a > b || (a === b && boxA.x <= boxB.x) ? cls : other;
+      scene.cls = main; scene.classes = [cls, other];
+    } else if (mode === 'hard') {
+      scene.classes = [cls];
+      // The hidden share must land in 25-40%, so a miss draws the scene again.
+      const clean = img.slice();
+      for (let attempt = 0; attempt < 40; attempt++) {
+        img.set(clean); mask.fill(0);
+        const radius = between(rng, 8.5, 10), angle = between(rng, -0.5, 0.5);
+        const goal = 0.26 + rng() * 0.12;
+        const colorSeed = Math.floor(rng() * 1e9);
+        if (rng() < 0.5) {
+          const cx = between(rng, 13, 19), cy = between(rng, 13, 19);
+          const full = drawObject(target, { cls, cx, cy, radius, angle }, rngFrom(colorSeed));
+          const box = boxOfClass(mask, cls + 1);
+          const fromLeft = rng() < 0.5;
+          let hidden = 0, width = 0;
+          while (width < box.w && hidden / full < goal) {
+            const col = fromLeft ? box.x + width : box.x + box.w - width - 1;
+            for (let y = 0; y < SIZE; y++) if (mask[y * SIZE + col]) hidden++;
+            width++;
+          }
+          const share = hidden / full;
+          if (share < 0.25 || share > 0.4) continue;
+          const shutterX = fromLeft ? 0 : box.x + box.w - width;
+          const shutterW = fromLeft ? box.x + width : SIZE - shutterX;
+          const grey = between(rng, 0.45, 0.6);
+          for (let y = 0; y < SIZE; y++) for (let x = shutterX; x < shutterX + shutterW; x++) {
+            const p = y * SIZE + x; mask[p] = 0;
+            for (let c = 0; c < 3; c++) img[p * 3 + c] = grey;
+          }
+          scene.hard = { type: 'przesłona', hidden: share };
+          break;
+        }
+        const side = rng() < 0.5 ? -1 : 1;
+        let found = -1, share = 0;
+        for (let offset = 16 - radius; offset < 26; offset += 0.25) {
+          const probe = { img: new Float32Array(PIXELS * 3), mask: new Uint8Array(PIXELS) };
+          const area = drawObject(probe, { cls, cx: 16 + side * offset, cy: 16, radius, angle }, rngFrom(colorSeed));
+          share = 1 - countClasses(probe.mask)[cls + 1] / area;
+          if (share >= goal) { found = offset; break; }
+        }
+        if (found < 0 || share > 0.4) continue;
+        drawObject(target, { cls, cx: 16 + side * found, cy: 16, radius, angle }, rngFrom(colorSeed));
+        scene.hard = { type: 'krawędź kadru', hidden: share };
+        break;
+      }
+    } else {
+      scene.classes = [cls];
+      const radius = between(rng, 7, 12);
+      const pad = radius * 1.05;
+      const cx = between(rng, pad, SIZE - pad), cy = between(rng, pad, SIZE - pad);
+      const angle = cls === 1 ? between(rng, -Math.PI, Math.PI) : between(rng, -0.55, 0.55);
+      drawObject(target, { cls, cx, cy, radius, angle }, rng);
+    }
+    addNoise(img, rng, 0.05);
+    scene.box = boxOfClass(mask, scene.cls + 1);
+    return scene;
+  }
+
+  // ─── Labels and datasets ───
+  function trainSeed(index) { return BASE_SEED + index * 7 + 1; }
+  function shiftedMask(mask, dx, dy) {
+    const out = new Uint8Array(PIXELS);
+    for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+      const ny = y + dy, nx = x + dx;
+      if (ny >= 0 && ny < SIZE && nx >= 0 && nx < SIZE) out[ny * SIZE + nx] = mask[y * SIZE + x];
+    }
+    return out;
+  }
+  function relabelMask(mask, value) {
+    const out = new Uint8Array(PIXELS);
+    for (let i = 0; i < PIXELS; i++) out[i] = mask[i] ? value : 0;
+    return out;
+  }
+  function labelKey(task, label) {
+    if (task === 'cls') return CLASS_NAMES[label.cls];
+    if (task === 'loc') return CLASS_NAMES[label.cls] + ' ' + [label.box.x, label.box.y, label.box.w, label.box.h].join(',');
+    let sum = 0;
+    for (let i = 0; i < PIXELS; i++) sum = (Math.imul(sum, 31) + label.mask[i]) | 0;
+    return CLASS_NAMES[label.cls] + ' maska ' + (sum >>> 0).toString(16);
+  }
+  function trueLabel(task, scene) {
+    if (task === 'cls') return { cls: scene.cls };
+    if (task === 'loc') return { cls: scene.cls, box: scene.box };
+    return { cls: scene.cls, mask: scene.mask };
+  }
+  // A systematic drift of the annotator, always the same way: this is what hurts a model.
+  function corruptLabel(task, scene, rng) {
+    const wrong = (scene.cls + 1 + Math.floor(rng() * 2)) % 3;
+    if (task === 'cls') return { label: { cls: wrong }, kind: 'class' };
+    const useClass = rng() < 0.35;
+    if (useClass) {
+      if (task === 'loc') return { label: { cls: wrong, box: scene.box }, kind: 'class' };
+      return { label: { cls: wrong, mask: relabelMask(scene.mask, wrong + 1) }, kind: 'class' };
+    }
+    const dx = Math.max(1, Math.ceil(scene.box.w * between(rng, 0.3, 0.55)));
+    const dy = Math.max(1, Math.ceil(scene.box.h * between(rng, 0.3, 0.55)));
+    if (task === 'loc') {
+      const b = scene.box;
+      const box = { x: b.x + dx, y: b.y + dy, w: b.w, h: b.h };
+      return { label: { cls: scene.cls, box }, kind: 'shift' };
+    }
+    return { label: { cls: scene.cls, mask: shiftedMask(scene.mask, dx, dy) }, kind: 'shift' };
+  }
+  function noisyIndices(count, noisePct) {
+    const wanted = Math.round(count * noisePct / 100);
+    const set = new Set(shuffled(count, rngFrom(BASE_SEED + count * 13 + noisePct)).slice(0, wanted));
+    return set;
+  }
+  /** One training example, the same image for every task and noise level. */
+  function trainExample(task, index, count, noisy, background) {
+    const cls = index % 3;
+    const scene = genScene({ seed: trainSeed(index), cls, background });
+    const example = { scene, index, label: trueLabel(task, scene), flagged: false, kind: null };
+    if (noisy.has(index)) {
+      const out = corruptLabel(task, scene, rngFrom(trainSeed(index) ^ 0x5bd1e995));
+      example.label = out.label; example.flagged = true; example.kind = out.kind;
+    }
+    return example;
+  }
+  function buildTrainSet(task, count, noisePct, diversity) {
+    const noisy = noisyIndices(count, noisePct);
+    const background = diversity === 'light' ? 'light' : 'all';
+    const examples = [];
+    for (let i = 0; i < count; i++) examples.push(trainExample(task, i, count, noisy, background));
+    return examples;
+  }
+  /** min(12, N) examples of the current set; flagged share = round(k * noise). */
+  function galleryExamples(task, count, noisePct, diversity) {
+    const k = Math.min(12, count);
+    const wanted = Math.round(k * noisePct / 100);
+    const noisy = noisyIndices(count, noisePct);
+    const background = diversity === 'light' ? 'light' : 'all';
+    const dirty = [], clean = [];
+    for (let i = 0; i < count; i++) (noisy.has(i) ? dirty : clean).push(i);
+    const chosen = dirty.slice(0, wanted).concat(clean.slice(0, k - wanted)).sort((a, b) => a - b);
+    return chosen.map(i => trainExample(task, i, count, noisy, background));
+  }
+  let testCache = null;
+  function testSet() {
+    if (testCache) return testCache;
+    testCache = [];
+    for (let i = 0; i < TEST_SIZE; i++) testCache.push(genScene({ seed: TEST_SEED + i, cls: i % 3 }));
+    return testCache;
+  }
+  function labelValues(task, images) {
+    return images * (task === 'cls' ? 1 : task === 'loc' ? 5 : PIXELS);
+  }
+
+  // ─── Measures ───
+  function iouBox(a, b) {
+    if (!a || !b || a.w <= 0 || a.h <= 0 || b.w <= 0 || b.h <= 0) return 0;
+    const w = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+    const h = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+    if (w <= 0 || h <= 0) return 0;
+    const inter = w * h;
+    return inter / (a.w * a.h + b.w * b.h - inter);
+  }
+  /** Same class other than background over pixels where either side is not background. */
+  function iouMask(pred, truth) {
+    let inter = 0, union = 0;
+    for (let i = 0; i < pred.length; i++) {
+      if (pred[i] || truth[i]) union++;
+      if (pred[i] && pred[i] === truth[i]) inter++;
+    }
+    return union ? inter / union : 0;
+  }
+  function rleEncode(mask) {
+    const runs = [];
+    let value = 0, run = 0;
+    for (let i = 0; i < mask.length; i++) {
+      const bit = mask[i] ? 1 : 0;
+      if (bit === value) run++;
+      else { runs.push(run); value = bit; run = 1; }
+    }
+    runs.push(run);
+    return runs;
+  }
+  function rleDecode(runs, length) {
+    const out = new Uint8Array(length);
+    let at = 0, value = 0;
+    for (const run of runs) { if (value) out.fill(1, at, at + run); at += run; value = 1 - value; }
+    return out;
+  }
+  function baseline(task) {
+    const tests = testSet();
+    if (task === 'cls') return 1 / 3;
+    if (task === 'loc') {
+      const center = { x: 8, y: 8, w: 16, h: 16 };
+      return tests.reduce((sum, s) => sum + iouBox(center, s.box), 0) / tests.length;
+    }
+    const square = new Uint8Array(PIXELS);
+    for (let y = 8; y < 24; y++) for (let x = 8; x < 24; x++) square[y * SIZE + x] = 1;
+    return tests.reduce((sum, s) => sum + iouMask(square, s.mask), 0) / tests.length;
+  }
+
+  // ─── Small neural network ───
+  function Conv(rng, inCh, outCh, size, stride, dilation, inW, inH, activate) {
+    const outW = Math.ceil(inW / stride), outH = Math.ceil(inH / stride);
+    const weights = new Float32Array(outCh * inCh * size * size);
+    const bias = new Float32Array(outCh);
+    const scale = Math.sqrt(2 / (inCh * size * size));
+    for (let i = 0; i < weights.length; i++) weights[i] = (rng() + rng() + rng() - 1.5) * 1.414 * scale;
+    const half = (size - 1) / 2;
+    const output = new Float32Array(outW * outH * outCh);
+    const offsetsY = [], offsetsX = [];
+    for (let ky = 0; ky < size; ky++) for (let kx = 0; kx < size; kx++) {
+      offsetsY.push((ky - half) * dilation); offsetsX.push((kx - half) * dilation);
+    }
+    const kernel = size * size;
+    return {
+      params: [weights, bias], outSize: output.length, input: null,
+      forward(input) {
+        this.input = input;
+        output.fill(0);
+        for (let oy = 0; oy < outH; oy++) {
+          const cy = oy * stride;
+          for (let ox = 0; ox < outW; ox++) {
+            const cx = ox * stride, at = (oy * outW + ox) * outCh;
+            for (let k = 0; k < kernel; k++) {
+              const iy = cy + offsetsY[k], ix = cx + offsetsX[k];
+              if (iy < 0 || ix < 0 || iy >= inH || ix >= inW) continue;
+              const inAt = (iy * inW + ix) * inCh;
+              for (let i = 0; i < inCh; i++) {
+                const v = input[inAt + i];
+                if (v === 0) continue;
+                const w = (i * kernel + k) * 1;
+                for (let o = 0; o < outCh; o++) output[at + o] += weights[o * inCh * kernel + w] * v;
+              }
+            }
+            for (let o = 0; o < outCh; o++) {
+              const v = output[at + o] + bias[o];
+              output[at + o] = activate && v < 0 ? 0 : v;
+            }
+          }
+        }
+        return output;
+      },
+      backward(gradOut, grads) {
+        const gw = grads[0], gb = grads[1], input = this.input;
+        const gradIn = new Float32Array(input.length);
+        for (let oy = 0; oy < outH; oy++) {
+          const cy = oy * stride;
+          for (let ox = 0; ox < outW; ox++) {
+            const cx = ox * stride, at = (oy * outW + ox) * outCh;
+            if (activate) for (let o = 0; o < outCh; o++) if (output[at + o] === 0) gradOut[at + o] = 0;
+            for (let o = 0; o < outCh; o++) gb[o] += gradOut[at + o];
+            for (let k = 0; k < kernel; k++) {
+              const iy = cy + offsetsY[k], ix = cx + offsetsX[k];
+              if (iy < 0 || ix < 0 || iy >= inH || ix >= inW) continue;
+              const inAt = (iy * inW + ix) * inCh;
+              for (let i = 0; i < inCh; i++) {
+                const v = input[inAt + i], w = i * kernel + k;
+                let sum = 0;
+                for (let o = 0; o < outCh; o++) {
+                  const g = gradOut[at + o];
+                  if (g === 0) continue;
+                  const idx = o * inCh * kernel + w;
+                  sum += weights[idx] * g;
+                  gw[idx] += v * g;
+                }
+                gradIn[inAt + i] += sum;
+              }
+            }
+          }
+        }
+        return gradIn;
+      },
+    };
+  }
+  function Dense(rng, inSize, outSize, activate) {
+    const weights = new Float32Array(inSize * outSize), bias = new Float32Array(outSize);
+    const scale = Math.sqrt(2 / inSize);
+    for (let i = 0; i < weights.length; i++) weights[i] = (rng() + rng() + rng() - 1.5) * 1.414 * scale;
+    const output = new Float32Array(outSize);
+    return {
+      params: [weights, bias], outSize, input: null,
+      forward(input) {
+        this.input = input;
+        for (let o = 0; o < outSize; o++) {
+          let sum = bias[o];
+          const row = o * inSize;
+          for (let i = 0; i < inSize; i++) sum += weights[row + i] * input[i];
+          output[o] = activate && sum < 0 ? 0 : sum;
+        }
+        return output;
+      },
+      backward(gradOut, grads) {
+        const gw = grads[0], gb = grads[1], input = this.input;
+        const gradIn = new Float32Array(inSize);
+        for (let o = 0; o < outSize; o++) {
+          if (activate && output[o] === 0) continue;
+          const g = gradOut[o];
+          if (g === 0) continue;
+          gb[o] += g;
+          const row = o * inSize;
+          for (let i = 0; i < inSize; i++) { gw[row + i] += g * input[i]; gradIn[i] += g * weights[row + i]; }
+        }
+        return gradIn;
+      },
+    };
+  }
+  function upsample(src, inW, ch, factor) {
+    const outW = inW * factor, out = new Float32Array(outW * outW * ch);
+    for (let y = 0; y < outW; y++) {
+      const sy = (y / factor) | 0;
+      for (let x = 0; x < outW; x++) {
+        const from = (sy * inW + ((x / factor) | 0)) * ch, to = (y * outW + x) * ch;
+        for (let c = 0; c < ch; c++) out[to + c] = src[from + c];
+      }
+    }
+    return out;
+  }
+  function upsampleBack(grad, offset, inW, ch, factor) {
+    const outW = inW * factor, total = outW + 0, stride = STACK_CHANNELS, out = new Float32Array(inW * inW * ch);
+    for (let y = 0; y < total; y++) {
+      const sy = (y / factor) | 0;
+      for (let x = 0; x < total; x++) {
+        const from = (y * outW + x) * stride + offset, to = (sy * inW + ((x / factor) | 0)) * ch;
+        for (let c = 0; c < ch; c++) out[to + c] += grad[from + c];
+      }
+    }
+    return out;
+  }
+  // Pixel network: a fine branch keeps edges, coarse branches see the whole fruit.
+  const FINE = 8, MID = 12, COARSE = 16, STACK_CHANNELS = FINE + MID + COARSE;
+  function buildSegNet(seed) {
+    const rng = rngFrom(seed);
+    const c1 = Conv(rng, 3, FINE, 3, 1, 1, SIZE, SIZE, true);
+    const c2 = Conv(rng, FINE, MID, 3, 2, 1, SIZE, SIZE, true);
+    const c3 = Conv(rng, MID, COARSE, 3, 2, 1, 16, 16, true);
+    const c4 = Conv(rng, COARSE, COARSE, 3, 1, 2, 8, 8, true);
+    const head = Conv(rng, STACK_CHANNELS, 4, 1, 1, 1, SIZE, SIZE, false);
+    const layers = [c1, c2, c3, c4, head];
+    const stack = new Float32Array(PIXELS * STACK_CHANNELS);
+    return {
+      task: 'seg', layers,
+      forward(input) {
+        const a = c1.forward(input), b = c2.forward(a), c = c3.forward(b), d = c4.forward(c);
+        const midUp = upsample(b, 16, MID, 2), coarseUp = upsample(d, 8, COARSE, 4);
+        for (let p = 0; p < PIXELS; p++) {
+          const at = p * STACK_CHANNELS;
+          for (let i = 0; i < FINE; i++) stack[at + i] = a[p * FINE + i];
+          for (let i = 0; i < MID; i++) stack[at + FINE + i] = midUp[p * MID + i];
+          for (let i = 0; i < COARSE; i++) stack[at + FINE + MID + i] = coarseUp[p * COARSE + i];
+        }
+        return head.forward(stack);
+      },
+      backward(grad, grads) {
+        const gStack = head.backward(grad, [grads[8], grads[9]]);
+        const gD = upsampleBack(gStack, FINE + MID, 8, COARSE, 4);
+        const gMid = upsampleBack(gStack, FINE, 16, MID, 2);
+        const gC = c4.backward(gD, [grads[6], grads[7]]);
+        const gB = c3.backward(gC, [grads[4], grads[5]]);
+        for (let i = 0; i < gB.length; i++) gB[i] += gMid[i];
+        const gA = c2.backward(gB, [grads[2], grads[3]]);
+        for (let p = 0; p < PIXELS; p++) for (let i = 0; i < FINE; i++) gA[p * FINE + i] += gStack[p * STACK_CHANNELS + i];
+        c1.backward(gA, [grads[0], grads[1]]);
+      },
+      weights() { const out = []; for (const l of layers) for (const p of l.params) out.push(p); return out; },
+      load(list) { const mine = this.weights(); list.forEach((src, i) => mine[i].set(src)); },
+    };
+  }
+  function buildNet(task, seed) {
+    if (task === 'seg') return buildSegNet(seed);
+    const rng = rngFrom(seed);
+    const layers = [
+      Conv(rng, 3, 8, 3, 2, 1, SIZE, SIZE, true),
+      Conv(rng, 8, 16, 3, 2, 1, 16, 16, true),
+      Conv(rng, 16, 16, 3, 1, 1, 8, 8, true),
+      Dense(rng, 8 * 8 * 16, 32, true),
+      Dense(rng, 32, task === 'cls' ? 3 : 7, false),
+    ];
+    return {
+      task, layers,
+      forward(input) { let x = input; for (const layer of layers) x = layer.forward(x); return x; },
+      backward(grad, grads) {
+        let g = grad;
+        for (let l = layers.length - 1; l >= 0; l--) g = layers[l].backward(g, [grads[l * 2], grads[l * 2 + 1]]);
+      },
+      weights() { const out = []; for (const l of layers) for (const p of l.params) out.push(p); return out; },
+      load(list) { const mine = this.weights(); list.forEach((src, i) => mine[i].set(src)); },
+    };
+  }
+  function softmaxInto(logits, start, count, out) {
+    let top = -Infinity;
+    for (let i = 0; i < count; i++) if (logits[start + i] > top) top = logits[start + i];
+    let sum = 0;
+    for (let i = 0; i < count; i++) { out[i] = Math.exp(logits[start + i] - top); sum += out[i]; }
+    for (let i = 0; i < count; i++) out[i] /= sum;
+    return out;
+  }
+  function boxFromOutputs(cx, cy, w, h) {
+    const bw = Math.max(1, Math.min(SIZE, w * SIZE)), bh = Math.max(1, Math.min(SIZE, h * SIZE));
+    const x = Math.max(0, Math.min(SIZE - bw, cx * SIZE - bw / 2));
+    const y = Math.max(0, Math.min(SIZE - bh, cy * SIZE - bh / 2));
+    return { x, y, w: bw, h: bh };
+  }
+  function predict(net, img) {
+    const out = net.forward(img);
+    if (net.task === 'cls') {
+      const probs = Array.from(softmaxInto(out, 0, 3, new Float64Array(3)));
+      return { probs, cls: probs.indexOf(Math.max.apply(null, probs)) };
+    }
+    if (net.task === 'loc') {
+      const probs = Array.from(softmaxInto(out, 0, 3, new Float64Array(3)));
+      return { probs, cls: probs.indexOf(Math.max.apply(null, probs)), box: boxFromOutputs(out[3], out[4], out[5], out[6]) };
+    }
+    const mask = new Uint8Array(PIXELS);
+    for (let p = 0; p < PIXELS; p++) {
+      let best = 0, top = out[p * 4];
+      for (let c = 1; c < 4; c++) if (out[p * 4 + c] > top) { top = out[p * 4 + c]; best = c; }
+      mask[p] = best;
+    }
+    return { mask, counts: countClasses(mask) };
+  }
+  function lossAndGradient(task, out, label, grad) {
+    grad.fill(0);
+    let loss = 0;
+    const probs = new Float64Array(task === 'seg' ? 4 : 3);
+    if (task === 'seg') {
+      const mask = label.mask;
+      for (let p = 0; p < PIXELS; p++) {
+        softmaxInto(out, p * 4, 4, probs);
+        const target = mask[p];
+        loss -= Math.log(Math.max(probs[target], 1e-7));
+        // Objects cover a small part of the frame, so their pixels weigh more.
+        const weight = (target ? 2.2 : 1) / PIXELS;
+        for (let c = 0; c < 4; c++) grad[p * 4 + c] = weight * (probs[c] - (c === target ? 1 : 0));
+      }
+      return loss / PIXELS;
+    }
+    softmaxInto(out, 0, 3, probs);
+    loss -= Math.log(Math.max(probs[label.cls], 1e-7));
+    for (let c = 0; c < 3; c++) grad[c] = probs[c] - (c === label.cls ? 1 : 0);
+    if (task === 'loc') {
+      const b = label.box;
+      const target = [(b.x + b.w / 2) / SIZE, (b.y + b.h / 2) / SIZE, b.w / SIZE, b.h / SIZE];
+      const weight = 12;
+      for (let i = 0; i < 4; i++) {
+        const diff = out[3 + i] - target[i];
+        loss += weight * 0.5 * diff * diff;
+        grad[3 + i] = weight * diff;
+      }
+    }
+    return loss;
+  }
+  function evaluate(net) {
+    const tests = testSet();
+    let total = 0, classHits = 0;
+    for (const scene of tests) {
+      const pred = predict(net, scene.img);
+      if (net.task === 'cls') total += pred.cls === scene.cls ? 1 : 0;
+      else if (net.task === 'loc') { total += iouBox(pred.box, scene.box); classHits += pred.cls === scene.cls ? 1 : 0; }
+      else total += iouMask(pred.mask, scene.mask);
+    }
+    const result = { metric: total / tests.length };
+    if (net.task === 'loc') result.classAcc = classHits / tests.length;
+    return result;
+  }
+  /** Generator: yields progress objects, returns the finished run. */
+  function* train(settings) {
+    const { task, images, noise, diversity } = settings;
+    const set = buildTrainSet(task, images, noise, diversity);
+    const net = buildNet(task, BASE_SEED + images + noise * 3);
+    const epochs = settings.epochs || EPOCHS[task][images];
+    const batch = BATCH[task];
+    const rate = LEARNING_RATE[task];
+    const params = net.weights();
+    const grads = params.map(p => new Float32Array(p.length));
+    const moment1 = params.map(p => new Float32Array(p.length));
+    const moment2 = params.map(p => new Float32Array(p.length));
+    const outSize = net.layers[net.layers.length - 1].outSize;
+    const grad = new Float32Array(outSize);
+    const orderRng = rngFrom(BASE_SEED ^ (images * 101 + noise));
+    const stepsPerEpoch = Math.ceil(images / batch);
+    const totalSteps = epochs * stepsPerEpoch;
+    let step = 0;
+    const curve = [];
+    for (let epoch = 1; epoch <= epochs; epoch++) {
+      const order = shuffled(images, orderRng);
+      let epochLoss = 0;
+      for (let start = 0; start < images; start += batch) {
+        const slice = order.slice(start, start + batch);
+        grads.forEach(g => g.fill(0));
+        for (const idx of slice) {
+          const example = set[idx];
+          const out = net.forward(example.scene.img);
+          epochLoss += lossAndGradient(task, out, example.label, grad);
+          net.backward(grad.slice(), grads);
+        }
+        step++;
+        const lr = rate * (step > totalSteps * 0.7 ? 0.3 : 1);
+        for (let p = 0; p < params.length; p++) {
+          const w = params[p], g = grads[p], m = moment1[p], v = moment2[p];
+          const fix1 = 1 / (1 - Math.pow(0.9, step)), fix2 = 1 / (1 - Math.pow(0.999, step));
+          for (let i = 0; i < w.length; i++) {
+            const gv = g[i] / slice.length;
+            m[i] = 0.9 * m[i] + 0.1 * gv;
+            v[i] = 0.999 * v[i] + 0.001 * gv * gv;
+            w[i] -= lr * (m[i] * fix1) / (Math.sqrt(v[i] * fix2) + 1e-8);
+          }
+        }
+        yield { type: 'step', epoch, epochs, step, totalSteps };
+      }
+      curve.push(epochLoss / images);
+      yield { type: 'epoch', epoch, epochs, step, totalSteps, loss: epochLoss / images, curve: curve.slice() };
+    }
+    const result = evaluate(net);
+    return { metric: result.metric, classAcc: result.classAcc, curve, weights: params.map(p => p.slice()) };
+  }
+  function runToEnd(settings) {
+    const gen = train(settings);
+    let item = gen.next();
+    while (!item.done) item = gen.next();
+    return item.value;
+  }
+  return {
+    SIZE, PIXELS, CLASS_NAMES, TEST_SIZE, BASE_SEED, EPOCHS,
+    rngFrom, genScene, countClasses, boxOfClass, buildTrainSet, galleryExamples, testSet, labelValues, labelKey, trueLabel,
+    iouBox, iouMask, rleEncode, rleDecode, baseline, buildNet, predict, train, runToEnd,
+  };
+}
+
+</script>
+<script>
+// ─── Constants ───
+const core = cvCore();
+const { SIZE, PIXELS, CLASS_NAMES } = core;
+const TASKS = ['cls', 'loc', 'seg'];
+const VIEWS = ['start', 'klasyfikacja', 'lokalizacja', 'segmentacja', 'dane', 'quiz'];
+const VIEW_LABELS = { start: 'Start', klasyfikacja: 'Klasyfikacja', lokalizacja: 'Lokalizacja', segmentacja: 'Segmentacja', dane: 'Dane', quiz: 'Quiz' };
+const IMAGE_STEPS = [10, 50, 200, 500];
+const NOISE_STEPS = [0, 10, 20, 40];
+const DEFAULTS = { images: 200, noise: 0, diversity: 'full' };
+const STORAGE_KEY = 'edulab.jakWidziKomputer.v1';
+const PROGRESS_KEYS = ['annot-cls', 'train-cls', 'annot-loc', 'train-loc', 'annot-seg', 'train-seg', 'quiz'];
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+const MIN_BOX_SIDE = 2;
+const CALC_LIMITS = { images: [1, 10000000], objects: [1, 100] };
+const RATE_SECONDS = { cls: 5, loc: 35, seg: 79 };
+const STAGE_PX = 384;
+// Canvas cannot read CSS variables: literal edulab values.
+const COLORS = { ink: '#1C1917', paper: '#FFFFFF', yellow: '#FFD500', red: '#E5322D', blue: '#1E8FC2', green: '#00A651', stone: '#EAE6E0' };
+const CLASS_COLORS = [COLORS.red, COLORS.yellow, COLORS.green];
+
+const TASK_INFO = {
+  cls: {
+    view: 'klasyfikacja', name: 'Klasyfikacja', tone: 'grape', icon: 'tag',
+    lead: 'Model odpowiada na jedno pytanie: co jest na obrazie?',
+    labelOverline: 'Etykieta: 1 wartość na obraz', labelLead: 'Jedna klasa dla całego obrazu.',
+    doTitle: 'Wybierz klasę', doText: 'Kliknij nazwę owocu. Wybór od razu zatwierdza adnotację.',
+    costTitle: 'Praca', costText: 'Kilka sekund na obraz, bo nie trzeba wskazywać położenia.',
+    dataTitle: 'Ile etykiet', dataText: 'Jeden obraz to jedna wartość etykiety, więc potrzeba wielu obrazów.',
+    metricName: 'Trafność na zbiorze testowym', baselineName: 'Zawsze jedna klasa',
+    relatedHtml: '<ul><li><b>Wiele etykiet na obraz:</b> kilka klas naraz, gdy na zdjęciu jest więcej rzeczy.</li><li><b>Transfer learning:</b> gotowy trzon sieci uczony na dużym zbiorze skraca potrzebne dane nawet o rząd wielkości.</li></ul>',
+  },
+  loc: {
+    view: 'lokalizacja', name: 'Lokalizacja z klasyfikacją', tone: 'blue', icon: 'scan',
+    lead: 'Model mówi, co to jest i gdzie leży jeden obiekt na obrazie.',
+    labelOverline: 'Etykieta: 5 wartości na obraz', labelLead: 'Klasa oraz prostokąt (bounding box): x, y, szerokość, wysokość.',
+    doTitle: 'Narysuj prostokąt', doText: 'Przeciągnij wokół owocu, wybierz klasę, zatwierdź. Strzałki przesuwają, Shift+strzałki zmieniają rozmiar.',
+    costTitle: 'Praca', costText: 'Ok. 35 s na prostokąt dobrej jakości, 7 s przy „extreme clicking”.',
+    dataTitle: 'Co mierzy IoU', dataText: 'IoU to część wspólna prostokątów podzielona przez ich sumę: od 0 do 1.',
+    metricName: 'Średnie IoU prostokąta', baselineName: 'Stały środkowy prostokąt 16×16',
+    relatedHtml: '<ul><li><b>Detekcja:</b> wiele obiektów na obrazie, po jednym prostokącie i klasie na obiekt. Etykiety rosną z liczbą obiektów.</li><li><b>Transfer learning:</b> gotowy trzon sieci zmniejsza liczbę potrzebnych obrazów, ale prostokąty nadal trzeba narysować.</li></ul>',
+  },
+  seg: {
+    view: 'segmentacja', name: 'Segmentacja', tone: 'yellow', icon: 'paintbrush',
+    lead: 'Model przypisuje klasę każdemu pikselowi, więc zna dokładny kształt obiektu.',
+    labelOverline: 'Etykieta: 1024 wartości na obraz', labelLead: 'Maska: klasa dla każdego z pikseli obrazu 32×32.',
+    doTitle: 'Zamaluj owoc', doText: 'Maluj pędzlem, wybierz klasę, zatwierdź. Strzałki przesuwają kursor, spacja maluje.',
+    costTitle: 'Praca', costText: 'Ok. 79 s na obiekt w COCO, średnio ponad 1,5 h na obraz w Cityscapes.',
+    dataTitle: 'Ile etykiet', dataText: 'Każdy obraz niesie 1024 wartości, więc starcza mniej obrazów, ale każdy kosztuje więcej.',
+    metricName: 'Średnie IoU obiektu', baselineName: 'Środkowy kwadrat 16×16 jako jabłko',
+    relatedHtml: '<ul><li><b>Segmentacja semantyczna:</b> klasa dla piksela, bez rozróżniania dwóch jabłek.</li><li><b>Segmentacja instancji:</b> osobna maska dla każdego obiektu, jak w COCO.</li><li><b>Transfer learning:</b> gotowy trzon sieci pomaga, ale maski pozostają najdroższe.</li></ul>',
+  },
+};
+const TABLE_ROWS = [
+  ['Etykieta', 'Jedna klasa na obraz', 'Klasa i prostokąt: 5 wartości na obiekt', 'Klasa każdego piksela: maska'],
+  ['Format adnotacji', '<code>{"obraz":"img-00007","klasa":"banan"}</code>', '<code>{"obraz":"img-00007","klasa":"banan",\n"x":4,"y":9,"szerokosc":20,"wysokosc":13}</code>', '<code>{"obraz":"img-00007","klasa":"banan",\n"rle":[297,8,22,12,…]}</code>'],
+  ['Narzędzie pracy', 'Przyciski lub skróty klas', 'Rysowanie prostokątów', 'Pędzel lub wielokąty, często z korektą'],
+  ['Wyjście modelu', 'Prawdopodobieństwo każdej klasy', 'Prawdopodobieństwa klas i 4 współrzędne', 'Klasa dla każdego piksela'],
+  ['Funkcja straty', 'Entropia krzyżowa', 'Entropia krzyżowa + regresja współrzędnych', 'Entropia krzyżowa liczona na pikselach'],
+  ['Miara jakości', 'Trafność', 'IoU prostokąta i trafność klasy', 'IoU maski'],
+  ['Skala zbiorów', 'ImageNet: 1 281 167 obrazów treningowych', 'COCO: 328 tys. obrazów, także prostokąty', 'Cityscapes: 5000 obrazów z dokładną adnotacją'],
+  ['Typowe pułapki', 'Klasa kojarzona z tłem zamiast z obiektem', 'Niedokładne prostokąty, pominięte obiekty', 'Niespójne granice, bardzo wysoki koszt'],
+];
+const CHOICES = [
+  { text: 'Odróżnić jabłko od gruszki na zdjęciu z jednym owocem', task: 'cls', why: 'Wystarczy nazwa klasy dla całego obrazu.' },
+  { text: 'Sprawdzić, czy zdjęcie towaru jest prawidłowe czy wadliwe', task: 'cls', why: 'Odpowiedź dotyczy całego zdjęcia, położenie nie jest potrzebne.' },
+  { text: 'Wskazać robotowi, gdzie leży owoc do chwycenia', task: 'loc', why: 'Potrzebna jest klasa i przybliżone położenie.' },
+  { text: 'Znaleźć znak drogowy na zdjęciu i podać jego rodzaj', task: 'loc', why: 'Prostokąt wystarczy, dokładny kształt nie ma znaczenia.' },
+  { text: 'Policzyć powierzchnię zgnilizny na owocu', task: 'seg', why: 'Powierzchnia wymaga dokładnego kształtu, czyli maski.' },
+  { text: 'Wyciąć owoc z tła co do piksela', task: 'seg', why: 'Granica obiektu musi być znana dla każdego piksela.' },
+];
+const QUIZ = [
+  { q: 'Na każdym zdjęciu leży jeden owoc, a system ma tylko podać jego nazwę. Jakie etykiety zbierasz?', a: ['Jedną klasę na obraz', 'Prostokąt wokół owocu', 'Maskę każdego owocu', 'Współrzędne środka'], ok: 0, why: 'Pytanie dotyczy całego obrazu, więc wystarczy klasyfikacja i najtańsza etykieta.', task: 'cls' },
+  { q: 'Robot ma chwycić owoc i musi wiedzieć, gdzie on leży. Dokładny kształt nie jest potrzebny. Co oznaczasz?', a: ['Tylko klasę obrazu', 'Klasę i prostokąt', 'Każdy piksel', 'Jasność tła'], ok: 1, why: 'Prostokąt z klasą to lokalizacja: pięć wartości na obiekt.', task: 'loc' },
+  { q: 'Chcesz policzyć, jaki procent powierzchni owocu jest zgniły. Jakie etykiety zbierasz?', a: ['Klasę „zgniły” dla obrazu', 'Prostokąt wokół plamy', 'Maskę na poziomie pikseli', 'Liczbę plam na obraz'], ok: 2, why: 'Powierzchnię daje dopiero maska, więc potrzebna jest segmentacja.', task: 'seg' },
+  { q: 'Ile wartości etykiety ma w segmentacji jeden obraz 32×32?', a: ['1', '5', '32', '1024'], ok: 3, why: '32 × 32 = 1024 piksele, każdy ma swoją klasę.', task: 'seg' },
+  { q: 'Co się dzieje, gdy 40% etykiet w zbiorze treningowym jest błędnych?', a: ['Model uczy się też błędów i na teście wypada gorzej', 'Nic, bo model sam odrzuca błędy', 'Wynik rośnie dzięki różnorodności', 'Trening nie może się zakończyć'], ok: 0, why: 'Etykieta jest dla modelu wzorcem. Sprawdź to suwakiem błędów w laboratorium.', task: 'cls' },
+  { q: 'Model uczony tylko na jasnym tle słabo działa na ciemnym. Co jest najbardziej prawdopodobną przyczyną?', a: ['Za mało epok', 'Dane treningowe nie obejmowały takich warunków', 'Zbyt duże obrazy', 'Błąd w zbiorze testowym'], ok: 1, why: 'Model radzi sobie z tym, co widział. Dane muszą pokrywać warunki użycia.', task: 'loc' },
+  { q: 'IoU prostokąta przewidzianego i wzorcowego wynosi 1. Co to znaczy?', a: ['Prostokąty są rozłączne', 'Pokrywają się w połowie', 'Pokrywają się dokładnie', 'Klasa jest poprawna'], ok: 2, why: 'IoU to część wspólna przez sumę, a klasę ocenia się osobno.', task: 'loc' },
+  { q: 'Która adnotacja jednego obiektu jest według podanych stawek najdroższa?', a: ['Klasa obrazu', 'Prostokąt', 'Etykieta tła', 'Obrys maski'], ok: 3, why: 'Stawki: 5 s na klasę, 35 s na prostokąt, 79 s na obrys obiektu.', task: 'seg' },
+];
+
+// ─── State ───
+function newLabState(task) {
+  return {
+    task, images: DEFAULTS.images, noise: DEFAULTS.noise, diversity: DEFAULTS.diversity,
+    status: 'idle', metric: null, classAcc: null, trained: null, stale: false, net: null,
+    run: { id: 0, epoch: 0, epochs: 0, step: 0, totalSteps: 0, curve: [], worker: null, cancel: null, startedAt: 0, half: false },
+    history: [],
+    annot: { n: 0, scene: null, cls: null, box: null, mask: new Uint8Array(PIXELS), undo: [], tool: 'brush', brush: 3, cursor: { x: 16, y: 16 }, drag: null, committed: false, verdict: null, msg: '', msgKind: '', since: null, elapsedMs: 0, samples: [] },
+    check: { n: 0, scene: null, pred: null, overlay: 'pred', msg: '', alert: '', uploaded: false },
+  };
+}
+const App = {
+  view: 'start',
+  labs: { cls: newLabState('cls'), loc: newLabState('loc'), seg: newLabState('seg') },
+  progress: {},
+  results: {},
+  inspector: { x: 16, y: 16, channel: 'all', filter: 'identity', scene: null, bytes: null },
+  startMode: 'one',
+  calc: { images: '1000', objects: '2' },
+  choice: null,
+  quiz: { index: 0, score: 0, picked: null, wrongTasks: [], finished: false },
+  storageOk: true,
+};
+const baselines = {};
+
+// ─── DOM refs ───
+const mainEl = document.getElementById('main');
+const liveEl = document.getElementById('live');
+const navEl = document.getElementById('nav');
+const progressEl = document.getElementById('progress');
+const progressLabelEl = document.getElementById('progress-label');
+const progressFillEl = document.getElementById('progress-fill');
+const helpDialog = document.getElementById('help-dialog');
+const resetDialog = document.getElementById('reset-dialog');
+const labEls = {};
+const viewEls = {};
+
+// ─── Helpers ───
+const escapeHtml = text => String(text).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+const ic = name => `<i data-lucide="${name}" class="ic" aria-hidden="true"></i>`;
+function icons(root) { if (window.lucide) window.lucide.createIcons({ root: root || document }); }
+const groupDigits = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const comma = (value, digits) => value.toFixed(digits).replace('.', ',');
+function fmtDuration(seconds) {
+  if (seconds < 60) return Math.round(seconds) + ' s';
+  if (seconds < 3600) return Math.round(seconds / 60) + ' min';
+  const hours = seconds / 3600;
+  if (hours >= 1000) return groupDigits(Math.round(hours)) + ' h';
+  return comma(hours, 1) + ' h';
+}
+const fmtMetric = (task, value) => task === 'cls' ? comma(value * 100, 1) + '%' : comma(value, 3);
+const diversityLabel = value => value === 'light' ? 'tylko jasne tło' : 'pełna';
+function announce(text) {
+  liveEl.textContent = '';
+  setTimeout(() => { liveEl.textContent = text; }, 30);
+}
+function storageRead() {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (err) { App.storageOk = false; return null; }
+}
+function storageWrite() {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ progress: App.progress, results: App.results }));
+  } catch (err) { App.storageOk = false; }
+}
+function markProgress(key) {
+  if (App.progress[key]) return;
+  App.progress[key] = true;
+  storageWrite();
+  renderProgress();
+}
+function imageToBytes(img) {
+  const bytes = new Uint8ClampedArray(PIXELS * 4);
+  for (let p = 0; p < PIXELS; p++) {
+    bytes[p * 4] = Math.round(img[p * 3] * 255);
+    bytes[p * 4 + 1] = Math.round(img[p * 3 + 1] * 255);
+    bytes[p * 4 + 2] = Math.round(img[p * 3 + 2] * 255);
+    bytes[p * 4 + 3] = 255;
+  }
+  return bytes;
+}
+const smallCanvas = document.createElement('canvas');
+smallCanvas.width = smallCanvas.height = SIZE;
+const smallCtx = smallCanvas.getContext('2d');
+function paintBytes(canvas, bytes) {
+  smallCtx.putImageData(new ImageData(bytes, SIZE, SIZE), 0, 0);
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.globalAlpha = 1;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(smallCanvas, 0, 0, canvas.width, canvas.height);
+  return ctx;
+}
+const paintImage = (canvas, img) => paintBytes(canvas, imageToBytes(img));
+function drawMask(ctx, canvas, mask, alpha, fixedColor) {
+  const scale = canvas.width / SIZE;
+  ctx.globalAlpha = alpha;
+  for (let p = 0; p < PIXELS; p++) {
+    if (!mask[p]) continue;
+    ctx.fillStyle = fixedColor || CLASS_COLORS[mask[p] - 1];
+    ctx.fillRect((p % SIZE) * scale, Math.floor(p / SIZE) * scale, scale + 0.5, scale + 0.5);
+  }
+  ctx.globalAlpha = 1;
+}
+function drawOutline(ctx, canvas, mask) {
+  const scale = canvas.width / SIZE;
+  const at = (x, y) => x >= 0 && y >= 0 && x < SIZE && y < SIZE && mask[y * SIZE + x];
+  const path = () => {
+    ctx.beginPath();
+    for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+      if (!at(x, y)) continue;
+      const left = x * scale, top = y * scale;
+      if (!at(x, y - 1)) { ctx.moveTo(left, top); ctx.lineTo(left + scale, top); }
+      if (!at(x, y + 1)) { ctx.moveTo(left, top + scale); ctx.lineTo(left + scale, top + scale); }
+      if (!at(x - 1, y)) { ctx.moveTo(left, top); ctx.lineTo(left, top + scale); }
+      if (!at(x + 1, y)) { ctx.moveTo(left + scale, top); ctx.lineTo(left + scale, top + scale); }
+    }
+    ctx.stroke();
+  };
+  ctx.lineWidth = Math.max(3, scale * 0.3); ctx.strokeStyle = COLORS.ink; path();
+  ctx.lineWidth = Math.max(1, scale * 0.12); ctx.strokeStyle = COLORS.yellow; path();
+}
+/** kind solid = prediction or the user's box, dashed = reference. Differs without colour too. */
+function drawBox(ctx, canvas, box, kind) {
+  if (!box) return;
+  const scale = canvas.width / SIZE;
+  const unit = Math.max(1.5, scale * 0.2);
+  ctx.save();
+  ctx.lineJoin = 'miter';
+  if (kind === 'dashed') {
+    ctx.setLineDash([]); ctx.lineWidth = unit * 2; ctx.strokeStyle = COLORS.ink;
+    ctx.strokeRect(box.x * scale, box.y * scale, box.w * scale, box.h * scale);
+    ctx.setLineDash([scale * 0.8, scale * 0.55]); ctx.lineWidth = unit; ctx.strokeStyle = COLORS.yellow;
+    ctx.strokeRect(box.x * scale, box.y * scale, box.w * scale, box.h * scale);
+  } else {
+    ctx.lineWidth = unit * 2.2; ctx.strokeStyle = COLORS.ink;
+    ctx.strokeRect(box.x * scale, box.y * scale, box.w * scale, box.h * scale);
+    ctx.lineWidth = unit; ctx.strokeStyle = COLORS.paper;
+    ctx.strokeRect(box.x * scale, box.y * scale, box.w * scale, box.h * scale);
+  }
+  ctx.restore();
+}
+function maskClassSummary(counts) {
+  const parts = [];
+  for (let c = 0; c < 3; c++) if (counts[c + 1] > 0) parts.push(`${CLASS_NAMES[c]}: ${groupDigits(counts[c + 1])} px`);
+  return parts.length ? parts.join(', ') : 'brak pikseli obiektu';
+}
+function validateCalcField(name, raw) {
+  const [min, max] = CALC_LIMITS[name];
+  const what = name === 'images' ? 'obrazów' : 'obiektów na obraz';
+  const text = String(raw).trim();
+  const range = `od ${groupDigits(min)} do ${groupDigits(max)}`;
+  if (text === '') return { ok: false, msg: `Podaj liczbę ${what}: ${range}.` };
+  if (!/^\d+$/.test(text)) return { ok: false, msg: `Wpisz liczbę całkowitą ${range}, bez liter i przecinków.` };
+  const value = Number(text);
+  if (value < min || value > max) return { ok: false, msg: `Liczba ${what} musi mieścić się w zakresie ${range}.` };
+  return { ok: true, value };
+}
+function calcHours(images, objects) {
+  return {
+    cls: images * RATE_SECONDS.cls / 3600,
+    loc: images * objects * RATE_SECONDS.loc / 3600,
+    seg: images * objects * RATE_SECONDS.seg / 3600,
+  };
+}
+function validateUpload(file) {
+  const typeOk = file.type === 'image/png' || file.type === 'image/jpeg' || (!file.type && /\.(png|jpe?g)$/i.test(file.name));
+  if (!typeOk) return { ok: false, msg: 'Ten format nie jest obsługiwany. Wgraj plik PNG lub JPEG.' };
+  if (file.size === 0) return { ok: false, msg: 'Plik jest pusty. Wybierz inne zdjęcie.' };
+  if (file.size > MAX_UPLOAD_BYTES) return { ok: false, msg: 'Plik jest większy niż 20 MB. Wybierz mniejsze zdjęcie.' };
+  return { ok: true };
+}
+/** Loads a file element into an <img>, the path that reports a broken image most reliably. */
+function decodeUpload(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      if (!image.naturalWidth || !image.naturalHeight) { reject(new Error('empty')); return; }
+      const side = Math.min(image.naturalWidth, image.naturalHeight);
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = SIZE;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(image, (image.naturalWidth - side) / 2, (image.naturalHeight - side) / 2, side, side, 0, 0, SIZE, SIZE);
+      const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
+      const img = new Float32Array(PIXELS * 3);
+      for (let p = 0; p < PIXELS; p++) for (let c = 0; c < 3; c++) img[p * 3 + c] = data[p * 4 + c] / 255;
+      resolve(img);
+    };
+    image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode')); };
+    image.src = url;
+  });
+}
+const FILTERS = {
+  identity: { name: 'Bez zmian', kernel: [0, 0, 0, 0, 1, 0, 0, 0, 0], divisor: 1, abs: false, show: ['0', '0', '0', '0', '1', '0', '0', '0', '0'] },
+  vertical: { name: 'Krawędzie pionowe', kernel: [-1, 0, 1, -2, 0, 2, -1, 0, 1], divisor: 1, abs: true, show: ['-1', '0', '1', '-2', '0', '2', '-1', '0', '1'] },
+  horizontal: { name: 'Krawędzie poziome', kernel: [-1, -2, -1, 0, 0, 0, 1, 2, 1], divisor: 1, abs: true, show: ['-1', '-2', '-1', '0', '0', '0', '1', '2', '1'] },
+  blur: { name: 'Rozmycie', kernel: [1, 2, 1, 2, 4, 2, 1, 2, 1], divisor: 16, abs: false, show: ['1/16', '2/16', '1/16', '2/16', '4/16', '2/16', '1/16', '2/16', '1/16'] },
+};
+function convolve(bytes, filter) {
+  const out = new Uint8ClampedArray(bytes.length);
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+    const to = (y * SIZE + x) * 4;
+    for (let c = 0; c < 3; c++) {
+      let sum = 0;
+      for (let ky = -1; ky <= 1; ky++) for (let kx = -1; kx <= 1; kx++) {
+        const sy = Math.max(0, Math.min(SIZE - 1, y + ky)), sx = Math.max(0, Math.min(SIZE - 1, x + kx));
+        sum += bytes[(sy * SIZE + sx) * 4 + c] * filter.kernel[(ky + 1) * 3 + kx + 1];
+      }
+      sum /= filter.divisor;
+      out[to + c] = filter.abs ? Math.abs(sum) : sum;
+    }
+    out[to + 3] = 255;
+  }
+  return out;
+}
+function channelBytes(bytes, channel) {
+  if (channel === 'all') return bytes;
+  const keep = { r: 0, g: 1, b: 2 }[channel];
+  const out = new Uint8ClampedArray(bytes.length);
+  for (let p = 0; p < PIXELS; p++) { out[p * 4 + keep] = bytes[p * 4 + keep]; out[p * 4 + 3] = 255; }
+  return out;
+}
+function cellFromEvent(event, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((event.clientX - rect.left) / rect.width * SIZE);
+  const y = Math.floor((event.clientY - rect.top) / rect.height * SIZE);
+  return { x: Math.max(0, Math.min(SIZE - 1, x)), y: Math.max(0, Math.min(SIZE - 1, y)) };
+}
+
+// ─── Templates ───
+function sliderHtml(id, label, steps, unit) {
+  return `<div class="slider"><label class="field-label" for="${id}" data-el="${id}-label">${label}</label>
+    <input type="range" id="${id}" min="0" max="${steps.length - 1}" step="1">
+    <div class="ticks" aria-hidden="true">${steps.map(v => `<span>${v}${unit}</span>`).join('')}</div></div>`;
+}
+function classButtonsHtml(attr) {
+  return `<div class="class-opts" role="group" aria-label="Klasa owocu">${CLASS_NAMES.map((name, i) => `<button type="button" class="opt" ${attr}="${i}" aria-pressed="false">${name}</button>`).join('')}</div>`;
+}
+function labHtml(task) {
+  const info = TASK_INFO[task];
+  const toneBadge = `badge tone-${info.tone}`;
+  const hasIou = task !== 'cls';
+  const tools = task === 'seg' ? `
+    <div><span class="field-label">Narzędzie</span><div class="pills" role="group" aria-label="Narzędzie">
+      <button type="button" data-tool="brush" aria-pressed="true">${ic('paintbrush')} Pędzel</button>
+      <button type="button" data-tool="erase" aria-pressed="false">${ic('eraser')} Gumka</button>
+    </div></div>
+    <div><span class="field-label">Rozmiar pędzla</span><div class="pills" role="group" aria-label="Rozmiar pędzla">
+      ${[1, 3, 5].map(s => `<button type="button" data-brush="${s}" aria-pressed="${s === 3}">${s} px</button>`).join('')}
+    </div></div>
+    <div class="btn-row"><button type="button" class="btn" data-el="undo">${ic('undo-2')} Cofnij</button><button type="button" class="btn" data-el="clear">${ic('trash-2')} Wyczyść</button></div>` : '';
+  const commit = task === 'cls' ? '' : `<button type="button" class="btn btn-primary" data-el="commit">${ic('check')} Zatwierdź</button>`;
+  return `
+  <header class="page-head"><h1 class="app-title" tabindex="-1">${info.name}</h1><p class="edu-lead">${info.lead}</p></header>
+  <div class="lab" data-el="lab" data-task="${task}">
+  <div class="group-hero tone-${info.tone} edu-block">
+    <div><p class="edu-overline">${info.labelOverline}</p><p class="lead">${info.labelLead}</p></div>
+    <ol class="steps" data-el="steps"></ol>
+  </div>
+  <section class="sec" id="${task}-krok-a"><div class="wrap"><div class="split">
+    <div class="concept">
+      <div class="row-head"><span class="badge badge-lg tone-${info.tone}">${ic('mouse-pointer-2')}</span><h2>Oznacz sam</h2></div>
+      <div class="tiles">
+        <div class="tile"><span class="${toneBadge}">${ic(info.icon)}</span><h4>${info.doTitle}</h4><p>${info.doText}</p></div>
+        <div class="tile"><span class="${toneBadge}">${ic('clock')}</span><h4>${info.costTitle}</h4><p>${info.costText}</p></div>
+      </div>
+    </div>
+    <div class="card annot" data-el="annot">
+      <div class="card-head"><span class="tile-h"><span class="${toneBadge}">${ic('image')}</span><h3>Adnotacja</h3></span><span class="chip chip-stone" data-el="annot-id"></span></div>
+      <div class="card-body stage-body"><div class="workbench has-record">
+        <canvas class="stage ${task === 'cls' ? 'stage-free' : ''}" data-el="annot-canvas" width="${STAGE_PX}" height="${STAGE_PX}" ${task === 'cls' ? 'role="img"' : 'tabindex="0" role="application"'}></canvas>
+        <div class="side">
+          <div><span class="field-label">Klasa</span>${classButtonsHtml('data-annot-class')}</div>
+          ${tools}
+          <div class="btn-row">${commit}<button type="button" class="btn" data-el="next">${ic('arrow-right')} Następny obraz</button></div>
+          <p class="msg" data-el="annot-msg" role="status"></p>
+          <div class="readout">
+            ${hasIou ? '<span><b data-el="annot-iou">–</b>IoU ze wzorcem</span>' : ''}
+            ${task === 'seg' ? '<span><b data-el="annot-painted">0</b>oznaczone piksele</span>' : ''}
+            <span><b data-el="annot-avg">–</b>średni czas na obraz</span>
+            <span><b data-el="annot-pace">–</b><span data-el="annot-pace-label"></span></span>
+          </div>
+        </div>
+        <div class="rec-wrap"><span class="field-label">Rekord w zbiorze</span><pre class="record" data-el="annot-record" tabindex="0" aria-label="Rekord adnotacji w formacie JSON"></pre></div>
+      </div></div>
+    </div>
+  </div></div></section>
+  <section class="sec stone" id="${task}-krok-b"><div class="wrap"><div class="split">
+    <div class="concept">
+      <div class="row-head"><span class="badge badge-lg tone-${info.tone}">${ic('sliders-horizontal')}</span><h2>Przygotuj dane i wytrenuj</h2></div>
+      <div class="tiles">
+        <div class="tile"><span class="${toneBadge}">${ic('database')}</span><h4>${info.dataTitle}</h4><p>${info.dataText}</p></div>
+        <div class="tile"><span class="${toneBadge}">${ic('triangle-alert')}</span><h4>Jakość</h4><p>Błędne etykiety uczą błędów, a tło spoza zbioru myli model.</p></div>
+      </div>
+    </div>
+    <div class="card" data-el="train-card">
+      <div class="card-head"><span class="tile-h"><span class="${toneBadge}">${ic('layers')}</span><h3>Trening</h3></span><span class="chip chip-stone" data-el="status-chip"></span></div>
+      <div class="card-body"><div class="train-grid">
+        <div class="side">
+          ${sliderHtml(task + '-images', 'Liczba obrazów', IMAGE_STEPS, '')}
+          ${sliderHtml(task + '-noise', 'Błędy w etykietach', NOISE_STEPS, '%')}
+          <div><span class="field-label">Różnorodność tła</span><div class="pills" role="group" aria-label="Różnorodność tła">
+            <button type="button" data-diversity="full" aria-pressed="true">Pełna</button>
+            <button type="button" data-diversity="light" aria-pressed="false">Tylko jasne tło</button>
+          </div></div>
+          <div class="readout"><span><b data-el="values">0</b>wartości etykiet do przygotowania</span></div>
+        </div>
+        <div class="side">
+          <div class="btn-row"><button type="button" class="btn btn-primary" data-el="train">${ic('play')} Trenuj</button><button type="button" class="btn" data-el="stop" disabled>${ic('square')} Przerwij</button></div>
+          <div><span class="field-label" data-el="train-progress-label">Postęp treningu: czeka na start</span><div class="bar fill-yellow" data-el="train-bar"><span data-el="train-fill"></span></div></div>
+          <div class="metric-box" data-el="metric-box">
+            <p class="edu-overline">${info.metricName}</p>
+            <div class="metric-value" data-el="metric-value">–</div>
+            <p data-el="baseline-text"></p>
+            ${task === 'loc' ? '<p data-el="class-acc-text"></p>' : ''}
+          </div>
+          <p class="notice" data-el="explain" hidden></p>
+        </div>
+      </div></div>
+    </div>
+  </div>
+  <div class="band">
+    <div class="card">
+      <div class="card-head"><span class="tile-h"><span class="${toneBadge}">${ic('images')}</span><h3>Przykłady ze zbioru treningowego</h3></span><span class="chip chip-stone" data-el="gallery-count"></span></div>
+      <div class="card-body"><div class="gallery" data-el="gallery"></div></div>
+    </div>
+    <div class="band-two">
+      <div class="card">
+        <div class="card-head"><span class="tile-h"><span class="${toneBadge}">${ic('chart-line')}</span><h3>Krzywa straty</h3></span><span class="chip chip-stone" data-el="epoch-chip">epoka 0</span></div>
+        <div class="card-body"><svg class="curve" data-el="curve" viewBox="0 0 320 130" role="img" aria-label="Krzywa straty: brak danych"></svg></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="tile-h"><span class="${toneBadge}">${ic('history')}</span><h3>Historia uruchomień</h3></span><span class="chip chip-stone" data-el="history-count">0</span></div>
+        <div class="scroll-x" tabindex="0" aria-label="Historia uruchomień"><table class="mid-table"><thead><tr><th>Próba</th><th class="num">Obrazy</th><th class="num">Błędy</th><th>Różnorodność</th><th class="num">Wynik</th>${task === 'loc' ? '<th class="num">Klasa</th>' : ''}<th class="num">Czas</th></tr></thead><tbody data-el="history"></tbody></table></div>
+      </div>
+    </div>
+  </div></div></section>
+  <section class="sec" id="${task}-krok-c"><div class="wrap"><div class="split">
+    <div class="concept">
+      <div class="row-head"><span class="badge badge-lg tone-${info.tone}">${ic('target')}</span><h2>Sprawdź model</h2></div>
+      <div class="tiles">
+        <div class="tile"><span class="${toneBadge}">${ic('shuffle')}</span><h4>Nowe obrazy</h4><p>Model nie widział ich w treningu, więc wynik mówi o uogólnianiu.</p></div>
+        <div class="tile"><span class="${toneBadge}">${ic('upload')}</span><h4>Własne zdjęcie</h4><p>Model zna tylko rysunki, więc na zdjęciu często się myli: to przesunięcie danych.</p></div>
+      </div>
+      <details class="more"><summary>Warianty pokrewne i transfer learning</summary>${info.relatedHtml}</details>
+    </div>
+    <div class="card check" data-el="check">
+      <div class="card-head"><span class="tile-h"><span class="${toneBadge}">${ic('scan-eye')}</span><h3>Odpowiedź modelu</h3></span><span class="chip chip-stone" data-el="check-id">brak modelu</span></div>
+      <div class="card-body stage-body"><div class="workbench">
+        <canvas class="stage stage-free" data-el="check-canvas" width="${STAGE_PX}" height="${STAGE_PX}" role="img"></canvas>
+        <div class="side">
+          <div class="btn-row">
+            <button type="button" class="btn" data-el="check-new">${ic('shuffle')} Nowy obraz</button>
+            <button type="button" class="btn" data-el="check-hard">${ic('triangle-alert')} Trudny przypadek</button>
+            <label class="btn upload-label">${ic('upload')} Wgraj zdjęcie<input type="file" data-el="check-file" accept="image/png,image/jpeg" aria-label="Wgraj własne zdjęcie PNG lub JPEG, do 20 MB"></label>
+          </div>
+          ${task === 'seg' ? `<div><span class="field-label">Nakładka</span><div class="pills" role="group" aria-label="Nakładka">
+            <button type="button" data-overlay="pred" aria-pressed="true">Predykcja</button>
+            <button type="button" data-overlay="truth" aria-pressed="false">Wzorzec</button>
+            <button type="button" data-overlay="none" aria-pressed="false">Bez nakładki</button></div></div>` : ''}
+          <p class="alert" data-el="check-alert" role="alert" hidden></p>
+          <p class="notice" data-el="check-msg"></p>
+          <div data-el="check-output"></div>
+        </div>
+      </div></div>
+    </div>
+  </div></div></section>
+  </div>`;
+}
+function startHtml() {
+  return `
+  <header class="page-head"><h1 class="app-title" tabindex="-1">Jak widzi komputer</h1>
+    <p class="edu-lead">Trzy zadania widzenia komputerowego i dane, których każde potrzebuje. Oznaczasz obrazy, trenujesz model w przeglądarce i sprawdzasz skutki.</p></header>
+  <section class="sec"><div class="wrap"><div class="split">
+    <div class="concept">
+      <div class="row-head"><span class="badge badge-lg tone-ink">${ic('grid-3x3')}</span><h2>Obraz to liczby</h2></div>
+      <div class="tiles">
+        <div class="tile"><span class="badge tone-ink">${ic('grid-3x3')}</span><h4>Piksel</h4><p>Kolor punktu to trzy liczby R, G, B od 0 do 255.</p></div>
+        <div class="tile"><span class="badge tone-ink">${ic('database')}</span><h4>Obraz 32×32</h4><p>To 1024 piksele, czyli 3072 liczby na wejściu modelu.</p></div>
+      </div>
+    </div>
+    <div class="card" id="inspector">
+      <div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('scan-eye')}</span><h3>Inspektor pikseli</h3></span></div>
+      <div class="card-body stage-body"><div class="workbench">
+        <canvas class="stage" id="inspector-canvas" width="${STAGE_PX}" height="${STAGE_PX}" tabindex="0" role="application" aria-label="Obraz 32×32. Strzałki wybierają piksel."></canvas>
+        <div class="side">
+          <div><span class="field-label">Kanał</span><div class="pills" role="group" aria-label="Kanał koloru">
+            ${[['all', 'Wszystkie'], ['r', 'R'], ['g', 'G'], ['b', 'B']].map(([v, t]) => `<button type="button" data-channel="${v}" aria-pressed="${v === 'all'}">${t}</button>`).join('')}
+          </div></div>
+          <output class="readout" id="inspector-out"></output>
+        </div>
+      </div></div>
+    </div>
+  </div></div></section>
+  <section class="sec stone"><div class="wrap"><div class="split">
+    <div class="concept">
+      <div class="row-head"><span class="badge badge-lg tone-ink">${ic('layers')}</span><h2>Filtr szuka wzorów</h2></div>
+      <div class="tiles">
+        <div class="tile"><span class="badge tone-ink">${ic('grid-3x3')}</span><h4>Splot</h4><p>Okno przesuwa się po obrazie i liczy sumę ważoną sąsiednich pikseli.</p></div>
+        <div class="tile"><span class="badge tone-ink">${ic('workflow')}</span><h4>Sieć uczy się filtrów</h4><p>Nikt ich nie wpisuje: sieć dobiera wagi na podstawie etykiet.</p></div>
+      </div>
+    </div>
+    <div class="card" id="filter-card" data-filter="identity">
+      <div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('filter')}</span><h3>Filtr splotowy</h3></span></div>
+      <div class="card-body">
+        <div class="pills" role="group" aria-label="Filtr">${Object.keys(FILTERS).map(k => `<button type="button" data-filter-pick="${k}" aria-pressed="${k === 'identity'}">${FILTERS[k].name}</button>`).join('')}</div>
+        <div class="filter-row" style="margin-top:14px">
+          <figure><canvas id="filter-source" width="${STAGE_PX}" height="${STAGE_PX}" role="img" aria-label="Oryginalny obraz"></canvas><figcaption>Oryginał</figcaption></figure>
+          <figure><div class="matrix" id="filter-matrix" aria-label="Macierz filtra"></div><figcaption>Macierz filtra</figcaption></figure>
+          <figure><canvas id="filter-result" width="${STAGE_PX}" height="${STAGE_PX}" role="img"></canvas><figcaption>Wynik splotu</figcaption></figure>
+        </div>
+      </div>
+    </div>
+  </div></div></section>
+  <section class="sec"><div class="wrap">
+    <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('compass')}</span><h2>Jeden obraz, trzy odpowiedzi</h2></div>
+    <div class="pills" role="group" aria-label="Liczba obiektów na scenie">
+      <button type="button" data-start-mode="one" aria-pressed="true">Jeden obiekt</button>
+      <button type="button" data-start-mode="two" aria-pressed="false">Dwa obiekty</button>
+    </div>
+    <div class="block tone-blue edu-block" id="start-note"><p></p></div>
+    <div class="three" id="start-cards" style="margin-top:16px"></div>
+  </div></section>
+  <section class="sec stone"><div class="wrap">
+    <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('workflow')}</span><h2>Od pikseli do odpowiedzi</h2></div>
+    <ol class="chain">
+      <li class="link"><b>Piksele</b>3072 liczby na wejściu.</li>
+      <li class="link"><b>Cechy</b>Najpierw krawędzie, potem części i kształty.</li>
+      <li class="link"><b>Wyjście</b>Klasa, prostokąt albo maska: decyduje etykieta.</li>
+    </ol>
+  </div></section>`;
+}
+function daneHtml() {
+  const taskHead = TASKS.map(t => `<th>${TASK_INFO[t].name}</th>`).join('');
+  return `
+  <header class="page-head"><h1 class="app-title" tabindex="-1">Co, ile, za ile</h1>
+    <p class="edu-lead">Porównanie danych, których potrzebuje każde zadanie, oraz szacunek pracy nad adnotacjami dla Twojego projektu.</p></header>
+  <section class="sec"><div class="wrap">
+    <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('table')}</span><h2>Porównanie zadań</h2></div>
+    <div class="card"><div class="scroll-x" tabindex="0" aria-label="Tabela porównawcza zadań"><table class="wide-table" id="compare-table"><thead><tr><th>Cecha</th>${taskHead}</tr></thead>
+      <tbody>${TABLE_ROWS.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>
+  </div></section>
+  <section class="sec stone"><div class="wrap">
+    <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('calculator')}</span><h2>Kalkulator pracy</h2></div>
+    <div class="card" id="calc"><div class="card-body"><div class="calc-grid">
+      <div>
+        <div class="field"><label class="field-label" for="calc-images">Liczba obrazów</label><input class="input" id="calc-images" type="text" inputmode="numeric" autocomplete="off" aria-describedby="calc-images-error"><p class="field-error" id="calc-images-error" role="alert" hidden></p></div>
+        <div class="field"><label class="field-label" for="calc-objects">Obiekty na obraz</label><input class="input" id="calc-objects" type="text" inputmode="numeric" autocomplete="off" aria-describedby="calc-objects-error"><p class="field-error" id="calc-objects-error" role="alert" hidden></p></div>
+      </div>
+      <div id="calc-bars" aria-live="polite">${TASKS.map(t => `<div class="hbar"><div class="hbar-name">${TASK_INFO[t].name}<small data-rate="${t}"></small></div><div class="hbar-track"><span data-bar="${t}"></span></div><div class="hbar-value" data-value="${t}">–</div></div>`).join('')}</div>
+    </div></div>
+    <div class="card-foot"><span class="edu-small">Stawki przybliżone: 5 s to oszacowanie robocze, 35 s podają Papadopoulos i in., 79 s wynika z Lin i in.</span></div></div>
+  </div></section>
+  <section class="sec"><div class="wrap">
+    <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('book-open')}</span><h2>Znane zbiory i źródła</h2></div>
+    <div class="card"><div class="scroll-x" tabindex="0" aria-label="Znane zbiory danych"><table class="mid-table" id="dataset-table"><thead><tr><th>Zbiór</th><th>Obrazy</th><th>Klasy</th><th>Etykiety</th><th>Koszt adnotacji</th><th>Źródło</th></tr></thead><tbody>
+      <tr><td>ImageNet (ILSVRC 2012)</td><td>1 281 167 treningowych</td><td>1000</td><td>Jedna klasa na obraz</td><td>Oszacowanie robocze: 5 s na obraz</td><td><a href="https://arxiv.org/abs/1409.0575" target="_blank" rel="noopener">Russakovsky i in. 2015</a></td></tr>
+      <tr><td>COCO</td><td>328 tys.</td><td>91 typów obiektów</td><td>2,5 mln instancji z maskami</td><td>Ponad 22 roboczogodziny na 1000 segmentacji („over 22 worker hours per 1,000 segmentations”), czyli ok. 79 s na obiekt</td><td><a href="https://arxiv.org/abs/1405.0312" target="_blank" rel="noopener">Lin i in. 2014</a></td></tr>
+      <tr><td>PASCAL VOC / ILSVRC (prostokąty)</td><td>–</td><td>–</td><td>Prostokąty</td><td>35 s na prostokąt wysokiej jakości, „only 7s per box” przy „extreme clicking”</td><td><a href="https://arxiv.org/abs/1708.02750" target="_blank" rel="noopener">Papadopoulos i in. 2017</a></td></tr>
+      <tr><td>Cityscapes</td><td>5000 dokładnie, 20 000 zgrubnie</td><td>30</td><td>Maski pikselowe</td><td>Średnio ponad 1,5 h na obraz („more than 1.5 h on average for a single image”)</td><td><a href="https://arxiv.org/abs/1604.01685" target="_blank" rel="noopener">Cordts i in. 2016</a></td></tr>
+    </tbody></table></div>
+    <div class="card-foot"><span class="edu-small">Ile danych wystarczy? To rząd wielkości: z transfer learningiem często setki przykładów na klasę, od zera tysiące.</span></div></div>
+  </div></section>
+  <section class="sec stone"><div class="wrap">
+    <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('trophy')}</span><h2>Twoje wyniki</h2></div>
+    <div class="card"><div class="scroll-x" tabindex="0" aria-label="Twoje wyniki"><table class="mid-table" id="results-table"><thead><tr><th>Zadanie</th><th>Najlepszy wynik</th><th>Twój czas na adnotację</th><th>Stawka z kalkulatora</th></tr></thead><tbody></tbody></table></div></div>
+  </div></section>
+  <section class="sec"><div class="wrap">
+    <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('compass')}</span><h2>Co wybrać?</h2></div>
+    <div class="choose-list" id="choose-list" role="group" aria-label="Problem do rozwiązania">${CHOICES.map((c, i) => `<button type="button" class="opt" data-choice="${i}" aria-pressed="false">${c.text}</button>`).join('')}</div>
+    <div id="choose-result" aria-live="polite"></div>
+  </div></section>`;
+}
+function quizHtml() {
+  return `
+  <header class="page-head"><h1 class="app-title" tabindex="-1">Sprawdź się</h1><p class="edu-lead">Osiem pytań o to, jakie dane wybrać do zadania i co zmienia ich jakość.</p></header>
+  <section class="sec stone"><div class="wrap"><div id="quiz-root" data-step="1" data-total="${QUIZ.length}" data-score="0" data-screen="question"></div></div></section>`;
+}
+
+// ─── Annotation logic ───
+function taskOfView(view) { return TASKS.find(t => TASK_INFO[t].view === view) || null; }
+function annotTimerResume(task) {
+  const a = App.labs[task].annot;
+  if (a.committed || a.since !== null || !a.scene) return;
+  if (App.view === TASK_INFO[task].view && !document.hidden) a.since = performance.now();
+}
+function annotTimerPause(task) {
+  const a = App.labs[task].annot;
+  if (a.since === null) return;
+  a.elapsedMs += performance.now() - a.since;
+  a.since = null;
+}
+function nextAnnotScene(task) {
+  const lab = App.labs[task], a = lab.annot;
+  annotTimerPause(task);
+  const offset = TASKS.indexOf(task);
+  a.scene = core.genScene({ seed: 300000 + offset * 1000 + a.n, cls: (a.n + offset) % 3 });
+  a.n++;
+  a.cls = null; a.box = null; a.mask = new Uint8Array(PIXELS); a.undo = []; a.drag = null;
+  a.committed = false; a.verdict = null; a.msg = ''; a.msgKind = ''; a.elapsedMs = 0; a.since = null;
+  annotTimerResume(task);
+  renderAnnot(task);
+}
+function annotIou(task) {
+  const a = App.labs[task].annot;
+  if (task === 'loc') return a.box ? core.iouBox(a.box, a.scene.box) : null;
+  if (task === 'seg') {
+    if (!maskPainted(a.mask)) return null;
+    const truth = new Uint8Array(PIXELS);
+    for (let i = 0; i < PIXELS; i++) truth[i] = a.scene.mask[i] ? 1 : 0;
+    return core.iouMask(a.mask, truth);
+  }
+  return null;
+}
+function maskPainted(mask) { let n = 0; for (let i = 0; i < PIXELS; i++) if (mask[i]) n++; return n; }
+function commitAnnot(task) {
+  const lab = App.labs[task], a = lab.annot;
+  if (a.committed) { a.msg = 'Ten obraz jest już zatwierdzony. Przejdź do następnego.'; a.msgKind = ''; renderAnnot(task); return; }
+  if (task === 'loc' && !a.box) { a.msg = 'Najpierw narysuj prostokąt wokół owocu.'; a.msgKind = 'bad'; renderAnnot(task); return; }
+  if (task === 'seg' && !maskPainted(a.mask)) { a.msg = 'Maska jest pusta. Zamaluj owoc przed zatwierdzeniem.'; a.msgKind = 'bad'; renderAnnot(task); return; }
+  if (a.cls === null) { a.msg = 'Wybierz klasę owocu.'; a.msgKind = 'bad'; renderAnnot(task); return; }
+  annotTimerPause(task);
+  const seconds = Math.max(0.001, a.elapsedMs / 1000);
+  a.samples.push(seconds);
+  a.committed = true;
+  const classOk = a.cls === a.scene.cls;
+  const iou = annotIou(task);
+  const overlapOk = task === 'cls' || iou >= 0.5;
+  a.verdict = classOk && overlapOk ? 'zgodna' : 'niezgodna';
+  const parts = [];
+  parts.push(classOk ? 'Klasa zgodna ze wzorcem.' : `Klasa niezgodna: wzorzec to ${CLASS_NAMES[a.scene.cls]}.`);
+  if (task !== 'cls') parts.push(`IoU ${comma(iou, 2)}.`);
+  a.msg = `Adnotacja ${a.verdict}. ${parts.join(' ')}`;
+  a.msgKind = a.verdict === 'zgodna' ? 'good' : 'bad';
+  const avg = a.samples.reduce((s, v) => s + v, 0) / a.samples.length;
+  App.results[task] = Object.assign({}, App.results[task], { seconds: avg });
+  markProgress('annot-' + task);
+  storageWrite();
+  announce(a.msg);
+  renderAnnot(task);
+  renderResults();
+}
+function setBoxMessage(task) {
+  const a = App.labs[task].annot;
+  if (a.committed) return;
+  if (!a.box) return;
+  const iou = core.iouBox(a.box, a.scene.box);
+  if (iou === 0) { a.msg = 'Prostokąt nie pokrywa owocu (IoU 0). Przesuń go lub narysuj od nowa.'; a.msgKind = 'bad'; }
+  else { a.msg = ''; a.msgKind = ''; }
+}
+function pushUndo(a) { a.undo.push(a.mask.slice()); if (a.undo.length > 60) a.undo.shift(); }
+function paintBrush(a, cx, cy) {
+  const size = a.brush, half = Math.floor(size / 2);
+  const value = a.tool === 'erase' ? 0 : 1;
+  for (let y = cy - half; y <= cy + half; y++) for (let x = cx - half; x <= cx + half; x++) {
+    if (x >= 0 && y >= 0 && x < SIZE && y < SIZE) a.mask[y * SIZE + x] = value;
+  }
+}
+function paintLine(a, from, to) {
+  const steps = Math.max(Math.abs(to.x - from.x), Math.abs(to.y - from.y), 1);
+  for (let i = 0; i <= steps; i++) paintBrush(a, Math.round(from.x + (to.x - from.x) * i / steps), Math.round(from.y + (to.y - from.y) * i / steps));
+}
+function bindAnnotCanvas(task) {
+  const lab = App.labs[task], a = lab.annot, canvas = labEls[task]['annot-canvas'];
+  if (task === 'cls') return;
+  canvas.addEventListener('pointerdown', event => {
+    if (a.committed) return;
+    event.preventDefault();
+    canvas.focus({ preventScroll: true });
+    canvas.setPointerCapture(event.pointerId);
+    const cell = cellFromEvent(event, canvas);
+    a.cursor = { x: cell.x, y: cell.y };
+    if (task === 'loc') {
+      a.drag = { anchor: cell };
+      a.box = { x: cell.x, y: cell.y, w: 1, h: 1 };
+    } else {
+      pushUndo(a);
+      a.drag = { last: cell };
+      paintBrush(a, cell.x, cell.y);
+    }
+    renderAnnot(task);
+  });
+  canvas.addEventListener('pointermove', event => {
+    if (!a.drag || a.committed) return;
+    event.preventDefault();
+    const cell = cellFromEvent(event, canvas);
+    if (task === 'loc') {
+      const anchor = a.drag.anchor;
+      a.box = { x: Math.min(anchor.x, cell.x), y: Math.min(anchor.y, cell.y), w: Math.abs(cell.x - anchor.x) + 1, h: Math.abs(cell.y - anchor.y) + 1 };
+    } else {
+      paintLine(a, a.drag.last, cell);
+      a.drag.last = cell;
+    }
+    a.cursor = { x: cell.x, y: cell.y };
+    renderAnnot(task);
+  });
+  const finish = () => {
+    if (!a.drag) return;
+    a.drag = null;
+    if (task === 'loc') {
+      if (a.box && (a.box.w < MIN_BOX_SIDE || a.box.h < MIN_BOX_SIDE)) {
+        a.box = null;
+        a.msg = 'Prostokąt jest za mały. Przeciągnij wskaźnik wokół owocu.';
+        a.msgKind = 'bad';
+      } else setBoxMessage(task);
+    } else if (a.msgKind === 'bad') { a.msg = ''; a.msgKind = ''; }
+    renderAnnot(task);
+  };
+  canvas.addEventListener('pointerup', finish);
+  canvas.addEventListener('pointercancel', finish);
+  canvas.addEventListener('keydown', event => {
+    const key = event.key;
+    const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    if (key === 'Enter') { event.preventDefault(); commitAnnot(task); return; }
+    if (a.committed) return;
+    if (task === 'loc' && arrows[key]) {
+      event.preventDefault();
+      const [dx, dy] = arrows[key];
+      if (!a.box) a.box = { x: 11, y: 11, w: 10, h: 10 };
+      else if (event.shiftKey) {
+        a.box.w = Math.max(MIN_BOX_SIDE, Math.min(SIZE - a.box.x, a.box.w + dx));
+        a.box.h = Math.max(MIN_BOX_SIDE, Math.min(SIZE - a.box.y, a.box.h + dy));
+      } else {
+        a.box.x = Math.max(0, Math.min(SIZE - a.box.w, a.box.x + dx));
+        a.box.y = Math.max(0, Math.min(SIZE - a.box.h, a.box.y + dy));
+      }
+      setBoxMessage(task);
+      renderAnnot(task);
+    } else if (task === 'seg' && arrows[key]) {
+      event.preventDefault();
+      const [dx, dy] = arrows[key];
+      a.cursor = { x: Math.max(0, Math.min(SIZE - 1, a.cursor.x + dx)), y: Math.max(0, Math.min(SIZE - 1, a.cursor.y + dy)) };
+      renderAnnot(task);
+    } else if (task === 'seg' && key === ' ') {
+      event.preventDefault();
+      pushUndo(a);
+      paintBrush(a, a.cursor.x, a.cursor.y);
+      if (a.msgKind === 'bad') { a.msg = ''; a.msgKind = ''; }
+      renderAnnot(task);
+    }
+  });
+}
+function annotRecord(task) {
+  const a = App.labs[task].annot;
+  const klasa = a.cls === null ? null : CLASS_NAMES[a.cls];
+  const lines = [`  "obraz": "${a.scene.id}"`, `  "klasa": ${JSON.stringify(klasa)}`];
+  if (task === 'loc') {
+    if (a.box) lines.push(`  "x": ${a.box.x}`, `  "y": ${a.box.y}`, `  "szerokosc": ${a.box.w}`, `  "wysokosc": ${a.box.h}`);
+    else lines.push('  "prostokat": null');
+  }
+  if (task === 'seg') {
+    lines.push(`  "rozmiar": [${SIZE}, ${SIZE}]`, `  "pikseli": ${maskPainted(a.mask)}`, `  "rle": [${core.rleEncode(a.mask).join(', ')}]`);
+  }
+  return '{\n' + lines.join(',\n') + '\n}';
+}
+
+// ─── Training logic ───
+function currentSettings(task) {
+  const lab = App.labs[task];
+  return { task, images: lab.images, noise: lab.noise, diversity: lab.diversity };
+}
+function workerSource() {
+  return `const core=(${cvCore.toString()})();
+self.onmessage=function(e){
+  const gen=core.train(e.data);let item=gen.next();let last=0;
+  while(!item.done){
+    const v=item.value;
+    if(v.type==='epoch')self.postMessage(v);
+    else if(v.step-last>=Math.max(1,Math.floor(v.totalSteps/60))){last=v.step;self.postMessage(v);}
+    item=gen.next();
+  }
+  const o=item.value;
+  self.postMessage({type:'done',metric:o.metric,classAcc:o.classAcc,curve:o.curve,weights:o.weights},o.weights.map(w=>w.buffer));
+};`;
+}
+function startTraining(task) {
+  const lab = App.labs[task];
+  if (lab.status === 'training') return;
+  const run = lab.run;
+  run.id++;
+  const runId = run.id;
+  run.epoch = 0; run.step = 0; run.curve = []; run.half = false;
+  run.epochs = core.EPOCHS[task][lab.images]; run.totalSteps = 0;
+  run.settings = currentSettings(task);
+  run.startedAt = performance.now();
+  lab.status = 'training'; lab.net = null; lab.metric = null; lab.classAcc = null; lab.trained = null; lab.stale = false;
+  lab.check.scene = null; lab.check.pred = null; lab.check.alert = ''; lab.check.uploaded = false;
+  renderTrain(task); renderCurve(task); renderCheck(task); renderStartCards();
+  announce(`${TASK_INFO[task].name}: trening rozpoczęty, ${lab.images} obrazów.`);
+  const onMessage = data => {
+    if (runId !== run.id || lab.status !== 'training') return;
+    if (data.type === 'done') { finishTraining(task, data); return; }
+    run.epoch = data.epoch; run.epochs = data.epochs; run.step = data.step; run.totalSteps = data.totalSteps;
+    if (data.curve) { run.curve = data.curve; renderCurve(task); }
+    if (!run.half && data.step >= data.totalSteps / 2) { run.half = true; announce(`${TASK_INFO[task].name}: połowa treningu.`); }
+    renderTrainProgress(task);
+  };
+  const runOnMain = () => {
+    run.engine = 'main';
+    const gen = core.train(run.settings);
+    const pump = () => {
+      if (runId !== run.id || lab.status !== 'training') return;
+      const until = performance.now() + 14;
+      let item = gen.next();
+      while (!item.done && performance.now() < until) {
+        if (item.value.type === 'epoch') onMessage(item.value);
+        item = gen.next();
+      }
+      if (item.done) { const o = item.value; onMessage({ type: 'done', metric: o.metric, classAcc: o.classAcc, curve: o.curve, weights: o.weights }); return; }
+      onMessage(item.value);
+      setTimeout(pump, 0);
+    };
+    run.cancel = null;
+    setTimeout(pump, 0);
+  };
+  try {
+    if (typeof Worker === 'undefined' || App.forceMainThread) throw new Error('no worker');
+    const url = URL.createObjectURL(new Blob([workerSource()], { type: 'text/javascript' }));
+    const worker = new Worker(url);
+    URL.revokeObjectURL(url);
+    run.worker = worker; run.engine = 'worker';
+    worker.onmessage = e => onMessage(e.data);
+    worker.onerror = e => { e.preventDefault(); worker.terminate(); run.worker = null; if (runId === run.id && lab.status === 'training') runOnMain(); };
+    worker.postMessage(run.settings);
+  } catch (err) { run.worker = null; runOnMain(); }
+}
+function finishTraining(task, data) {
+  const lab = App.labs[task], run = lab.run;
+  if (run.worker) { run.worker.terminate(); run.worker = null; }
+  const net = core.buildNet(task, 1);
+  net.load(data.weights);
+  lab.net = net; lab.status = 'done'; lab.metric = data.metric; lab.classAcc = data.classAcc === undefined ? null : data.classAcc;
+  lab.trained = run.settings; lab.stale = false;
+  run.curve = data.curve; run.step = run.totalSteps;
+  const seconds = (performance.now() - run.startedAt) / 1000;
+  lab.history.push({ images: run.settings.images, noise: run.settings.noise, diversity: run.settings.diversity, metric: data.metric, classAcc: lab.classAcc, seconds });
+  const prev = App.results[task] || {};
+  App.results[task] = Object.assign({}, prev, { best: Math.max(prev.best === undefined ? -1 : prev.best, data.metric) });
+  markProgress('train-' + task);
+  storageWrite();
+  newCheckScene(task, 'normal');
+  renderTrain(task); renderCurve(task); renderHistory(task); renderStartCards(); renderResults();
+  announce(`${TASK_INFO[task].name}: trening zakończony. ${TASK_INFO[task].metricName}: ${fmtMetric(task, data.metric)}.`);
+}
+function stopTraining(task) {
+  const lab = App.labs[task], run = lab.run;
+  if (lab.status !== 'training') return;
+  if (run.worker) { run.worker.terminate(); run.worker = null; }
+  run.id++;
+  lab.status = 'stopped';
+  renderTrain(task);
+  announce(`${TASK_INFO[task].name}: trening przerwany, nie ma wyniku końcowego.`);
+}
+function explainResult(task) {
+  const t = App.labs[task].trained;
+  if (!t) return '';
+  if (t.noise > 0 && t.diversity === 'light') return `Wynik obniżają ${t.noise}% błędnych etykiet oraz brak ciemnych teł w treningu.`;
+  if (t.noise > 0) return `${t.noise}% błędnych etykiet: model uczy się też błędów, więc na czystym teście wypada gorzej.`;
+  if (t.diversity === 'light') return 'Trening widział tylko jasne tło, a test obejmuje też ciemne, więc model myli się częściej.';
+  if (t.images <= 50) return `Tylko ${t.images} obrazów: model zapamiętuje przykłady i słabo radzi sobie z nowymi.`;
+  return 'Czyste etykiety i pełna różnorodność: wynik ogranicza głównie liczba obrazów.';
+}
+function setLabSetting(task, key, value) {
+  const lab = App.labs[task];
+  if (lab.status === 'training') return;
+  lab[key] = value;
+  if (lab.status === 'done' && lab.trained) {
+    lab.stale = lab.images !== lab.trained.images || lab.noise !== lab.trained.noise || lab.diversity !== lab.trained.diversity;
+  }
+  renderTrain(task); renderGallery(task); renderAnnot(task);
+}
+
+// ─── Model check logic ───
+function newCheckScene(task, mode) {
+  const lab = App.labs[task], c = lab.check;
+  c.alert = '';
+  if (!lab.net) { c.msg = 'Najpierw wytrenuj model w kroku „Przygotuj dane i wytrenuj”.'; renderCheck(task); announce(c.msg); return; }
+  c.n++;
+  const seed = (mode === 'hard' ? 960000 : 900000) + TASKS.indexOf(task) * 10000 + c.n;
+  c.scene = core.genScene({ seed, mode, cls: c.n % 3 });
+  c.uploaded = false;
+  c.pred = core.predict(lab.net, c.scene.img);
+  c.msg = mode === 'hard' ? `Trudny przypadek (${c.scene.hard.type}): ukryte ${Math.round(c.scene.hard.hidden * 100)}% obiektu. Wzorzec obejmuje tylko widoczną część.` : 'Nowy obraz, którego model nie widział w treningu.';
+  renderCheck(task);
+}
+async function handleUpload(task, file) {
+  const lab = App.labs[task], c = lab.check;
+  c.alert = '';
+  const showAlert = text => { c.alert = text; renderCheck(task); };
+  if (!lab.net) { showAlert('Najpierw wytrenuj model, a potem wgraj zdjęcie.'); return; }
+  const verdict = validateUpload(file);
+  if (!verdict.ok) { showAlert(verdict.msg); return; }
+  try {
+    const img = await decodeUpload(file);
+    if (!lab.net) return;
+    c.scene = { id: 'własne zdjęcie', img, mask: null, cls: null, box: null };
+    c.uploaded = true;
+    c.pred = core.predict(lab.net, img);
+    c.msg = 'Zdjęcie przeskalowane do 32×32 i przetworzone tylko na tym urządzeniu. Model uczył się na rysowanych owocach, więc odpowiedź może być zupełnie błędna.';
+    renderCheck(task);
+    announce(c.msg);
+  } catch (err) {
+    showAlert('Nie udało się odczytać obrazu. Plik może być uszkodzony.');
+  }
+}
+
+// ─── Render ───
+function renderProgress() {
+  const done = PROGRESS_KEYS.filter(k => App.progress[k]).length;
+  const total = PROGRESS_KEYS.length;
+  progressEl.dataset.progress = `${done}/${total}`;
+  progressEl.setAttribute('aria-valuenow', String(done));
+  progressEl.setAttribute('aria-valuetext', `Ukończone kroki: ${done} z ${total}`);
+  progressLabelEl.innerHTML = `<span class="progress-word">Postęp </span>${done}/${total}`;
+  progressFillEl.style.width = (done / total * 100) + '%';
+  TASKS.forEach(renderSteps);
+}
+function renderSteps(task) {
+  const els = labEls[task];
+  if (!els) return;
+  const lab = App.labs[task];
+  const items = [
+    ['a', 'Oznacz', App.progress['annot-' + task]],
+    ['b', 'Wytrenuj', App.progress['train-' + task]],
+    ['c', 'Sprawdź', !!lab.net],
+  ];
+  els.steps.innerHTML = items.map(([id, name, done]) => `<li><a href="#${TASK_INFO[task].view}" data-step-link="${task}-krok-${id}" data-done="${!!done}">${done ? ic('circle-check') : ic('arrow-right')} ${name}${done ? ': gotowe' : ''}</a></li>`).join('');
+  icons(els.steps);
+}
+function renderNav() {
+  navEl.querySelectorAll('a').forEach(link => {
+    if (link.dataset.view === App.view) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  });
+}
+function renderView(animate) {
+  mainEl.dataset.view = App.view;
+  VIEWS.forEach(view => {
+    const el = viewEls[view];
+    el.hidden = view !== App.view;
+    el.classList.toggle('view-anim', !!animate && view === App.view);
+  });
+  renderNav();
+}
+function setPressed(root, attr, value) {
+  root.querySelectorAll(`[${attr}]`).forEach(btn => btn.setAttribute('aria-pressed', String(btn.getAttribute(attr) === String(value))));
+}
+function renderAnnot(task) {
+  const lab = App.labs[task], a = lab.annot, els = labEls[task];
+  if (!a.scene) return;
+  const canvas = els['annot-canvas'];
+  const ctx = paintImage(canvas, a.scene.img);
+  const iou = annotIou(task);
+  const painted = task === 'seg' ? maskPainted(a.mask) : 0;
+  if (task === 'loc') {
+    if (a.committed) drawBox(ctx, canvas, a.scene.box, 'dashed');
+    drawBox(ctx, canvas, a.box, 'solid');
+  }
+  if (task === 'seg') {
+    drawMask(ctx, canvas, a.mask, 0.6, COLORS.blue);
+    if (a.committed) drawOutline(ctx, canvas, a.scene.mask);
+    else if (document.activeElement === canvas) {
+      const scale = canvas.width / SIZE, half = Math.floor(a.brush / 2);
+      ctx.lineWidth = 2; ctx.strokeStyle = COLORS.ink;
+      ctx.strokeRect((a.cursor.x - half) * scale, (a.cursor.y - half) * scale, a.brush * scale, a.brush * scale);
+      ctx.strokeStyle = COLORS.paper; ctx.lineWidth = 1;
+      ctx.strokeRect((a.cursor.x - half) * scale + 2, (a.cursor.y - half) * scale + 2, a.brush * scale - 4, a.brush * scale - 4);
+    }
+  }
+  if (task === 'cls') canvas.setAttribute('aria-label', `Obraz ${a.scene.id} do oznaczenia. ${a.committed ? 'Wzorcowa klasa: ' + CLASS_NAMES[a.scene.cls] + '.' : 'Wybierz klasę poniżej.'}`);
+  if (task === 'loc') canvas.setAttribute('aria-label', `Obraz ${a.scene.id}. ${a.box ? `Prostokąt x ${a.box.x}, y ${a.box.y}, szerokość ${a.box.w}, wysokość ${a.box.h}.` : 'Brak prostokąta.'} Przeciągnij lub użyj strzałek, Shift+strzałki zmienia rozmiar, Enter zatwierdza.`);
+  if (task === 'seg') canvas.setAttribute('aria-label', `Obraz ${a.scene.id}. Oznaczone piksele: ${painted}. Kursor x ${a.cursor.x}, y ${a.cursor.y}. Maluj wskaźnikiem albo strzałkami i spacją, Enter zatwierdza.`);
+  const annot = els.annot;
+  const count = a.samples.length;
+  const avg = count ? a.samples.reduce((s, v) => s + v, 0) / count : null;
+  annot.dataset.imageId = a.scene.id;
+  annot.dataset.annotations = String(count);
+  annot.dataset.seconds = avg === null ? '' : avg.toFixed(3);
+  annot.dataset.secondsLast = count ? a.samples[count - 1].toFixed(3) : '';
+  annot.dataset.paceSeconds = avg === null ? '' : (avg * lab.images).toFixed(3);
+  if (task !== 'cls') annot.dataset.iou = iou === null ? '' : iou.toFixed(4);
+  if (task === 'seg') annot.dataset.painted = String(painted);
+  annot.dataset.verdict = a.verdict || '';
+  els['annot-id'].textContent = a.scene.id;
+  setPressed(annot, 'data-annot-class', a.cls === null ? '' : a.cls);
+  annot.querySelectorAll('[data-annot-class]').forEach(btn => { btn.disabled = a.committed; });
+  if (task === 'seg') {
+    setPressed(annot, 'data-tool', a.tool);
+    setPressed(annot, 'data-brush', a.brush);
+    els['annot-painted'].textContent = groupDigits(painted);
+  }
+  if (task !== 'cls') els['annot-iou'].textContent = iou === null ? '–' : comma(iou, 2);
+  const msg = els['annot-msg'];
+  msg.textContent = a.msg;
+  msg.className = 'msg ' + a.msgKind;
+  els['annot-avg'].textContent = avg === null ? '–' : fmtDuration(avg);
+  els['annot-pace'].textContent = avg === null ? '–' : fmtDuration(avg * lab.images);
+  els['annot-pace-label'].textContent = `w Twoim tempie: ${groupDigits(lab.images)} obrazów`;
+  els['annot-record'].textContent = annotRecord(task);
+}
+function renderTrain(task) {
+  const lab = App.labs[task], els = labEls[task], root = els.lab, info = TASK_INFO[task];
+  const values = core.labelValues(task, lab.images);
+  root.dataset.status = lab.status;
+  root.dataset.images = String(lab.images);
+  root.dataset.noise = String(lab.noise);
+  root.dataset.diversity = lab.diversity;
+  root.dataset.labelValues = String(values);
+  root.dataset.hasModel = String(!!lab.net);
+  root.dataset.metric = lab.metric === null ? '' : lab.metric.toFixed(4);
+  root.dataset.baseline = baselines[task].toFixed(4);
+  root.dataset.stale = String(lab.stale);
+  if (task === 'loc') root.dataset.classAcc = lab.classAcc === null ? '' : lab.classAcc.toFixed(4);
+  els.values.textContent = groupDigits(values);
+  const training = lab.status === 'training';
+  const imagesInput = els[task + '-images'], noiseInput = els[task + '-noise'];
+  imagesInput.value = String(IMAGE_STEPS.indexOf(lab.images));
+  noiseInput.value = String(NOISE_STEPS.indexOf(lab.noise));
+  imagesInput.setAttribute('aria-valuetext', `${lab.images} obrazów`);
+  noiseInput.setAttribute('aria-valuetext', `${lab.noise} procent błędów`);
+  imagesInput.disabled = noiseInput.disabled = training;
+  els[task + '-images-label'].textContent = `Liczba obrazów: ${lab.images}`;
+  els[task + '-noise-label'].textContent = `Błędy w etykietach: ${lab.noise}%`;
+  setPressed(root, 'data-diversity', lab.diversity);
+  root.querySelectorAll('[data-diversity]').forEach(btn => { btn.disabled = training; });
+  els.train.disabled = training;
+  els.stop.disabled = !training;
+  const statusText = { idle: 'czeka', training: 'trening trwa', done: 'gotowe', stopped: 'przerwano' }[lab.status];
+  els['status-chip'].textContent = statusText;
+  els['metric-value'].textContent = lab.metric === null ? (lab.status === 'stopped' ? 'brak' : '–') : fmtMetric(task, lab.metric);
+  const base = fmtMetric(task, baselines[task]);
+  els['baseline-text'].textContent = `Punkt odniesienia (${info.baselineName.toLowerCase()}): ${base}`;
+  if (task === 'loc') els['class-acc-text'].textContent = lab.classAcc === null ? 'Trafność klasy: –' : `Trafność klasy: ${comma(lab.classAcc * 100, 1)}%`;
+  const explain = els.explain;
+  let note = '';
+  if (lab.status === 'stopped') note = 'Trening przerwany: model nie jest gotowy i nie ma wyniku końcowego.';
+  else if (lab.status === 'done') {
+    note = explainResult(task);
+    if (lab.stale) { const t = lab.trained; note = `Wynik dotyczy innych ustawień: ${t.images} obrazów, ${t.noise}% błędów, różnorodność ${diversityLabel(t.diversity)}. Wytrenuj ponownie.`; }
+  }
+  explain.textContent = note;
+  explain.hidden = !note;
+  renderTrainProgress(task);
+  renderSteps(task);
+}
+function renderTrainProgress(task) {
+  const lab = App.labs[task], run = lab.run, els = labEls[task];
+  const share = lab.status === 'done' ? 1 : run.totalSteps ? run.step / run.totalSteps : 0;
+  const percent = Math.round(share * 100);
+  els['train-fill'].style.width = percent + '%';
+  els.lab.dataset.trainProgress = String(percent);
+  els.lab.dataset.epoch = String(run.epoch);
+  const label = lab.status === 'idle' ? 'Postęp treningu: czeka na start'
+    : lab.status === 'training' ? `Postęp treningu: ${percent}%, epoka ${run.epoch}/${run.epochs}`
+      : lab.status === 'stopped' ? `Przerwano przy ${percent}%, epoka ${run.epoch}/${run.epochs}`
+        : `Trening zakończony: ${run.epochs} epok`;
+  els['train-progress-label'].textContent = label;
+  els['epoch-chip'].textContent = `epoka ${run.epoch}/${run.epochs || core.EPOCHS[task][lab.images]}`;
+}
+function renderCurve(task) {
+  const svg = labEls[task].curve, curve = App.labs[task].run.curve;
+  svg.dataset.points = String(curve.length);
+  const left = 34, right = 312, top = 10, bottom = 108;
+  let body = `<path class="axis" d="M${left} ${top}V${bottom}H${right}"/><text x="${left}" y="124">epoki</text>`;
+  if (curve.length) {
+    const peak = Math.max.apply(null, curve) || 1;
+    const points = curve.map((v, i) => {
+      const x = curve.length === 1 ? left : left + (right - left) * i / (curve.length - 1);
+      const y = bottom - (bottom - top) * (v / peak);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    body += `<polyline class="line" points="${points}"/><text x="2" y="${top + 8}">${comma(peak, 2)}</text><text x="18" y="${bottom}">0</text>`;
+    const last = curve[curve.length - 1];
+    svg.setAttribute('aria-label', `Krzywa straty: ${curve.length} epok, ostatnia wartość ${comma(last, 3)}.`);
+  } else {
+    body += `<text x="${left + 10}" y="60">Krzywa pojawi się po starcie treningu.</text>`;
+    svg.setAttribute('aria-label', 'Krzywa straty: brak danych.');
+  }
+  svg.innerHTML = body;
+}
+function renderHistory(task) {
+  const lab = App.labs[task], els = labEls[task];
+  els['history-count'].textContent = String(lab.history.length);
+  const cols = task === 'loc' ? 7 : 6;
+  els.history.innerHTML = lab.history.length ? lab.history.map((h, i) => `<tr><td>${i + 1}</td><td class="num">${h.images}</td><td class="num">${h.noise}%</td><td>${diversityLabel(h.diversity)}</td><td class="num">${fmtMetric(task, h.metric)}</td>${task === 'loc' ? `<td class="num">${comma(h.classAcc * 100, 1)}%</td>` : ''}<td class="num">${comma(h.seconds, 1)} s</td></tr>`).join('')
+    : `<tr><td colspan="${cols}">Po pierwszym treningu pojawi się tu wynik.</td></tr>`;
+}
+function renderGallery(task) {
+  const lab = App.labs[task], els = labEls[task];
+  const examples = core.galleryExamples(task, lab.images, lab.noise, lab.diversity);
+  const box = els.gallery;
+  box.innerHTML = '';
+  let flagged = 0;
+  for (const ex of examples) {
+    const fig = document.createElement('figure');
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 96;
+    const ctx = paintImage(canvas, ex.scene.img);
+    if (task === 'loc') drawBox(ctx, canvas, ex.label.box, 'solid');
+    if (task === 'seg') drawMask(ctx, canvas, ex.label.mask, 0.55);
+    const shown = CLASS_NAMES[ex.label.cls];
+    const truth = core.trueLabel(task, ex.scene);
+    fig.dataset.flagged = String(ex.flagged);
+    fig.dataset.trueLabel = core.labelKey(task, truth);
+    fig.dataset.shownLabel = core.labelKey(task, ex.label);
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', `Przykład ${ex.scene.id}, etykieta: ${shown}${ex.flagged ? ', etykieta błędna' : ''}.`);
+    const caption = document.createElement('figcaption');
+    caption.textContent = shown;
+    if (ex.flagged) {
+      flagged++;
+      const chip = document.createElement('span');
+      chip.className = 'chip chip-red';
+      if (ex.kind === 'class') chip.textContent = `błąd: ${CLASS_NAMES[ex.scene.cls]} → ${shown}`;
+      else chip.textContent = task === 'loc' ? 'błąd: prostokąt przesunięty' : 'błąd: maska przesunięta';
+      caption.appendChild(chip);
+    }
+    fig.append(canvas, caption);
+    box.appendChild(fig);
+  }
+  box.dataset.count = String(examples.length);
+  box.dataset.flaggedCount = String(flagged);
+  els['gallery-count'].textContent = `${examples.length} z ${lab.images}` + (flagged ? `, błędne: ${flagged}` : '');
+}
+function renderCheck(task) {
+  const lab = App.labs[task], c = lab.check, els = labEls[task];
+  const canvas = els['check-canvas'], card = els.check;
+  const hasScene = !!c.scene && !!c.pred;
+  const noModel = !lab.net;
+  els['check-alert'].textContent = c.alert;
+  els['check-alert'].hidden = !c.alert;
+  card.dataset.imageId = hasScene ? c.scene.id : '';
+  card.dataset.mode = hasScene ? (c.uploaded ? 'upload' : c.scene.mode) : '';
+  if (!hasScene) {
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = COLORS.stone;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    canvas.setAttribute('aria-label', 'Brak obrazu: model nie jest jeszcze wytrenowany.');
+    els['check-id'].textContent = lab.status === 'training' ? 'trening trwa' : 'brak modelu';
+    els['check-msg'].textContent = c.msg && noModel ? c.msg : 'Najpierw wytrenuj model. Potem zobaczysz tu jego odpowiedź na nowych obrazach.';
+    els['check-output'].innerHTML = '';
+    return;
+  }
+  els['check-id'].textContent = c.scene.id;
+  els['check-msg'].textContent = c.msg;
+  const ctx = paintImage(canvas, c.scene.img);
+  const output = els['check-output'];
+  const truthName = c.scene.cls === null ? null : CLASS_NAMES[c.scene.cls];
+  if (task === 'cls') {
+    const best = c.pred.cls;
+    output.innerHTML = `<div class="probs">${CLASS_NAMES.map((n, i) => `<div class="prob"><span>${n}</span><div class="bar"><span style="width:${(c.pred.probs[i] * 100).toFixed(1)}%"></span></div><b>${comma(c.pred.probs[i] * 100, 1)}%</b></div>`).join('')}</div>
+      <p class="answer"><b>Odpowiedź:</b> ${CLASS_NAMES[best]}${truthName ? `. <b>Wzorzec:</b> ${truthName}. ${best === c.scene.cls ? 'Zgodne.' : 'Niezgodne.'}` : '. Brak wzorca dla tego zdjęcia.'}</p>`;
+    card.dataset.probs = c.pred.probs.map(p => p.toFixed(4)).join(',');
+    canvas.setAttribute('aria-label', `Obraz ${c.scene.id}. Model wskazuje: ${CLASS_NAMES[best]}.`);
+  }
+  if (task === 'loc') {
+    if (c.scene.box) drawBox(ctx, canvas, c.scene.box, 'dashed');
+    drawBox(ctx, canvas, c.pred.box, 'solid');
+    const iou = c.scene.box ? core.iouBox(c.pred.box, c.scene.box) : null;
+    card.dataset.iou = iou === null ? '' : iou.toFixed(4);
+    output.innerHTML = `<div class="legend"><span class="chip chip-stone">linia ciągła: predykcja</span>${c.scene.box ? '<span class="chip chip-stone">linia przerywana: wzorzec</span>' : ''}</div>
+      <div class="readout" style="margin-top:10px"><span><b>${iou === null ? '–' : comma(iou, 2)}</b>IoU</span><span><b>${CLASS_NAMES[c.pred.cls]}</b>klasa modelu</span>${truthName ? `<span><b>${truthName}</b>klasa wzorcowa</span>` : ''}</div>`;
+    canvas.setAttribute('aria-label', `Obraz ${c.scene.id}. Predykcja: ${CLASS_NAMES[c.pred.cls]}, prostokąt ciągły.${iou === null ? '' : ` Wzorzec przerywany, IoU ${comma(iou, 2)}.`}`);
+  }
+  if (task === 'seg') {
+    if (c.uploaded && c.overlay === 'truth') c.overlay = 'pred';
+    setPressed(card, 'data-overlay', c.overlay);
+    card.querySelector('[data-overlay="truth"]').disabled = c.uploaded;
+    if (c.overlay === 'pred') drawMask(ctx, canvas, c.pred.mask, 0.6);
+    if (c.overlay === 'truth' && c.scene.mask) drawMask(ctx, canvas, c.scene.mask, 0.6);
+    const iou = c.scene.mask ? core.iouMask(c.pred.mask, c.scene.mask) : null;
+    card.dataset.iou = iou === null ? '' : iou.toFixed(4);
+    card.dataset.overlay = c.overlay;
+    const truthPart = c.scene.mask ? `<p class="answer"><b>Wzorzec:</b> ${maskClassSummary(core.countClasses(c.scene.mask))}.</p>` : '';
+    output.innerHTML = `<div class="legend">${CLASS_NAMES.map((n, i) => `<span class="chip chip-stone"><span class="swatch swatch-${i}"></span>${n}</span>`).join('')}</div>
+      <div class="readout" style="margin-top:10px"><span><b>${iou === null ? '–' : comma(iou, 2)}</b>IoU obiektu</span></div>
+      <p class="answer"><b>Predykcja:</b> ${maskClassSummary(c.pred.counts)}.</p>${truthPart}`;
+    canvas.setAttribute('aria-label', `Obraz ${c.scene.id}. Widoczna nakładka: ${c.overlay === 'pred' ? 'predykcja' : c.overlay === 'truth' ? 'wzorzec' : 'brak'}. Predykcja: ${maskClassSummary(c.pred.counts)}.`);
+  }
+}
+function renderInspector() {
+  const ins = App.inspector;
+  const canvas = document.getElementById('inspector-canvas');
+  const ctx = paintBytes(canvas, channelBytes(ins.bytes, ins.channel));
+  const scale = canvas.width / SIZE;
+  ctx.lineWidth = 3; ctx.strokeStyle = COLORS.ink;
+  ctx.strokeRect(ins.x * scale, ins.y * scale, scale, scale);
+  ctx.lineWidth = 1; ctx.strokeStyle = COLORS.paper;
+  ctx.strokeRect(ins.x * scale + 1.5, ins.y * scale + 1.5, scale - 3, scale - 3);
+  const p = (ins.y * SIZE + ins.x) * 4;
+  const r = ins.bytes[p], g = ins.bytes[p + 1], b = ins.bytes[p + 2];
+  const out = document.getElementById('inspector-out');
+  out.innerHTML = `<span><b>${ins.x}, ${ins.y}</b>kolumna, wiersz</span><span><b>${r}</b>R</span><span><b>${g}</b>G</span><span><b>${b}</b>B</span>`;
+  const card = document.getElementById('inspector');
+  Object.assign(card.dataset, { x: ins.x, y: ins.y, r, g, b, channel: ins.channel });
+  canvas.setAttribute('aria-label', `Obraz 32×32. Piksel kolumna ${ins.x}, wiersz ${ins.y}: R ${r}, G ${g}, B ${b}. Strzałki wybierają piksel.`);
+  setPressed(card, 'data-channel', ins.channel);
+}
+function renderFilter() {
+  const ins = App.inspector, filter = FILTERS[ins.filter];
+  const card = document.getElementById('filter-card');
+  card.dataset.filter = ins.filter;
+  setPressed(card, 'data-filter-pick', ins.filter);
+  paintBytes(document.getElementById('filter-source'), ins.bytes);
+  const result = document.getElementById('filter-result');
+  paintBytes(result, convolve(ins.bytes, filter));
+  result.setAttribute('aria-label', `Wynik splotu: ${filter.name}.`);
+  document.getElementById('filter-matrix').innerHTML = filter.show.map(v => `<span>${v}</span>`).join('');
+}
+function renderStartCards() {
+  const box = document.getElementById('start-cards');
+  if (!box) return;
+  const mode = App.startMode;
+  const scene = App.startScenes[mode];
+  setPressed(viewEls.start, 'data-start-mode', mode);
+  document.querySelector('#start-note p').textContent = mode === 'two'
+    ? 'Klasa i prostokąt opisują tylko większy obiekt. Wszystkie obiekty opisuje dopiero maska.'
+    : 'Ta sama scena, trzy rodzaje etykiet i trzy odpowiedzi modeli.';
+  box.dataset.mode = mode;
+  box.innerHTML = TASKS.map(task => {
+    const info = TASK_INFO[task];
+    return `<div class="card" data-task="${task}" data-el-start="${task}">
+      <div class="card-head"><span class="tile-h"><span class="badge tone-${info.tone}">${ic(info.icon)}</span><h3>${info.name}</h3></span></div>
+      <div class="card-body"><div class="pair-canvases">
+        <figure><canvas data-ref-canvas width="192" height="192" role="img"></canvas><figcaption>Wzorzec</figcaption></figure>
+        <figure data-pred-slot></figure>
+      </div><p class="answer" data-ref-text></p><p class="answer" data-pred-text></p></div>
+    </div>`;
+  }).join('');
+  TASKS.forEach(task => {
+    const card = box.querySelector(`[data-el-start="${task}"]`);
+    const lab = App.labs[task];
+    const refCanvas = card.querySelector('[data-ref-canvas]');
+    const ctx = paintImage(refCanvas, scene.img);
+    let refText;
+    if (task === 'cls') { refText = CLASS_NAMES[scene.cls]; card.dataset.refClasses = '1'; card.dataset.refBoxes = '0'; }
+    if (task === 'loc') {
+      drawBox(ctx, refCanvas, scene.box, 'dashed');
+      refText = `${CLASS_NAMES[scene.cls]}, jeden prostokąt`;
+      card.dataset.refClasses = '1'; card.dataset.refBoxes = '1';
+    }
+    if (task === 'seg') {
+      drawMask(ctx, refCanvas, scene.mask, 0.6);
+      const counts = core.countClasses(scene.mask);
+      card.dataset.refClasses = String(counts.slice(1).filter(n => n > 0).length);
+      refText = maskClassSummary(counts);
+    }
+    refCanvas.setAttribute('aria-label', `Odpowiedź wzorcowa: ${refText}.`);
+    card.querySelector('[data-ref-text]').innerHTML = `<b>Wzorzec:</b> ${refText}.`;
+    const slot = card.querySelector('[data-pred-slot]');
+    const predText = card.querySelector('[data-pred-text]');
+    if (!lab.net) {
+      card.dataset.trained = 'false';
+      slot.innerHTML = `<div class="placeholder">Model nie jest wytrenowany<a href="#${TASK_INFO[task].view}">Otwórz laboratorium</a></div>`;
+      predText.innerHTML = '';
+      return;
+    }
+    card.dataset.trained = 'true';
+    slot.innerHTML = `<canvas width="192" height="192" role="img"></canvas><figcaption>Model</figcaption>`;
+    const predCanvas = slot.querySelector('canvas');
+    const pctx = paintImage(predCanvas, scene.img);
+    const pred = core.predict(lab.net, scene.img);
+    let text;
+    if (task === 'cls') {
+      text = `${CLASS_NAMES[pred.cls]} (${comma(pred.probs[pred.cls] * 100, 0)}%)`;
+      card.dataset.predClasses = '1';
+    } else if (task === 'loc') {
+      drawBox(pctx, predCanvas, pred.box, 'solid');
+      text = `${CLASS_NAMES[pred.cls]}, jeden prostokąt`;
+      card.dataset.predClasses = '1'; card.dataset.predBoxes = '1';
+    } else {
+      drawMask(pctx, predCanvas, pred.mask, 0.6);
+      text = maskClassSummary(pred.counts);
+      card.dataset.predClasses = String(pred.counts.slice(1).filter(n => n > 0).length);
+    }
+    predCanvas.setAttribute('aria-label', `Odpowiedź modelu: ${text}.`);
+    predText.innerHTML = `<b>Model:</b> ${text}.`;
+  });
+  icons(box);
+}
+function renderCalc() {
+  const calc = document.getElementById('calc');
+  if (!calc) return;
+  const fields = [['images', 'calc-images'], ['objects', 'calc-objects']];
+  const parsed = {};
+  fields.forEach(([name, id]) => {
+    const input = document.getElementById(id), error = document.getElementById(id + '-error');
+    if (input.value !== App.calc[name]) input.value = App.calc[name];
+    const res = validateCalcField(name, App.calc[name]);
+    parsed[name] = res;
+    input.setAttribute('aria-invalid', String(!res.ok));
+    error.textContent = res.ok ? '' : res.msg;
+    error.hidden = res.ok;
+  });
+  const valid = parsed.images.ok && parsed.objects.ok;
+  const hours = valid ? calcHours(parsed.images.value, parsed.objects.value) : null;
+  const peak = valid ? Math.max(hours.cls, hours.loc, hours.seg) : 1;
+  TASKS.forEach(t => {
+    calc.dataset['hours' + t[0].toUpperCase() + t.slice(1)] = valid ? hours[t].toFixed(4) : '';
+    document.querySelector(`[data-value="${t}"]`).textContent = valid ? fmtDuration(hours[t] * 3600) : '–';
+    document.querySelector(`[data-bar="${t}"]`).style.width = valid ? (hours[t] / peak * 100) + '%' : '0';
+  });
+}
+function renderResults() {
+  const table = document.querySelector('#results-table tbody');
+  if (!table) return;
+  const rateText = { cls: '5 s na obraz (oszacowanie)', loc: '35 s na prostokąt', seg: '79 s na obiekt' };
+  table.innerHTML = TASKS.map(t => {
+    const r = App.results[t] || {};
+    const best = r.best === undefined ? 'brak danych' : fmtMetric(t, r.best);
+    const secs = r.seconds === undefined ? 'brak danych' : (r.seconds < 60 ? comma(r.seconds, 1) + ' s' : fmtDuration(r.seconds));
+    return `<tr data-task="${t}"><td>${TASK_INFO[t].name}</td><td data-best>${best}</td><td data-seconds>${secs}</td><td>${rateText[t]}</td></tr>`;
+  }).join('');
+}
+function renderChoice() {
+  setPressed(viewEls.dane, 'data-choice', App.choice === null ? '' : App.choice);
+  const box = document.getElementById('choose-result');
+  if (App.choice === null) { box.innerHTML = ''; box.dataset.task = ''; return; }
+  const c = CHOICES[App.choice], info = TASK_INFO[c.task];
+  box.dataset.task = c.task;
+  box.innerHTML = `<div class="block tone-${info.tone} edu-block"><p><b>${info.name}.</b> ${c.why} <a href="#${info.view}" style="color:inherit;font-weight:600">Otwórz laboratorium</a></p></div>`;
+}
+function renderQuiz(focusNext) {
+  const root = document.getElementById('quiz-root');
+  const q = App.quiz;
+  const total = QUIZ.length;
+  root.dataset.score = String(q.score);
+  if (q.finished) {
+    root.dataset.screen = 'results';
+    root.dataset.step = String(total);
+    const unique = Array.from(new Set(q.wrongTasks));
+    root.innerHTML = `<div class="card"><div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('trophy')}</span><h3>Wynik</h3></span></div>
+      <div class="card-body"><div class="quiz-score">${q.score}/${total}</div>
+      ${unique.length ? `<p>Warto wrócić do:</p><div class="btn-row">${unique.map(t => `<a class="btn" href="#${TASK_INFO[t].view}">${TASK_INFO[t].name}</a>`).join('')}</div>` : '<p>Wszystkie odpowiedzi poprawne.</p>'}</div>
+      <div class="card-foot"><button type="button" class="btn btn-primary" data-quiz-again>${ic('rotate-ccw')} Powtórz</button></div></div>`;
+    icons(root);
+    return;
+  }
+  const item = QUIZ[q.index];
+  const answered = q.picked !== null;
+  root.dataset.screen = 'question';
+  root.dataset.step = String(q.index + 1);
+  root.dataset.answered = String(answered);
+  root.innerHTML = `<div class="card"><div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('list-checks')}</span><h3>Pytanie ${q.index + 1} z ${total}</h3></span><span class="chip chip-stone">wynik: ${q.score}</span></div>
+    <div class="card-body"><div class="bar" style="margin-bottom:18px" aria-hidden="true"><span style="width:${(q.index + (answered ? 1 : 0)) / total * 100}%"></span></div>
+    <div class="quiz-grid"><p class="quiz-q">${escapeHtml(item.q)}</p>
+    <div class="quiz-opts">${item.a.map((text, i) => {
+      let state = '', mark = '';
+      if (answered && i === item.ok) { state = 'correct'; mark = 'poprawna'; }
+      else if (answered && i === q.picked) { state = 'wrong'; mark = 'Twoja, błędna'; }
+      return `<button type="button" class="quiz-opt" data-answer="${i}" data-state="${state}" data-selected="${answered && i === q.picked}" ${answered ? `data-correct="${i === item.ok}" disabled` : ''}><kbd>${i + 1}</kbd><span>${escapeHtml(text)}</span><span class="quiz-mark">${mark}</span></button>`;
+    }).join('')}</div></div>
+    ${answered ? `<div class="block ${q.picked === item.ok ? 'tone-green' : 'tone-red'} edu-block"><p><b>${q.picked === item.ok ? 'Dobrze.' : 'Nie tym razem.'}</b> ${escapeHtml(item.why)}</p></div>` : ''}</div>
+    <div class="card-foot"><span class="edu-small kbd-only">Klawisze <kbd>1</kbd>–<kbd>4</kbd> wybierają odpowiedź, <kbd>Enter</kbd> przechodzi dalej.</span>
+    <button type="button" class="btn btn-primary" data-quiz-next ${answered ? '' : 'disabled'}>${ic('arrow-right')} ${q.index + 1 === total ? 'Zobacz wynik' : 'Dalej'}</button></div></div>`;
+  icons(root);
+  if (focusNext) { const next = root.querySelector('[data-quiz-next]'); if (next) next.focus(); }
+}
+function answerQuiz(index) {
+  const q = App.quiz;
+  if (q.finished || q.picked !== null || index < 0 || index >= QUIZ[q.index].a.length) return;
+  q.picked = index;
+  const item = QUIZ[q.index];
+  const ok = index === item.ok;
+  if (ok) q.score++; else q.wrongTasks.push(item.task);
+  renderQuiz(true);
+  announce((ok ? 'Dobrze. ' : `Nie tym razem. Poprawna odpowiedź: ${item.a[item.ok]}. `) + item.why);
+}
+function nextQuiz() {
+  const q = App.quiz;
+  if (q.finished || q.picked === null) return;
+  if (q.index + 1 >= QUIZ.length) {
+    q.finished = true;
+    markProgress('quiz');
+    announce(`Koniec quizu. Wynik: ${q.score} z ${QUIZ.length}.`);
+  } else { q.index++; q.picked = null; }
+  renderQuiz(false);
+  const first = document.querySelector('#quiz-root button:not([disabled])');
+  if (first) first.focus({ preventScroll: true });
+}
+function resetQuiz() {
+  App.quiz = { index: 0, score: 0, picked: null, wrongTasks: [], finished: false };
+  renderQuiz(false);
+}
+function renderAll() {
+  renderProgress();
+  TASKS.forEach(task => { renderTrain(task); renderAnnot(task); renderGallery(task); renderCurve(task); renderHistory(task); renderCheck(task); });
+  renderStartCards(); renderResults(); renderCalc(); renderChoice(); renderQuiz(false);
+}
+function resetAll() {
+  TASKS.forEach(task => {
+    const lab = App.labs[task];
+    if (lab.run.worker) lab.run.worker.terminate();
+    lab.run.id++;
+    annotTimerPause(task);
+    App.labs[task] = newLabState(task);
+    rebindLab(task);
+    nextAnnotScene(task);
+  });
+  App.progress = {}; App.results = {}; App.choice = null;
+  storageWrite();
+  App.quiz = { index: 0, score: 0, picked: null, wrongTasks: [], finished: false };
+  renderAll();
+  announce('Postęp i wyniki wyzerowane.');
+}
+
+// ─── Listeners ───
+function setViewFromHash(animate, focusTitle) {
+  const name = decodeURIComponent(location.hash.replace(/^#/, ''));
+  const view = VIEWS.includes(name) ? name : 'start';
+  const changed = view !== App.view;
+  TASKS.forEach(annotTimerPause);
+  App.view = view;
+  TASKS.forEach(annotTimerResume);
+  renderView(animate && changed);
+  if (changed) {
+    window.scrollTo(0, 0);
+    const active = navEl.querySelector(`a[data-view="${view}"]`);
+    if (active && active.scrollIntoView) active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    if (focusTitle) { const title = viewEls[view].querySelector('.app-title'); if (title) title.focus({ preventScroll: true }); }
+    announce(`Widok: ${VIEW_LABELS[view]}`);
+  }
+}
+function collectLabEls(task, root) {
+  const els = {};
+  root.querySelectorAll('[data-el]').forEach(el => { els[el.dataset.el] = el; });
+  root.querySelectorAll('input[type=range]').forEach(el => { els[el.id] = el; });
+  labEls[task] = els;
+}
+// Lab handlers read the current state object through App, so a reset only rebinds the canvas closure.
+function rebindLab(task) {
+  const old = labEls[task]['annot-canvas'];
+  const fresh = old.cloneNode(false);
+  old.replaceWith(fresh);
+  labEls[task]['annot-canvas'] = fresh;
+  fresh.addEventListener('focus', () => renderAnnot(task));
+  fresh.addEventListener('blur', () => renderAnnot(task));
+  bindAnnotCanvas(task);
+}
+function bindLab(task) {
+  const els = labEls[task], root = viewEls[TASK_INFO[task].view];
+  root.addEventListener('click', event => {
+    const target = event.target.closest('button, a');
+    if (!target) return;
+    const lab = App.labs[task], a = lab.annot;
+    if (target.dataset.stepLink) {
+      event.preventDefault();
+      const section = document.getElementById(target.dataset.stepLink);
+      if (section) section.scrollIntoView();
+      return;
+    }
+    if (target.dataset.annotClass !== undefined) {
+      if (a.committed) return;
+      a.cls = Number(target.dataset.annotClass);
+      if (task === 'cls') commitAnnot(task); else { if (a.msg === 'Wybierz klasę owocu.') { a.msg = ''; a.msgKind = ''; } renderAnnot(task); }
+      return;
+    }
+    if (target.dataset.tool) { a.tool = target.dataset.tool; renderAnnot(task); return; }
+    if (target.dataset.brush) { a.brush = Number(target.dataset.brush); renderAnnot(task); return; }
+    if (target.dataset.diversity) { setLabSetting(task, 'diversity', target.dataset.diversity); return; }
+    if (target.dataset.overlay) { lab.check.overlay = target.dataset.overlay; renderCheck(task); return; }
+    switch (target.dataset.el) {
+      case 'commit': commitAnnot(task); break;
+      case 'next': nextAnnotScene(task); break;
+      case 'undo':
+        if (a.committed) break;
+        if (a.undo.length) { a.mask = a.undo.pop(); a.msg = ''; a.msgKind = ''; } else { a.msg = 'Nie ma czego cofać.'; a.msgKind = ''; }
+        renderAnnot(task); break;
+      case 'clear':
+        if (a.committed) break;
+        pushUndo(a); a.mask = new Uint8Array(PIXELS); a.msg = ''; a.msgKind = ''; renderAnnot(task); break;
+      case 'train': startTraining(task); break;
+      case 'stop': stopTraining(task); break;
+      case 'check-new': newCheckScene(task, 'normal'); break;
+      case 'check-hard': newCheckScene(task, 'hard'); break;
+      default:
+    }
+  });
+  els[task + '-images'].addEventListener('input', event => setLabSetting(task, 'images', IMAGE_STEPS[Number(event.target.value)]));
+  els[task + '-noise'].addEventListener('input', event => setLabSetting(task, 'noise', NOISE_STEPS[Number(event.target.value)]));
+  els['check-file'].addEventListener('change', event => {
+    const file = event.target.files && event.target.files[0];
+    if (file) handleUpload(task, file);
+    event.target.value = '';
+  });
+}
+function bindStart() {
+  const canvas = document.getElementById('inspector-canvas');
+  const ins = App.inspector;
+  const pick = event => { const cell = cellFromEvent(event, canvas); ins.x = cell.x; ins.y = cell.y; renderInspector(); };
+  canvas.addEventListener('pointerdown', event => { event.preventDefault(); canvas.setPointerCapture(event.pointerId); pick(event); });
+  canvas.addEventListener('pointermove', pick);
+  canvas.addEventListener('keydown', event => {
+    const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    if (!arrows[event.key]) return;
+    event.preventDefault();
+    ins.x = Math.max(0, Math.min(SIZE - 1, ins.x + arrows[event.key][0]));
+    ins.y = Math.max(0, Math.min(SIZE - 1, ins.y + arrows[event.key][1]));
+    renderInspector();
+  });
+  viewEls.start.addEventListener('click', event => {
+    const target = event.target.closest('button');
+    if (!target) return;
+    if (target.dataset.channel) { ins.channel = target.dataset.channel; renderInspector(); }
+    if (target.dataset.filterPick) { ins.filter = target.dataset.filterPick; renderFilter(); }
+    if (target.dataset.startMode) { App.startMode = target.dataset.startMode; renderStartCards(); }
+  });
+}
+function bindDane() {
+  [['images', 'calc-images'], ['objects', 'calc-objects']].forEach(([name, id]) => {
+    document.getElementById(id).addEventListener('input', event => { App.calc[name] = event.target.value; renderCalc(); });
+  });
+  TASKS.forEach(t => {
+    const text = { cls: `${RATE_SECONDS.cls} s na obraz, oszacowanie`, loc: `${RATE_SECONDS.loc} s na obiekt, Papadopoulos i in.`, seg: `${RATE_SECONDS.seg} s na obiekt, Lin i in.` }[t];
+    document.querySelector(`[data-rate="${t}"]`).textContent = text;
+  });
+  document.getElementById('choose-list').addEventListener('click', event => {
+    const target = event.target.closest('[data-choice]');
+    if (!target) return;
+    App.choice = Number(target.dataset.choice);
+    renderChoice();
+  });
+}
+function bindQuiz() {
+  document.getElementById('quiz-root').addEventListener('click', event => {
+    const target = event.target.closest('button');
+    if (!target) return;
+    if (target.dataset.answer !== undefined) answerQuiz(Number(target.dataset.answer));
+    else if (target.hasAttribute('data-quiz-next')) nextQuiz();
+    else if (target.hasAttribute('data-quiz-again')) resetQuiz();
+  });
+}
+function shortcutsBlocked(target) {
+  if (!target || !target.tagName) return false;
+  const tag = target.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'CANVAS' || target.isContentEditable;
+}
+function onShortcut(event) {
+  if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (helpDialog.open || resetDialog.open) return;
+  const target = event.target, key = event.key;
+  if (key === '?' && !shortcutsBlocked(target)) { event.preventDefault(); helpDialog.showModal(); return; }
+  if (shortcutsBlocked(target)) return;
+  if (key === 'ArrowLeft' || key === 'ArrowRight') {
+    if (target.closest && target.closest('.scroll-x, .record')) return;
+    event.preventDefault();
+    const at = VIEWS.indexOf(App.view);
+    const next = at + (key === 'ArrowRight' ? 1 : -1);
+    if (next >= 0 && next < VIEWS.length) location.hash = VIEWS[next];
+    return;
+  }
+  const task = taskOfView(App.view);
+  if (task && (key === 't' || key === 'T')) { event.preventDefault(); startTraining(task); return; }
+  if (task && (key === 'n' || key === 'N')) {
+    event.preventDefault();
+    if (App.labs[task].net) newCheckScene(task, 'normal'); else nextAnnotScene(task);
+    return;
+  }
+  if (App.view === 'quiz') {
+    if (/^[1-4]$/.test(key)) { event.preventDefault(); answerQuiz(Number(key) - 1); return; }
+    if (key === 'Enter' && !(target.closest && target.closest('button, a, summary'))) { event.preventDefault(); nextQuiz(); }
+  }
+}
+function bindGlobal() {
+  window.addEventListener('hashchange', () => setViewFromHash(true, true));
+  document.addEventListener('keydown', onShortcut);
+  document.addEventListener('visibilitychange', () => { TASKS.forEach(document.hidden ? annotTimerPause : annotTimerResume); });
+  document.getElementById('help-open').addEventListener('click', () => helpDialog.showModal());
+  document.getElementById('help-close').addEventListener('click', () => helpDialog.close());
+  document.getElementById('reset-open').addEventListener('click', () => resetDialog.showModal());
+  document.getElementById('reset-cancel').addEventListener('click', () => resetDialog.close());
+  document.getElementById('reset-confirm').addEventListener('click', () => { resetDialog.close(); resetAll(); });
+  addEventListener('load', () => icons());
+}
+
+// ─── Probes ───
+async function runProbes() {
+  const results = [];
+  const check = (name, ok) => results.push({ name, ok: !!ok });
+  const equalBytes = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+  const box = { x: 3, y: 4, w: 10, h: 8 };
+  check('IoU: identyczne prostokąty = 1', core.iouBox(box, Object.assign({}, box)) === 1);
+  check('IoU: rozłączne prostokąty = 0', core.iouBox(box, { x: 20, y: 20, w: 4, h: 4 }) === 0);
+  check('IoU: pusty prostokąt = 0, bez NaN', core.iouBox({ x: 0, y: 0, w: 0, h: 0 }, box) === 0);
+  check('IoU: fikstura pół na pół = 1/3', Math.abs(core.iouBox({ x: 0, y: 0, w: 2, h: 2 }, { x: 1, y: 0, w: 2, h: 2 }) - 1 / 3) < 1e-9);
+  const empty = new Uint8Array(PIXELS);
+  check('IoU: pusta maska = 0, bez NaN', core.iouMask(empty, empty) === 0);
+  const sample = core.genScene({ seed: 42, cls: 1 });
+  const binary = sample.mask.map(v => v ? 1 : 0);
+  check('RLE: tam i z powrotem', equalBytes(core.rleDecode(core.rleEncode(binary), PIXELS), binary));
+  check('RLE: pusta maska to jeden odcinek', core.rleEncode(empty).length === 1);
+  const again = core.genScene({ seed: 42, cls: 1 });
+  check('Generator: to samo ziarno, ten sam obraz', sample.img.every((v, i) => v === again.img[i]));
+  const runA = core.runToEnd({ task: 'cls', images: 10, noise: 0, diversity: 'full', epochs: 2 });
+  const runB = core.runToEnd({ task: 'cls', images: 10, noise: 0, diversity: 'full', epochs: 2 });
+  check('Trening: te same ustawienia, ta sama metryka i wagi', runA.metric === runB.metric && runA.weights[0].every((v, i) => v === runB.weights[0][i]));
+  const hours = calcHours(1000, 2);
+  check('Kalkulator: 1000 obrazów i 2 obiekty', Math.abs(hours.cls - 1.3889) < 0.001 && Math.abs(hours.loc - 19.4444) < 0.001 && Math.abs(hours.seg - 43.8889) < 0.001);
+  check('Kalkulator: złe dane odrzucone', ['', '0', '-5', 'abc', '1,5', '10000001', '99999999999'].every(v => !validateCalcField('images', v).ok) && ['', '0', '101', '1,5'].every(v => !validateCalcField('objects', v).ok));
+  check('Kalkulator: granice przyjęte', ['1', '10000000'].every(v => validateCalcField('images', v).ok) && ['1', '100'].every(v => validateCalcField('objects', v).ok));
+  check('Plik: .txt, GIF, pusty i ponad 20 MB odrzucone', !validateUpload(new File(['x'], 'a.txt', { type: 'text/plain' })).ok && !validateUpload(new File(['x'], 'a.gif', { type: 'image/gif' })).ok && !validateUpload(new File([], 'a.png', { type: 'image/png' })).ok && !validateUpload({ name: 'a.png', type: 'image/png', size: MAX_UPLOAD_BYTES + 1 }).ok);
+  check('Plik: PNG i JPEG przyjęte', validateUpload({ name: 'a.png', type: 'image/png', size: MAX_UPLOAD_BYTES }).ok && validateUpload({ name: 'a.jpg', type: 'image/jpeg', size: 10 }).ok);
+  let decodeFailed = false;
+  try { await decodeUpload(new File(['to nie jest obraz'], 'zly.png', { type: 'image/png' })); } catch (err) { decodeFailed = true; }
+  check('Plik: uszkodzony PNG daje błąd odczytu', decodeFailed);
+  check('Filtr „bez zmian” odtwarza oryginał', equalBytes(convolve(App.inspector.bytes, FILTERS.identity), App.inspector.bytes));
+  check('Filtry krawędzi dają różne wyniki', !equalBytes(convolve(App.inspector.bytes, FILTERS.vertical), convolve(App.inspector.bytes, FILTERS.horizontal)));
+  let galleryOk = true;
+  TASKS.forEach(task => [[200, 40, 5], [200, 20, 2], [200, 10, 1], [200, 0, 0], [10, 40, 4]].forEach(([images, noise, wanted]) => {
+    const list = core.galleryExamples(task, images, noise, 'full');
+    if (list.length !== Math.min(12, images)) galleryOk = false;
+    if (list.filter(e => e.flagged).length !== wanted) galleryOk = false;
+    list.forEach(e => {
+      const same = core.labelKey(task, e.label) === core.labelKey(task, core.trueLabel(task, e.scene));
+      if (e.flagged === same) galleryOk = false;
+    });
+  }));
+  check('Galeria: oznaczone etykiety różnią się od wzorca, pozostałe są zgodne', galleryOk);
+  let twoOk = true;
+  for (let i = 0; i < 30; i++) {
+    const s = core.genScene({ seed: 610000 + i, mode: 'two', cls: i % 3 });
+    const counts = core.countClasses(s.mask);
+    const present = [0, 1, 2].filter(c => counts[c + 1] > 0);
+    const other = present.find(c => c !== s.cls);
+    if (present.length !== 2 || counts[s.cls + 1] < counts[other + 1] || !s.box) twoOk = false;
+  }
+  check('Scena z dwoma obiektami: maska ma dwie klasy, wzorzec to większy obiekt', twoOk);
+  let hardOk = true;
+  for (let i = 0; i < 30; i++) {
+    const s = core.genScene({ seed: 620000 + i, mode: 'hard', cls: i % 3 });
+    const tight = core.boxOfClass(s.mask, s.cls + 1);
+    if (!s.hard || s.hard.hidden < 0.25 || s.hard.hidden > 0.4 || JSON.stringify(tight) !== JSON.stringify(s.box)) hardOk = false;
+  }
+  check('Trudna scena: ukryte 25-40%, wzorzec obejmuje widoczną część', hardOk);
+  check('Etykiety: 200 obrazów daje 200, 1000 i 204800 wartości', core.labelValues('cls', 200) === 200 && core.labelValues('loc', 200) === 1000 && core.labelValues('seg', 200) === 204800);
+  const labAttrs = ['task', 'status', 'metric', 'images', 'noise', 'diversity', 'labelValues', 'hasModel', 'baseline'];
+  const annotAttrs = ['seconds', 'secondsLast', 'annotations', 'paceSeconds', 'imageId'];
+  let contractOk = mainEl.dataset.view !== undefined && progressEl.dataset.progress !== undefined && document.getElementById('quiz-root').dataset.step !== undefined && document.getElementById('calc').dataset.hoursCls !== undefined;
+  TASKS.forEach(task => {
+    const els = labEls[task];
+    labAttrs.forEach(attr => { if (els.lab.dataset[attr] === undefined) contractOk = false; });
+    annotAttrs.forEach(attr => { if (els.annot.dataset[attr] === undefined) contractOk = false; });
+    if (task !== 'cls' && els.annot.dataset.iou === undefined) contractOk = false;
+    if (task === 'loc' && els.lab.dataset.classAcc === undefined) contractOk = false;
+  });
+  check('Kontrakt DOM: wszystkie atrybuty data-* istnieją', contractOk);
+  const failed = results.filter(r => !r.ok).length;
+  const panel = document.createElement('section');
+  panel.className = 'card probe-panel';
+  panel.id = 'probe-panel';
+  panel.innerHTML = `<div class="card-head"><span class="tile-h"><span class="badge ${failed ? 'tone-red' : 'tone-green'}">${ic(failed ? 'circle-x' : 'circle-check')}</span><h3>Sondy: ${results.length - failed}/${results.length}</h3></span></div>
+    <div class="card-body"><ul class="probe-list">${results.map(r => `<li data-probe="${r.ok ? 'pass' : 'fail'}"><span class="chip ${r.ok ? 'chip-green' : 'chip-red'}">${r.ok ? 'OK' : 'BŁĄD'}</span>${escapeHtml(r.name)}</li>`).join('')}</ul></div>`;
+  mainEl.prepend(panel);
+  icons(panel);
+  document.body.dataset.probeStatus = failed ? 'fail' : 'pass';
+}
+
+// ─── Init ───
+function init() {
+  const saved = storageRead();
+  if (saved) { App.progress = saved.progress || {}; App.results = saved.results || {}; }
+  TASKS.forEach(task => { baselines[task] = core.baseline(task); });
+  App.inspector.scene = core.genScene({ seed: 1017, cls: 0, background: 'light' });
+  App.inspector.bytes = imageToBytes(App.inspector.scene.img);
+  App.inspector.x = App.inspector.scene.box.x + Math.floor(App.inspector.scene.box.w / 2);
+  App.inspector.y = App.inspector.scene.box.y + Math.floor(App.inspector.scene.box.h / 2);
+  App.startScenes = { one: core.genScene({ seed: 2024, cls: 1 }), two: core.genScene({ seed: 5539, cls: 0, mode: 'two' }) };
+  navEl.innerHTML = VIEWS.map(v => `<a href="#${v}" data-view="${v}">${VIEW_LABELS[v]}</a>`).join('');
+  const templates = { start: startHtml(), dane: daneHtml(), quiz: quizHtml() };
+  TASKS.forEach(t => { templates[TASK_INFO[t].view] = labHtml(t); });
+  VIEWS.forEach(view => {
+    const el = document.createElement('div');
+    el.className = 'view';
+    el.dataset.viewName = view;
+    el.hidden = true;
+    el.innerHTML = templates[view];
+    mainEl.appendChild(el);
+    viewEls[view] = el;
+  });
+  TASKS.forEach(task => {
+    collectLabEls(task, viewEls[TASK_INFO[task].view]);
+    bindLab(task);
+    rebindLab(task);
+  });
+  bindStart(); bindDane(); bindQuiz(); bindGlobal();
+  setViewFromHash(false, false);
+  TASKS.forEach(nextAnnotScene);
+  renderInspector(); renderFilter();
+  renderAll();
+  renderView(false);
+  icons();
+  if (new URLSearchParams(location.search).has('probe')) runProbes();
+  // ─── Reveal ───
+  const FONT_WAIT_MS = 1500;
+  const BRAND_FONTS = ['400 1em Outfit', '700 1em Outfit', '400 1em "IBM Plex Sans"', '600 1em "IBM Plex Sans"', '400 1em "Roboto Mono"'];
+  Promise.race([
+    Promise.all(BRAND_FONTS.map(f => document.fonts.load(f).catch(() => null))),
+    new Promise(resolve => setTimeout(resolve, FONT_WAIT_MS)),
+  ]).then(() => document.documentElement.classList.add('app-ready'));
+}
+init();
+
+</script>
+</body>
+</html>
