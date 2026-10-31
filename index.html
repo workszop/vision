@@ -258,8 +258,8 @@ kbd { font-family: var(--font-mono); font-size: var(--caption); background: var(
 .pills button { border: 0; background: transparent; min-height: 44px; padding: 7px 14px; border-radius: var(--r-pill); font-weight: 600; color: var(--ink-2); cursor: pointer; }
 .pills button[aria-pressed="true"] { background: var(--yellow); color: var(--yellow-ink); }
 .class-opts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.opt { min-height: 44px; padding: 9px 10px; border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface); color: var(--ink); font-weight: 600; cursor: pointer; transition: background-color .15s; }
-.opt:hover:not([disabled]) { background: var(--paper-2); }
+.opt { min-height: 44px; padding: 9px 10px; border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface); color: var(--ink); font-weight: 600; cursor: pointer; transition: background-color .15s, color .15s; }
+.opt:hover:not([disabled]):not([aria-pressed="true"]) { background: var(--paper-2); }
 .opt[aria-pressed="true"] { background: var(--blue-soft); color: var(--blue-ink); border-color: var(--blue-soft); }
 .opt[disabled] { cursor: not-allowed; }
 
@@ -368,11 +368,12 @@ canvas { display: block; }
 .metric-box p { margin: 0; font-size: var(--body-sm); color: var(--paper); }
 .band { margin-top: 26px; display: grid; gap: 18px; }
 .band-two { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 18px; align-items: start; }
-.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; margin: 0; }
+.gallery { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin: 0; }
 .gallery figure { margin: 0; display: grid; gap: 4px; align-content: start; min-width: 0; }
 .gallery canvas { width: 100%; height: auto; aspect-ratio: 1; border-radius: var(--r-xs); image-rendering: pixelated; }
 .gallery figcaption { font-size: var(--caption); line-height: 1.3; color: var(--ink); display: grid; gap: 3px; justify-items: start; }
-.gallery .chip { font-size: 11px; padding: 2px 8px; letter-spacing: 0; border-radius: var(--r-xs); }
+.gallery .chip { font-size: 11px; padding: 2px 8px; letter-spacing: 0; border-radius: var(--r-xs); overflow-wrap: anywhere; }
+@media (min-width: 1400px) { .gallery { grid-template-columns: repeat(12, minmax(0, 1fr)); } }
 .curve { width: 100%; height: auto; display: block; }
 .curve .axis { stroke: var(--line-2); stroke-width: 1; fill: none; }
 .curve .line { stroke: var(--ink); stroke-width: 2.5; fill: none; }
@@ -412,9 +413,8 @@ tbody tr:nth-child(even) td { background: var(--paper-2); }
 tbody tr:last-child td { border-bottom: none; }
 td:first-child { color: var(--ink); font-weight: 600; }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
+.placeholder a, tbody a { color: var(--ink); }
 td code { font-size: 12px; overflow-wrap: anywhere; white-space: pre-wrap; display: block; padding: 6px 8px; margin-top: 4px; }
-.wide-table { min-width: 860px; }
-.mid-table { min-width: 560px; }
 
 /* ─── Calculator ─── */
 .calc-grid { display: grid; grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr); gap: 24px; align-items: start; }
@@ -457,6 +457,9 @@ dialog::backdrop { background: color-mix(in srgb, var(--ink) 50%, transparent); 
 
 /* ─── Narrow screens ─── */
 @media (max-width: 1100px) {
+  th, td { padding-left: 10px; padding-right: 10px; }
+  .hbar { grid-template-columns: minmax(0, 1fr) auto; }
+  .hbar-track { grid-column: 1 / -1; grid-row: 2; }
   .edu-header-inner { flex-wrap: wrap; }
   .nav { order: 3; flex: 1 0 100%; margin-left: 0; }
   .head-tools { margin-left: auto; }
@@ -490,14 +493,29 @@ dialog::backdrop { background: color-mix(in srgb, var(--ink) 50%, transparent); 
   .card-body.stage-body .side, .card-body.stage-body .rec-wrap { padding: 14px; }
   .card-body.stage-body .rec-wrap { padding-top: 0; }
   .stage-body .stage { max-width: none; border-radius: 0; }
-  .hbar { grid-template-columns: minmax(0, 1fr) auto; }
-  .hbar-track { grid-column: 1 / -1; grid-row: 2; }
   .quiz-opt kbd { display: none; }
   .quiz-opt { grid-template-columns: minmax(0, 1fr) auto; }
   .kbd-only { display: none; }
+  .gallery { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .stack-table thead { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .stack-table, .stack-table tbody, .stack-table tr, .stack-table td { display: block; width: 100%; }
+  .stack-table tr { padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .stack-table tbody tr:last-child { border-bottom: 0; }
+  .stack-table tbody tr:nth-child(even) { background: var(--paper-2); }
+  .stack-table tbody tr:nth-child(even) td { background: transparent; }
+  .stack-table td { padding: 5px 0; border: 0; text-align: left; }
+  .stack-table td[data-label] { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 10px; align-items: start; }
+  .stack-table td[data-label]::before { content: attr(data-label); font-family: var(--font-mono); font-size: var(--overline); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-2); overflow-wrap: anywhere; }
+  .stack-table:not(.history-table) td:first-child { display: block; font-size: var(--body); }
+  .stack-table:not(.history-table) td:first-child::before { content: none; }
+  .stack-table td code { margin-top: 0; }
   .class-opts .opt { padding: 9px 4px; font-size: var(--body-sm); }
 }
+@media (max-width: 479px) {
+  .gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 @media (max-width: 359px) {
+  .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .edu-wordmark { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -914,7 +932,7 @@ function cvCore() {
               for (let i = 0; i < inCh; i++) {
                 const v = input[inAt + i];
                 if (v === 0) continue;
-                const w = (i * kernel + k) * 1;
+                const w = i * kernel + k;
                 for (let o = 0; o < outCh; o++) output[at + o] += weights[o * inCh * kernel + w] * v;
               }
             }
@@ -1002,10 +1020,10 @@ function cvCore() {
     return out;
   }
   function upsampleBack(grad, offset, inW, ch, factor) {
-    const outW = inW * factor, total = outW + 0, stride = STACK_CHANNELS, out = new Float32Array(inW * inW * ch);
-    for (let y = 0; y < total; y++) {
+    const outW = inW * factor, stride = STACK_CHANNELS, out = new Float32Array(inW * inW * ch);
+    for (let y = 0; y < outW; y++) {
       const sy = (y / factor) | 0;
-      for (let x = 0; x < total; x++) {
+      for (let x = 0; x < outW; x++) {
         const from = (y * outW + x) * stride + offset, to = (sy * inW + ((x / factor) | 0)) * ch;
         for (let c = 0; c < ch; c++) out[to + c] += grad[from + c];
       }
@@ -1230,6 +1248,7 @@ const MIN_BOX_SIDE = 2;
 const CALC_LIMITS = { images: [1, 10000000], objects: [1, 100] };
 const RATE_SECONDS = { cls: 5, loc: 35, seg: 79 };
 const STAGE_PX = 384;
+const NO_REFERENCE_TEXT = 'Własne zdjęcie nie ma wzorca, więc IoU nie da się policzyć.';
 // Canvas cannot read CSS variables: literal edulab values.
 const COLORS = { ink: '#1C1917', paper: '#FFFFFF', yellow: '#FFD500', red: '#E5322D', blue: '#1E8FC2', green: '#00A651', stone: '#EAE6E0' };
 const CLASS_COLORS = [COLORS.red, COLORS.yellow, COLORS.green];
@@ -1363,10 +1382,10 @@ function storageWrite() {
   } catch (err) { App.storageOk = false; }
 }
 function markProgress(key) {
-  if (App.progress[key]) return;
+  const isNew = !App.progress[key];
   App.progress[key] = true;
   storageWrite();
-  renderProgress();
+  if (isNew) renderProgress();
 }
 function imageToBytes(img) {
   const bytes = new Uint8ClampedArray(PIXELS * 4);
@@ -1633,7 +1652,7 @@ function labHtml(task) {
       </div>
       <div class="card">
         <div class="card-head"><span class="tile-h"><span class="${toneBadge}">${ic('history')}</span><h3>Historia uruchomień</h3></span><span class="chip chip-stone" data-el="history-count">0</span></div>
-        <div class="scroll-x" tabindex="0" aria-label="Historia uruchomień"><table class="mid-table"><thead><tr><th>Próba</th><th class="num">Obrazy</th><th class="num">Błędy</th><th>Różnorodność</th><th class="num">Wynik</th>${task === 'loc' ? '<th class="num">Klasa</th>' : ''}<th class="num">Czas</th></tr></thead><tbody data-el="history"></tbody></table></div>
+        <div class="scroll-x"><table class="stack-table history-table" aria-label="Historia uruchomień"><thead><tr><th>Próba</th><th class="num">Obrazy</th><th class="num">Błędy</th><th>Różnorodność</th><th class="num">Wynik</th>${task === 'loc' ? '<th class="num">Klasa</th>' : ''}<th class="num">Czas</th></tr></thead><tbody data-el="history"></tbody></table></div>
       </div>
     </div>
   </div></div></section>
@@ -1739,7 +1758,7 @@ function daneHtml() {
     <p class="edu-lead">Porównanie danych, których potrzebuje każde zadanie, oraz szacunek pracy nad adnotacjami dla Twojego projektu.</p></header>
   <section class="sec"><div class="wrap">
     <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('table')}</span><h2>Porównanie zadań</h2></div>
-    <div class="card"><div class="scroll-x" tabindex="0" aria-label="Tabela porównawcza zadań"><table class="wide-table" id="compare-table"><thead><tr><th>Cecha</th>${taskHead}</tr></thead>
+    <div class="card"><div class="scroll-x"><table class="stack-table" id="compare-table" aria-label="Tabela porównawcza zadań"><thead><tr><th>Cecha</th>${taskHead}</tr></thead>
       <tbody>${TABLE_ROWS.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>
   </div></section>
   <section class="sec stone"><div class="wrap">
@@ -1755,7 +1774,7 @@ function daneHtml() {
   </div></section>
   <section class="sec"><div class="wrap">
     <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('book-open')}</span><h2>Znane zbiory i źródła</h2></div>
-    <div class="card"><div class="scroll-x" tabindex="0" aria-label="Znane zbiory danych"><table class="mid-table" id="dataset-table"><thead><tr><th>Zbiór</th><th>Obrazy</th><th>Klasy</th><th>Etykiety</th><th>Koszt adnotacji</th><th>Źródło</th></tr></thead><tbody>
+    <div class="card"><div class="scroll-x"><table class="stack-table" id="dataset-table" aria-label="Znane zbiory danych"><thead><tr><th>Zbiór</th><th>Obrazy</th><th>Klasy</th><th>Etykiety</th><th>Koszt adnotacji</th><th>Źródło</th></tr></thead><tbody>
       <tr><td>ImageNet (ILSVRC 2012)</td><td>1 281 167 treningowych</td><td>1000</td><td>Jedna klasa na obraz</td><td>Oszacowanie robocze: 5 s na obraz</td><td><a href="https://arxiv.org/abs/1409.0575" target="_blank" rel="noopener">Russakovsky i in. 2015</a></td></tr>
       <tr><td>COCO</td><td>328 tys.</td><td>91 typów obiektów</td><td>2,5 mln instancji z maskami</td><td>Ponad 22 roboczogodziny na 1000 segmentacji („over 22 worker hours per 1,000 segmentations”), czyli ok. 79 s na obiekt</td><td><a href="https://arxiv.org/abs/1405.0312" target="_blank" rel="noopener">Lin i in. 2014</a></td></tr>
       <tr><td>PASCAL VOC / ILSVRC (prostokąty)</td><td>–</td><td>–</td><td>Prostokąty</td><td>35 s na prostokąt wysokiej jakości, „only 7s per box” przy „extreme clicking”</td><td><a href="https://arxiv.org/abs/1708.02750" target="_blank" rel="noopener">Papadopoulos i in. 2017</a></td></tr>
@@ -1765,7 +1784,7 @@ function daneHtml() {
   </div></section>
   <section class="sec stone"><div class="wrap">
     <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('trophy')}</span><h2>Twoje wyniki</h2></div>
-    <div class="card"><div class="scroll-x" tabindex="0" aria-label="Twoje wyniki"><table class="mid-table" id="results-table"><thead><tr><th>Zadanie</th><th>Najlepszy wynik</th><th>Twój czas na adnotację</th><th>Stawka z kalkulatora</th></tr></thead><tbody></tbody></table></div></div>
+    <div class="card"><div class="scroll-x"><table class="stack-table" id="results-table" aria-label="Twoje wyniki"><thead><tr><th>Zadanie</th><th>Najlepszy wynik</th><th>Twój czas na adnotację</th><th>Stawka z kalkulatora</th></tr></thead><tbody></tbody></table></div></div>
   </div></section>
   <section class="sec"><div class="wrap">
     <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('compass')}</span><h2>Co wybrać?</h2></div>
@@ -1837,7 +1856,6 @@ function commitAnnot(task) {
   const avg = a.samples.reduce((s, v) => s + v, 0) / a.samples.length;
   App.results[task] = Object.assign({}, App.results[task], { seconds: avg });
   markProgress('annot-' + task);
-  storageWrite();
   announce(a.msg);
   renderAnnot(task);
   renderResults();
@@ -2039,7 +2057,6 @@ function finishTraining(task, data) {
   const prev = App.results[task] || {};
   App.results[task] = Object.assign({}, prev, { best: Math.max(prev.best === undefined ? -1 : prev.best, data.metric) });
   markProgress('train-' + task);
-  storageWrite();
   newCheckScene(task, 'normal');
   renderTrain(task); renderCurve(task); renderHistory(task); renderStartCards(); renderResults();
   announce(`${TASK_INFO[task].name}: trening zakończony. ${TASK_INFO[task].metricName}: ${fmtMetric(task, data.metric)}.`);
@@ -2200,6 +2217,15 @@ function renderAnnot(task) {
   els['annot-pace-label'].textContent = `w Twoim tempie: ${groupDigits(lab.images)} obrazów`;
   els['annot-record'].textContent = annotRecord(task);
 }
+/** Phone rows repeat their column name, so no column hides behind a sideways scroll. */
+function labelTableCells(table) {
+  const heads = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+  table.querySelectorAll('tbody tr').forEach(row => {
+    Array.from(row.children).forEach((cell, i) => {
+      if (!cell.hasAttribute('colspan') && heads[i]) cell.dataset.label = heads[i];
+    });
+  });
+}
 function renderTrain(task) {
   const lab = App.labs[task], els = labEls[task], root = els.lab, info = TASK_INFO[task];
   const values = core.labelValues(task, lab.images);
@@ -2286,6 +2312,7 @@ function renderHistory(task) {
   const cols = task === 'loc' ? 7 : 6;
   els.history.innerHTML = lab.history.length ? lab.history.map((h, i) => `<tr><td>${i + 1}</td><td class="num">${h.images}</td><td class="num">${h.noise}%</td><td>${diversityLabel(h.diversity)}</td><td class="num">${fmtMetric(task, h.metric)}</td>${task === 'loc' ? `<td class="num">${comma(h.classAcc * 100, 1)}%</td>` : ''}<td class="num">${comma(h.seconds, 1)} s</td></tr>`).join('')
     : `<tr><td colspan="${cols}">Po pierwszym treningu pojawi się tu wynik.</td></tr>`;
+  labelTableCells(els.history.closest('table'));
 }
 function renderGallery(task) {
   const lab = App.labs[task], els = labEls[task];
@@ -2361,7 +2388,8 @@ function renderCheck(task) {
     const iou = c.scene.box ? core.iouBox(c.pred.box, c.scene.box) : null;
     card.dataset.iou = iou === null ? '' : iou.toFixed(4);
     output.innerHTML = `<div class="legend"><span class="chip chip-stone">linia ciągła: predykcja</span>${c.scene.box ? '<span class="chip chip-stone">linia przerywana: wzorzec</span>' : ''}</div>
-      <div class="readout" style="margin-top:10px"><span><b>${iou === null ? '–' : comma(iou, 2)}</b>IoU</span><span><b>${CLASS_NAMES[c.pred.cls]}</b>klasa modelu</span>${truthName ? `<span><b>${truthName}</b>klasa wzorcowa</span>` : ''}</div>`;
+      <div class="readout" style="margin-top:10px">${iou === null ? '' : `<span><b>${comma(iou, 2)}</b>IoU</span>`}<span><b>${CLASS_NAMES[c.pred.cls]}</b>klasa modelu</span>${truthName ? `<span><b>${truthName}</b>klasa wzorcowa</span>` : ''}</div>
+      ${iou === null ? `<p class="answer">${NO_REFERENCE_TEXT}</p>` : ''}`;
     canvas.setAttribute('aria-label', `Obraz ${c.scene.id}. Predykcja: ${CLASS_NAMES[c.pred.cls]}, prostokąt ciągły.${iou === null ? '' : ` Wzorzec przerywany, IoU ${comma(iou, 2)}.`}`);
   }
   if (task === 'seg') {
@@ -2375,7 +2403,7 @@ function renderCheck(task) {
     card.dataset.overlay = c.overlay;
     const truthPart = c.scene.mask ? `<p class="answer"><b>Wzorzec:</b> ${maskClassSummary(core.countClasses(c.scene.mask))}.</p>` : '';
     output.innerHTML = `<div class="legend">${CLASS_NAMES.map((n, i) => `<span class="chip chip-stone"><span class="swatch swatch-${i}"></span>${n}</span>`).join('')}</div>
-      <div class="readout" style="margin-top:10px"><span><b>${iou === null ? '–' : comma(iou, 2)}</b>IoU obiektu</span></div>
+      ${iou === null ? `<p class="answer">${NO_REFERENCE_TEXT}</p>` : `<div class="readout" style="margin-top:10px"><span><b>${comma(iou, 2)}</b>IoU obiektu</span></div>`}
       <p class="answer"><b>Predykcja:</b> ${maskClassSummary(c.pred.counts)}.</p>${truthPart}`;
     canvas.setAttribute('aria-label', `Obraz ${c.scene.id}. Widoczna nakładka: ${c.overlay === 'pred' ? 'predykcja' : c.overlay === 'truth' ? 'wzorzec' : 'brak'}. Predykcja: ${maskClassSummary(c.pred.counts)}.`);
   }
@@ -2513,6 +2541,7 @@ function renderResults() {
     const secs = r.seconds === undefined ? 'brak danych' : (r.seconds < 60 ? comma(r.seconds, 1) + ' s' : fmtDuration(r.seconds));
     return `<tr data-task="${t}"><td>${TASK_INFO[t].name}</td><td data-best>${best}</td><td data-seconds>${secs}</td><td>${rateText[t]}</td></tr>`;
   }).join('');
+  labelTableCells(table.closest('table'));
 }
 function renderChoice() {
   setPressed(viewEls.dane, 'data-choice', App.choice === null ? '' : App.choice);
@@ -2744,7 +2773,10 @@ function onShortcut(event) {
   if (key === '?' && !shortcutsBlocked(target)) { event.preventDefault(); helpDialog.showModal(); return; }
   if (shortcutsBlocked(target)) return;
   if (key === 'ArrowLeft' || key === 'ArrowRight') {
-    if (target.closest && target.closest('.scroll-x, .record')) return;
+    if (target.closest && target.closest('.record')) return;
+    // A table that overflows its scroller keeps the arrows for sideways scrolling.
+    const scroller = target.closest && target.closest('.scroll-x');
+    if (scroller && scroller.scrollWidth > scroller.clientWidth + 1) return;
     event.preventDefault();
     const at = VIEWS.indexOf(App.view);
     const next = at + (key === 'ArrowRight' ? 1 : -1);
@@ -2884,6 +2916,7 @@ function init() {
     bindLab(task);
     rebindLab(task);
   });
+  ['compare-table', 'dataset-table'].forEach(id => labelTableCells(document.getElementById(id)));
   bindStart(); bindDane(); bindQuiz(); bindGlobal();
   setViewFromHash(false, false);
   TASKS.forEach(nextAnnotScene);
