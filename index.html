@@ -220,7 +220,6 @@ body.edu { background: var(--paper); color: var(--ink); font-family: var(--font-
 /* ─── App layout (edulab components, tokens only) ─── */
 :root { --gutter: clamp(16px, 4vw, 72px); --stage: 384px; }
 * { box-sizing: border-box; }
-html { scroll-padding-top: 130px; }
 body { margin: 0; padding: 0; }
 button, input { font: inherit; }
 a { color: var(--blue-600); }
@@ -231,7 +230,7 @@ a { color: var(--blue-600); }
 kbd { font-family: var(--font-mono); font-size: var(--caption); background: var(--paper-3); color: var(--ink); border-radius: var(--r-xs); padding: 1px 6px; }
 
 /* ─── Top menu ─── */
-.edu-header { position: sticky; top: 0; z-index: 50; width: 100%; background: var(--paper); border-bottom: 1px solid var(--line-2); }
+.edu-header { width: 100%; background: var(--paper); border-bottom: 1px solid var(--line-2); }
 .edu-header-inner { padding: 8px var(--gutter); display: flex; align-items: center; gap: 12px; }
 .edu-logo { width: 64px; height: 64px; display: block; margin-right: -6px; flex: none; }
 .edu-wordmark { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -.02em; color: var(--ink); }
@@ -476,7 +475,6 @@ dialog::backdrop { background: color-mix(in srgb, var(--ink) 50%, transparent); 
   .progress-word { display: none; }
   .head-tools .btn { padding: 6px 10px; font-size: var(--body-sm); }
   .nav { padding: 3px 0; }
-  html { scroll-padding-top: 120px; }
   .page-head { padding: 24px 16px 24px; }
   .sec { padding: 28px 0 32px; }
   .sec > .wrap { padding: 0 16px; }
