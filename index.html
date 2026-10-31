@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Laboratorium widzenia komputerowego: klasyfikacja, lokalizacja z klasyfikacją i segmentacja oraz dane potrzebne do ich treningu.">
+<meta name="description" content="Ćwiczenia z widzenia komputerowego: klasyfikacja, lokalizacja z klasyfikacją i segmentacja oraz dane potrzebne do ich treningu.">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
@@ -224,7 +224,7 @@
 body.edu { background: var(--paper); color: var(--ink); font-family: var(--font-sans); }
 
 /* ─── App layout (edulab components, tokens only) ─── */
-:root { --gutter: clamp(16px, 4vw, 72px); --stage: 384px; }
+:root { --gutter: clamp(16px, 4vw, 72px); --stage: clamp(240px, calc(100svh - 450px), 384px); --photo-reserve: 500px; }
 * { box-sizing: border-box; }
 body { margin: 0; padding: 0; }
 button, input { font: inherit; }
@@ -240,13 +240,24 @@ kbd { font-family: var(--font-mono); font-size: var(--caption); background: var(
 .edu-header-inner { padding: 8px var(--gutter); display: flex; align-items: center; gap: 12px; }
 .edu-logo { width: 64px; height: 64px; display: block; margin-right: -6px; flex: none; }
 .edu-wordmark { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -.02em; color: var(--ink); }
-.nav { display: flex; gap: 4px; margin-left: 18px; flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 5px; }
+.nav { display: flex; flex-wrap: wrap; gap: 4px; margin-left: 18px; flex: 1 1 auto; min-width: 0; padding: 5px; }
 .nav::-webkit-scrollbar { display: none; }
 .nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: var(--r-pill); color: var(--ink-2); text-decoration: none; white-space: nowrap; font-weight: 500; transition: background-color .15s; }
 .nav a:hover { background: var(--paper-2); }
+.has-desc { position: relative; }
+@keyframes desc-in { from { opacity: 0; } to { opacity: 1; } }
+@media (hover: hover) and (min-width: 769px) {
+  .has-desc:hover::after { content: attr(data-desc); position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; width: max-content; max-width: 20rem; padding: 8px 12px; border-radius: var(--r-sm); background: var(--ink); color: var(--paper); font-family: var(--font-sans); font-size: var(--caption); font-weight: 400; line-height: 1.35; white-space: normal; text-align: left; box-shadow: var(--shadow-md); pointer-events: none; animation: desc-in .15s ease .2s both; }
+}
+@media (min-width: 769px) {
+  .has-desc:focus-visible::after { content: attr(data-desc); position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; width: max-content; max-width: 20rem; padding: 8px 12px; border-radius: var(--r-sm); background: var(--ink); color: var(--paper); font-family: var(--font-sans); font-size: var(--caption); font-weight: 400; line-height: 1.35; white-space: normal; text-align: left; box-shadow: var(--shadow-md); pointer-events: none; }
+  .has-desc[data-desc-side="right"]::after { left: auto; right: 0; }
+}
 .nav a[aria-current="page"] { background: var(--yellow); color: var(--yellow-ink); font-weight: 600; }
 .head-tools { display: flex; align-items: center; gap: 8px; flex: none; }
-.progress-box { display: grid; gap: 4px; width: 132px; }
+.progress-box { display: grid; gap: 4px; width: 132px; min-height: 44px; align-content: center; padding: 4px 8px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--ink); text-align: left; cursor: pointer; }
+.progress-box:hover { background: var(--paper-2); }
+.progress-box .bar { display: block; }
 .progress-label { font-family: var(--font-mono); font-size: var(--overline); color: var(--ink); letter-spacing: .04em; white-space: nowrap; }
 .bar { height: 8px; border-radius: var(--r-pill); background: var(--paper-3); overflow: hidden; }
 .bar > span { display: block; height: 100%; width: 0; background: var(--ink); border-radius: var(--r-pill); transition: width .25s ease; }
@@ -262,8 +273,10 @@ kbd { font-family: var(--font-mono); font-size: var(--caption); background: var(
 .pills { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--paper-2); border-radius: var(--r-lg); }
 .pills button { border: 0; background: transparent; min-height: 44px; padding: 7px 14px; border-radius: var(--r-pill); font-weight: 600; color: var(--ink-2); cursor: pointer; }
 .pills button[aria-pressed="true"] { background: var(--yellow); color: var(--yellow-ink); }
+.pills button[disabled] { color: var(--ink-3); cursor: not-allowed; }
+.pills button[aria-pressed="true"][disabled] { background: var(--paper-3); color: var(--ink-2); }
 .class-opts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.opt { min-height: 44px; padding: 9px 10px; border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface); color: var(--ink); font-weight: 600; cursor: pointer; transition: background-color .15s, color .15s; }
+.opt { min-width: 0; overflow-wrap: anywhere; min-height: 44px; padding: 9px 6px; border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface); color: var(--ink); font-weight: 600; cursor: pointer; transition: background-color .15s, color .15s; }
 .opt:hover:not([disabled]):not([aria-pressed="true"]) { background: var(--paper-2); }
 .opt[aria-pressed="true"] { background: var(--blue-soft); color: var(--blue-ink); border-color: var(--blue-soft); }
 .opt[disabled] { cursor: not-allowed; }
@@ -271,11 +284,12 @@ kbd { font-family: var(--font-mono); font-size: var(--caption); background: var(
 /* ─── Page head, bands, section heads ─── */
 .view-anim { animation: view-in .24s ease; }
 @keyframes view-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.page-head { padding: 40px var(--gutter) 40px; text-align: left; }
-.app-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.3rem, 5vw, 3.3rem); letter-spacing: -.025em; line-height: 1.05; color: var(--ink); margin: 0 0 14px; }
+.page-head { padding: 20px var(--gutter); text-align: left; }
+.app-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.9rem, 3.6vw, 2.6rem); letter-spacing: -.025em; line-height: 1.05; color: var(--ink); margin: 0 0 6px; }
 .app-title:focus, .app-title:focus-visible { outline: 0; box-shadow: none; }
-.edu-lead { font-size: 1.15rem; line-height: 1.6; color: var(--ink-2); margin: 0; }
-.sec { margin: 0; padding: 40px 0 48px; border-top: 1px solid var(--line); }
+.edu-lead { font-size: 1.05rem; line-height: 1.45; color: var(--ink-2); margin: 0; }
+.page-cta { margin: 14px 0 0; }
+.sec { margin: 0; padding: 28px 0 36px; border-top: 1px solid var(--line); }
 .sec.stone { background: var(--paper-2); }
 .sec > .wrap { padding: 0 var(--gutter); }
 .sec-head { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
@@ -309,7 +323,7 @@ kbd { font-family: var(--font-mono); font-size: var(--caption); background: var(
 .chip-ink { background: var(--ink); color: var(--paper); }
 
 /* ─── Lesson rows ─── */
-.split { display: grid; grid-template-columns: minmax(22rem, 30rem) minmax(0, 1fr); gap: clamp(24px, 3vw, 44px); align-items: start; }
+.split { display: grid; grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr); gap: clamp(24px, 3vw, 44px); align-items: start; }
 .concept { display: grid; gap: 12px; min-width: 0; }
 .row-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .row-head h2 { margin: 0; font-size: 28px; }
@@ -331,10 +345,10 @@ details.more ul { padding-left: 18px; }
 .link:not(:last-child)::after { content: "→"; position: absolute; left: 100%; top: 50%; width: 28px; text-align: center; transform: translateY(-50%); font-family: var(--font-mono); color: var(--ink-2); }
 
 /* ─── Group intro ─── */
-.group-hero { padding: 22px var(--gutter); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; }
+.group-hero { padding: 12px var(--gutter); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; }
 .group-hero p { margin: 0; }
-.group-hero .edu-overline { color: inherit; margin-bottom: 6px; }
-.group-hero .lead { font-size: var(--body-lg); line-height: 1.5; }
+.group-hero .edu-overline { color: inherit; margin-bottom: 2px; }
+.group-hero .lead { font-size: var(--body); line-height: 1.4; }
 .steps { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
 .steps a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 6px 12px; border-radius: var(--r-pill); background: var(--paper); color: var(--ink); text-decoration: none; font-weight: 600; font-size: var(--body-sm); }
 
@@ -342,6 +356,9 @@ details.more ul { padding-left: 18px; }
 canvas { display: block; }
 .stage { width: 100%; max-width: var(--stage); aspect-ratio: 1; height: auto; border-radius: var(--r-sm); background: var(--paper-3); image-rendering: pixelated; touch-action: none; }
 .stage-free { touch-action: auto; }
+#inspector-canvas { touch-action: pan-y; }
+.touch-hint { display: none; margin: 0; font-size: var(--body-sm); color: var(--ink); }
+@media (hover: none) and (pointer: coarse) { .touch-hint { display: block; } #help-open { display: none; } }
 .workbench { display: grid; grid-template-columns: minmax(0, var(--stage)) minmax(0, 1fr); gap: 20px; align-items: start; }
 .workbench.has-record { grid-template-areas: "stage side" "rec side"; align-content: start; grid-template-rows: auto 1fr; }
 .has-record > .stage { grid-area: stage; }
@@ -366,19 +383,23 @@ canvas { display: block; }
 .slider input[type=range]::-moz-range-thumb { width: 18px; height: 18px; background: var(--paper); border: 2px solid var(--ink); border-radius: 50%; }
 .slider input[disabled] { opacity: .5; cursor: not-allowed; }
 .ticks { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: var(--overline); color: var(--ink-3); }
-.train-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 16px 24px; }
+.train-intro { margin-bottom: 16px; }
+.tiles-row { grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); }
+.train-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(15rem, 1fr); gap: 16px 24px; align-items: start; }
+.setting-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 12px 24px; align-items: start; }
+.gallery-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.gallery-head h4 { margin: 0; font-family: var(--font-display); font-size: var(--body); }
 .metric-box { display: grid; gap: 8px; background: var(--ink); color: var(--paper); border-radius: var(--r-md); padding: 16px 18px; }
 .metric-box .edu-overline { color: var(--paper); margin: 0; }
 .metric-value { font-family: var(--font-display); font-weight: 700; font-size: 2.3rem; line-height: 1.1; color: var(--yellow); }
 .metric-box p { margin: 0; font-size: var(--body-sm); color: var(--paper); }
 .band { margin-top: 26px; display: grid; gap: 18px; }
 .band-two { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 18px; align-items: start; }
-.gallery { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 12px; margin: 0; }
 .gallery figure { margin: 0; display: grid; gap: 4px; align-content: start; min-width: 0; }
 .gallery canvas { width: 100%; height: auto; aspect-ratio: 1; border-radius: var(--r-xs); image-rendering: pixelated; }
 .gallery figcaption { font-size: var(--caption); line-height: 1.3; color: var(--ink); display: grid; gap: 3px; justify-items: start; }
 .gallery .chip { font-size: 11px; padding: 2px 8px; letter-spacing: 0; border-radius: var(--r-xs); overflow-wrap: anywhere; }
-@media (min-width: 1400px) { .gallery { grid-template-columns: repeat(12, minmax(0, 1fr)); } }
 .curve { width: 100%; height: auto; display: block; }
 .curve .axis { stroke: var(--line-2); stroke-width: 1; fill: none; }
 .curve .line { stroke: var(--ink); stroke-width: 2.5; fill: none; }
@@ -395,7 +416,7 @@ canvas { display: block; }
 .swatch-1 { background: repeating-linear-gradient(45deg, var(--mask-banana) 0 3px, var(--paper) 3px 6px); }
 .swatch-2 { background: repeating-linear-gradient(90deg, var(--mask-pear) 0 3px, var(--paper) 3px 6px); }
 .swatch-mug { background: repeating-linear-gradient(0deg, var(--mask-mug) 0 3px, var(--ink) 3px 6px); }
-.swatch-yours { background: repeating-linear-gradient(135deg, var(--mask-yours) 0 3px, var(--paper) 3px 6px); }
+.swatch-yours { background: repeating-linear-gradient(135deg, var(--mask-yours) 0 2px, transparent 2px 6px), repeating-linear-gradient(45deg, var(--mask-yours) 0 2px, transparent 2px 6px), var(--paper); }
 .upload-label { position: relative; }
 .upload-label input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
 .upload-label:focus-within { box-shadow: var(--focus-ring); }
@@ -420,6 +441,7 @@ tbody tr:last-child td { border-bottom: none; }
 td:first-child { color: var(--ink); font-weight: 600; }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 .placeholder a, tbody a { color: var(--ink); }
+.tap-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; }
 td code { font-size: 12px; overflow-wrap: anywhere; white-space: pre-wrap; display: block; padding: 6px 8px; margin-top: 4px; }
 
 /* ─── Photo views ─── */
@@ -428,15 +450,15 @@ td code { font-size: 12px; overflow-wrap: anywhere; white-space: pre-wrap; displ
 .photo-controls .input { min-width: 15rem; }
 .photo-layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); gap: 18px; align-items: start; }
 .photo-side { display: grid; gap: 14px; min-width: 0; }
-.photo-scene { display: block; width: min(100%, calc((100svh - 150px) * 1.636)); height: auto; border-radius: var(--r-sm); }
-.photo-word { margin: 4px 0 8px; font-family: var(--font-display); font-size: 28px; font-weight: 700; line-height: 1.2; color: var(--ink); }
+.photo-scene { display: block; width: min(100%, calc(max(200px, 100svh - var(--photo-reserve)) * 1.636)); height: auto; margin-inline: auto; border-radius: var(--r-sm); }
+.photo-word { margin: 4px 0 8px; font-family: var(--font-display); font-size: var(--h3); font-weight: 700; line-height: 1.2; color: var(--ink); }
 .photo-question { margin: 0; font-family: var(--font-mono); font-size: var(--overline); color: var(--ink-2); }
 .photo-code { display: block; margin-top: 8px; padding: 8px 10px; }
 .photo-legend { margin-top: 12px; }
 .photo-steps { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
 .photo-steps li { padding: 6px 12px; border: 1px solid var(--line-2); border-radius: var(--r-pill); color: var(--ink-2); font-weight: 600; font-size: var(--body-sm); }
 .photo-steps li[data-active="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
-.photo-pipeline { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-top: 18px; }
+.photo-pipeline { display: grid; gap: 12px; }
 .photo-explain { margin: 12px 0 0; color: var(--ink); }
 .photo-count { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 14px 0 10px; font-family: var(--font-mono); font-size: var(--overline); color: var(--ink-2); }
 .photo-gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
@@ -448,23 +470,68 @@ td code { font-size: 12px; overflow-wrap: anywhere; white-space: pre-wrap; displ
 .photo-fold-body p { margin: 8px 0 0; font-size: var(--body-sm); color: var(--ink); }
 .photo-fold-body .record { max-height: none; }
 .ph-badge { fill: var(--ink); }
-.ph-badge-text { fill: var(--paper); font-family: var(--font-mono); font-size: 18px; }
-.ph-hint-bg { fill: var(--paper); }
-.ph-hint-text { fill: var(--ink); font-family: var(--font-mono); font-size: 15px; }
+.ph-badge-text { fill: var(--paper); font-family: var(--font-mono); }
 .ph-line-under { fill: none; stroke: var(--ink); stroke-width: 6; }
-.ph-line-dash { fill: none; stroke: var(--yellow); stroke-width: 3; stroke-dasharray: 12 8; }
-.ph-line-frame { fill: none; stroke: var(--paper); stroke-width: 3; }
+.ph-line-dash { fill: none; stroke: var(--paper); stroke-width: 3; stroke-dasharray: 12 8; }
 .ph-outline { fill: none; stroke: var(--paper); stroke-width: 2; }
 .ph-veil { fill: var(--paper); opacity: .78; }
 .ph-contour { fill: none; stroke: var(--ink); stroke-width: 2.5; }
 .ph-grid { fill: none; stroke: var(--paper); stroke-width: .7; opacity: .6; }
 .ph-hatch-apple { fill: var(--mask-apple); } .ph-hatch-pear { fill: var(--mask-pear); } .ph-hatch-mug { fill: var(--mask-mug); }
 
+/* ─── Training tab ─── */
+.net-lab .stack { display: grid; gap: 14px; min-width: 0; }
+.net-lab .controls { display: grid; gap: 14px; }
+.net-lab .pills button { padding-left: 10px; padding-right: 10px; }
+.net-lab .field-val { float: right; text-transform: none; letter-spacing: 0; }
+.net-lab .block { margin: 0; }
+.net-lab .empty { margin: 0; color: var(--ink-3); font-size: var(--body-sm); }
+.net-lab details.more p { color: var(--ink); }
+.net-lab .table-card { overflow-x: auto; background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); }
+.net-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.net-grid.grid-wide { grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); }
+.sample { background: var(--paper-2); border-radius: var(--r-sm); padding: 8px; min-width: 0; display: grid; gap: 6px; align-content: start; }
+.sample-imgs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; }
+.sample-imgs.quad { grid-auto-flow: row; grid-template-columns: 1fr 1fr; }
+.sample canvas { width: 100%; height: auto; image-rendering: pixelated; border-radius: var(--r-xs); }
+.sample small { font-size: var(--caption); line-height: 1.35; color: var(--ink); }
+.sample .chip { justify-self: start; font-size: var(--overline); padding: 2px 8px; letter-spacing: 0; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.mask-panel { margin: 0; min-width: 0; display: grid; gap: 2px; }
+.mask-panel figcaption { font-family: var(--font-mono); font-size: var(--overline); color: var(--ink-2); }
+#tryOut .sample { max-width: 13rem; }
+#tryOut .seg-tile, #liveBody .seg-tile { max-width: 17rem; }
+.net-lab .legend { gap: 14px; font-size: var(--body-sm); color: var(--ink-2); }
+.net-lab .legend i { display: inline-block; width: 24px; height: 3px; background: var(--ink); vertical-align: middle; margin-right: 6px; }
+.net-lab .legend i.dash { background: repeating-linear-gradient(90deg, var(--blue-600) 0 7px, transparent 7px 12px); }
+.net-lab .legend.mask-legend i { width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; }
+.net-lab .legend.mask-legend i.crossed { background-image: linear-gradient(45deg, transparent 44%, var(--ink) 44% 56%, transparent 56%), linear-gradient(-45deg, transparent 44%, var(--ink) 44% 56%, transparent 56%); }
+.chart-canvas { width: 100%; height: 220px; }
+.chart-small { height: 150px; }
+.meter { height: 10px; background: var(--paper-3); border-radius: var(--r-pill); overflow: hidden; }
+.meter span { display: block; height: 100%; background: var(--ink); width: 0; }
+#liveSec { scroll-margin-top: 8px; }
+.live-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.live-step { font-family: var(--font-mono); font-size: var(--caption); font-variant-numeric: tabular-nums; color: var(--ink); min-height: 1.5em; }
+.live-now-body { display: grid; grid-template-columns: minmax(0, 11rem) minmax(0, 1fr); gap: 12px; align-items: start; }
+.live-now-body:empty { display: none; }
+.live-now-body p { align-self: center; }
+.before-after { display: flex; align-items: flex-end; gap: 14px; }
+.before-after > span { display: grid; gap: 2px; }
+.before-after small { font-size: var(--caption); color: var(--ink-2); }
+.before-after b { font-family: var(--font-display); font-weight: 700; font-size: 2.3rem; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.before-after #metricBefore { color: var(--ink-3); }
+.before-after .ba-arrow { font-size: 1.5rem; color: var(--ink-2); padding-bottom: 2px; }
+.filter-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; max-width: 16rem; }
+.filter-grid canvas { width: 100%; aspect-ratio: 1; image-rendering: pixelated; border-radius: var(--r-xs); border: 1px solid var(--line-2); }
+@media (max-width: 1200px) { .live-grid { grid-template-columns: minmax(0, 1fr); } }
+
 /* ─── Calculator ─── */
 .calc-grid { display: grid; grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr); gap: 24px; align-items: start; }
 .field { margin-bottom: 14px; }
 .input { width: 100%; min-height: 44px; padding: 10px 14px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--ink); }
 .input[aria-invalid="true"] { border-color: var(--red-600); }
+.field-hint { margin: 6px 0 0; font-size: var(--body-sm); color: var(--ink-2); }
 .field-error { margin: 6px 0 0; font-size: var(--body-sm); color: var(--red-600); font-weight: 500; }
 .hbar { display: grid; grid-template-columns: minmax(7rem, 11rem) minmax(0, 1fr) minmax(4.5rem, auto); gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
 .hbar:first-child { border-top: 0; }
@@ -494,13 +561,36 @@ dialog { border: 1px solid var(--line-2); border-radius: var(--r-lg); padding: 0
 dialog::backdrop { background: color-mix(in srgb, var(--ink) 50%, transparent); }
 .keys { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: var(--body-sm); color: var(--ink-2); }
 .keys li { display: flex; gap: 10px; align-items: baseline; }
+.storage-note { padding: 8px var(--gutter); background: var(--paper-3); color: var(--ink); font-size: var(--body-sm); }
+.progress-note { margin: 12px 0 0; font-size: var(--body-sm); color: var(--ink); }
 .site-foot { padding: 18px var(--gutter); border-top: 1px solid var(--line-2); font-size: var(--caption); color: var(--ink-3); }
 .probe-panel { margin: 16px var(--gutter); }
 .probe-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: var(--body-sm); color: var(--ink); }
 .probe-list li { display: flex; gap: 8px; align-items: baseline; }
 
 /* ─── Narrow screens ─── */
+@media (min-width: 769px) and (max-width: 1500px) {
+  .edu-header-inner { padding-top: 4px; padding-bottom: 4px; }
+  .edu-logo { width: 48px; height: 48px; }
+  .nav { gap: 2px; margin-left: 4px; padding: 3px; }
+  .nav a { padding: 8px 7px; }
+  .progress-box { width: 108px; }
+}
+@media (min-width: 1101px) and (max-height: 800px) {
+  :root { --stage: clamp(240px, calc(100svh - 356px), 384px); --photo-reserve: 400px; }
+  .page-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 16px; padding: 8px var(--gutter); }
+  .app-title { margin: 0; font-size: 1.7rem; }
+  .edu-lead { font-size: var(--body-sm); }
+  .page-cta { margin: 0; }
+  .group-hero { padding: 6px var(--gutter); }
+  .sec { padding-top: 14px; }
+  .card-head { padding: 6px 18px; }
+  .card-body { padding: 12px 18px; }
+  .photo-controls { margin-bottom: 12px; }
+}
 @media (max-width: 1100px) {
+  :root { --stage: 384px; }
+  .train-grid { grid-template-columns: minmax(0, 1fr); }
   th, td { padding-left: 10px; padding-right: 10px; }
   .hbar { grid-template-columns: minmax(0, 1fr) auto; }
   .hbar-track { grid-column: 1 / -1; grid-row: 2; }
@@ -516,10 +606,10 @@ dialog::backdrop { background: color-mix(in srgb, var(--ink) 50%, transparent); 
   .edu-header-inner { padding: 4px 16px; gap: 8px; }
   .edu-logo { width: 40px; height: 40px; margin-right: -4px; }
   .edu-wordmark { font-size: 18px; }
-  .progress-box { width: 40px; }
-  .progress-word { display: none; }
+  .progress-box { width: 92px; padding: 4px; }
   .head-tools .btn { padding: 6px 10px; font-size: var(--body-sm); }
-  .nav { padding: 3px 0; }
+  .nav { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding: 3px 0; }
+  .nav::-webkit-scrollbar { display: none; }
   .page-head { padding: 24px 16px 24px; }
   .sec { padding: 28px 0 32px; }
   .sec > .wrap { padding: 0 16px; }
@@ -536,10 +626,10 @@ dialog::backdrop { background: color-mix(in srgb, var(--ink) 50%, transparent); 
   .card-body.stage-body .side, .card-body.stage-body .rec-wrap { padding: 14px; }
   .card-body.stage-body .rec-wrap { padding-top: 0; }
   .stage-body .stage { max-width: none; border-radius: 0; }
+  .stage-body .has-record > .stage:not(.stage-free) { max-width: calc(100% - 96px); margin-inline: auto; }
   .quiz-opt kbd { display: none; }
   .quiz-opt { grid-template-columns: minmax(0, 1fr) auto; }
   .kbd-only { display: none; }
-  .gallery { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .stack-table thead { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); }
   .stack-table, .stack-table tbody, .stack-table tr, .stack-table td { display: block; width: 100%; }
   .stack-table tr { padding: 10px 14px; border-bottom: 1px solid var(--line); }
@@ -562,10 +652,8 @@ dialog::backdrop { background: color-mix(in srgb, var(--ink) 50%, transparent); 
 }
 @media (max-width: 479px) {
   .photo-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 359px) {
-  .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .edu-wordmark { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -582,29 +670,36 @@ dialog::backdrop { background: color-mix(in srgb, var(--ink) 50%, transparent); 
   <span class="edu-wordmark">edulab</span>
   <nav class="nav" id="nav" aria-label="Widoki"></nav>
   <div class="head-tools">
-    <div class="progress-box" id="progress" data-progress="0/7" role="progressbar" aria-label="Postęp" aria-valuemin="0" aria-valuemax="7" aria-valuenow="0">
+    <button type="button" class="progress-box" id="progress" data-progress="0/7" aria-haspopup="dialog" aria-label="Postęp: 0 z 7. Pokaż listę kroków.">
       <span class="progress-label" id="progress-label">Postęp 0/7</span>
-      <div class="bar fill-yellow"><span id="progress-fill"></span></div>
-    </div>
+      <span class="bar fill-yellow"><span id="progress-fill"></span></span>
+    </button>
     <button type="button" class="btn" id="help-open" aria-label="Skróty klawiszowe">?</button>
     <button type="button" class="btn" id="reset-open">Od nowa</button>
   </div>
 </div></header>
+<p class="storage-note" id="storage-note" role="status" hidden>Przeglądarka blokuje zapis, więc postęp zniknie po odświeżeniu strony.</p>
 <main id="main" data-view="start"></main>
 <footer class="site-foot">Wszystko liczy się w tej przeglądarce. Żadne dane ani zdjęcia nie opuszczają urządzenia.</footer>
 <div id="live" class="sr-only" aria-live="polite" role="status"></div>
 <dialog id="help-dialog" aria-labelledby="help-title">
   <div class="card-head"><h3 id="help-title">Skróty klawiszowe</h3></div>
   <div class="card-body"><ul class="keys">
-    <li><kbd>←</kbd><kbd>→</kbd> poprzedni lub następny widok</li>
-    <li><kbd>T</kbd> trenuj w bieżącym laboratorium</li>
-    <li><kbd>N</kbd> nowy obraz: w kroku „Sprawdź”, gdy jest model, inaczej w kroku „Oznacz”</li>
+    <li><kbd>←</kbd><kbd>→</kbd> poprzedni lub następny widok, gdy żaden przycisk nie ma fokusu</li>
+    <li><kbd>T</kbd> trenuj model w widoku zadania lub w „Trening”</li>
+    <li>W widoku „Trening”: <kbd>1</kbd>–<kbd>3</kbd> wybór zadania</li>
+    <li><kbd>N</kbd> nowy obraz: w kroku „Sprawdź”, gdy jest model, inaczej w kroku „Ćwiczenie”</li>
     <li><kbd>1</kbd>–<kbd>4</kbd> odpowiedź w quizie, <kbd>Enter</kbd> dalej</li>
-    <li>W widoku „Laboratorium”: <kbd>Enter</kbd> następny krok, <kbd>R</kbd> od początku</li>
+    <li>W widoku „Demo”: <kbd>Enter</kbd> następny krok, <kbd>R</kbd> od początku</li>
     <li><kbd>?</kbd> ta lista, <kbd>Esc</kbd> zamknięcie</li>
     <li>Na kanwach: strzałki, Shift+strzałki, spacja, <kbd>Enter</kbd> zatwierdza</li>
   </ul></div>
   <div class="card-foot"><button type="button" class="btn btn-primary" id="help-close">Zamknij</button></div>
+</dialog>
+<dialog id="progress-dialog" aria-labelledby="progress-title">
+  <div class="card-head"><h3 id="progress-title">Co liczy się do postępu</h3></div>
+  <div class="card-body"><ul class="keys" id="progress-list"></ul><p class="progress-note">Postęp mówi o wykonanych krokach, a nie o poprawności odpowiedzi. „Trening”, „Demo” i „Oznaczenia” są dodatkowe i nie liczą się do postępu.</p></div>
+  <div class="card-foot"><button type="button" class="btn btn-primary" id="progress-close">Zamknij</button></div>
 </dialog>
 <dialog id="reset-dialog" aria-labelledby="reset-title">
   <div class="card-head"><h3 id="reset-title">Zacząć od nowa?</h3></div>
@@ -1283,17 +1378,864 @@ function cvCore() {
 
 </script>
 <script>
+// ─── Training tab: the convolutional network ported from alternative/index.html ───
+// Its own scope, because the labs above use the same names for a different network and data.
+function createNetLab() {
+  // Constants
+  function hexRgb(hex) { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
+  // Canvas cannot read CSS variables: literal edulab values.
+  const COLOR = { ink: '#1C1917', ink2: '#44403C', ink3: '#625B53', paper: '#FFFFFF', stone: '#F5F3F0', stone2: '#EAE6E0', line: '#C9C2B7', lineStrong: '#857C69', yellow: '#FFD500', blue: '#1E8FC2', blue6: '#177AA8', green: '#00A651', green6: '#078342', red: '#E5322D', grape: '#7A5AC2', berry: '#C6478B' };
+  const TASK_IDS = ['cls', 'loc', 'seg'];
+  const TASK_NAMES = { cls: 'Klasyfikacja', loc: 'Lokalizacja', seg: 'Segmentacja' };
+  const NET_SIZE = 24, NET_CH = 3, NET_PIXELS = NET_SIZE * NET_SIZE, HALF_PIXELS = NET_PIXELS / 4;
+  const NET_CLASSES = ['kot', 'pies', 'samochód'];
+  const NET_CLASS_COLOR = [COLOR.grape, COLOR.berry, COLOR.red];
+  const NET_DARK = hexRgb(COLOR.ink), NET_LIGHT = hexRgb(COLOR.stone);
+  // Coat and background are drawn at random for every class, so only the shape identifies it.
+  const NET_COATS = [COLOR.yellow, COLOR.lineStrong, COLOR.ink2, COLOR.ink3, COLOR.stone2, COLOR.line, COLOR.berry, COLOR.red, COLOR.blue, COLOR.grape].map(hexRgb);
+  const NET_BACKGROUNDS = [[COLOR.blue, COLOR.green], [COLOR.stone2, COLOR.line], [COLOR.blue6, COLOR.ink2], [COLOR.stone, COLOR.lineStrong], [COLOR.ink3, COLOR.green6], [COLOR.blue, COLOR.ink3], [COLOR.line, COLOR.green], [COLOR.paper, COLOR.blue6]].map(p => p.map(hexRgb));
+  const C1 = 8, C2 = 16, DENSE = 48, FLAT = HALF_PIXELS / 4 * C2;
+  const UPDATES = { cls: 6000, loc: 6000, seg: 8000 };
+  const BATCH = 8, LEARNING_RATE = 0.002, TEST_COUNT = 200, TEST_SEED = 424242, TRAIN_SEED = 1000, NOISE_SEED = 500000;
+  const N_STEPS = [20, 60, 200, 600, 2000];
+  const PREVIEW_COUNT = 12;
+  const SLICE_MS = 14, CURVE_POINTS = 24, CURVE_TEST = 40, GALLERY = 8, LIVE_TICK_MS = 250, BASE_SEED = 11, TRY_SEED = 2000000;
+
+  // State
+  const newTrain = () => ({ status: 'idle', n: 200, noise: 0, done: 0, runs: [], results: {}, curve: [], previewOffset: 0, seedCounter: 0, tryCounter: 0, stopped: null, tries: { cls: { n: 0, right: 0 }, loc: { n: 0, right: 0 }, seg: { n: 0, right: 0 } } });
+  const state = { task: 'cls', train: newTrain() };
+
+  // Helpers
+  const $ = id => document.getElementById(id);
+  const isVisible = () => App.view === 'trening';
+  const pct = (v, digits = 0) => (v * 100).toFixed(digits).replace('.', ',') + '%';
+  const plNum = n => Math.round(n).toLocaleString('pl-PL');
+  const dec = (v, d = 2) => v.toFixed(d).replace('.', ',');
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  function setupCanvas(cv, w, h) {
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return ctx;
+  }
+
+  // Network and generated pictures
+function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+// Training pictures are drawn analytically from simple parts, in unit coordinates of the
+// object's box. Without canvas the same seed gives the same picture in every browser.
+const partE = (x, y, a, b, c) => ({ t: 'e', x, y, a, b, c });
+const partR = (x0, y0, x1, y1, c) => ({ t: 'r', x0, y0, x1, y1, c });
+const partP = (p, c) => ({ t: 'p', p, c });
+function mixRgb(a, b, t) { return a.map((v, i) => v + (b[i] - v) * t); }
+function furPattern(rand, coat, x0, y0, x1, y1) {
+  const kind = Math.floor(rand() * 4), other = rand() < .5 ? NET_DARK : NET_LIGHT, mark = mixRgb(coat, other, .65), w = x1 - x0, h = y1 - y0;
+  if (kind === 1) return [.2, .45, .7].map(t => partR(x0 + w * t, y0, x0 + w * (t + .1), y1, mark)); // stripes
+  if (kind === 2) return [partE(x0 + w * (.3 + rand() * .4), y0 + h * (.3 + rand() * .4), w * .24, h * .32, mark)]; // patch
+  if (kind === 3) return [partE(x0 + w * .5, y1 - h * .2, w * .36, h * .26, mark)]; // light or dark belly
+  return []; // plain
+}
+const CAT_VARIANTS = [
+  (coat, rand, j) => ({ h: 1, parts: [ // sitting, front view
+    partE(.88, j(.6, .05), .1, j(.32, .05), coat), partE(.46, .74, j(.34, .04), .26, coat), ...furPattern(rand, coat, .2, .55, .72, .98), partE(.46, .4, j(.36, .03), .27, coat),
+    partP([[.1, .42], [j(.08, .03), 0], [.44, .2]], coat), partP([[.82, .42], [j(.84, .03), 0], [.48, .2]], coat), partE(.32, .4, .06, .08, NET_DARK), partE(.6, .4, .06, .08, NET_DARK),
+  ] }),
+  (coat, rand, j) => ({ h: 1, parts: [ // sitting, side view
+    partE(.9, j(.5, .06), .08, .34, coat), partE(.54, .72, j(.3, .03), .28, coat), ...furPattern(rand, coat, .32, .5, .78, .98), partE(.32, .38, .28, .25, coat),
+    partP([[.06, .36], [.04, 0], [.3, .16]], coat), partP([[.32, .16], [.58, 0], [.58, .36]], coat), partE(.2, .38, .05, .07, NET_DARK), partE(.42, .38, .05, .07, NET_DARK),
+  ] }),
+  (coat, rand, j) => ({ h: .85, parts: [ // walking, tail straight up
+    partR(.86, j(.02, .02), .96, .5, coat), partE(.58, .56, .32, j(.17, .03), coat), ...furPattern(rand, coat, .32, .42, .86, .7), partR(.34, .6, .42, 1, coat), partR(.74, .6, .82, 1, coat),
+    partE(.22, .42, .22, .22, coat), partP([[.02, .36], [0, 0], [.2, .24]], coat), partP([[.22, .24], [.44, 0], [.44, .36]], coat), partE(.14, .42, .04, .06, NET_DARK), partE(.3, .42, .04, .06, NET_DARK),
+  ] }),
+  (coat, rand, j) => ({ h: .72, parts: [ // lying down
+    partE(.93, .78, .07, .22, coat), partE(.62, .74, .36, j(.26, .02), coat), ...furPattern(rand, coat, .36, .5, .92, .98), partE(.26, .58, .25, .34, coat),
+    partP([[.02, .4], [0, 0], [.24, .28]], coat), partP([[.28, .28], [.5, 0], [.5, .4]], coat), partE(.16, .56, .05, .08, NET_DARK), partE(.36, .56, .05, .08, NET_DARK),
+  ] }),
+  (coat, rand, j) => ({ h: .9, parts: [ // curled up, ears on top
+    partE(.5, .62, .48, .38, coat), ...furPattern(rand, coat, .2, .4, .85, .96),
+    partP([[.1, .42], [.06, 0], [.36, .28]], coat), partP([[.4, .26], [.62, 0], [.62, .36]], coat), partE(.24, .46, .05, .07, NET_DARK), partE(.48, .46, .05, .07, NET_DARK),
+  ] }),
+];
+const dogEar = (x, y, a, b, accent) => partE(x, y, a, b, accent);
+const muzzle = (x0, y0, x1, y1, coat) => [partR(x0, y0, x1, y1, coat), partE(x0 + .02, y0 + (y1 - y0) * .3, .045, (y1 - y0) * .4, NET_DARK)];
+const DOG_VARIANTS = [
+  (coat, rand, j, accent) => ({ h: .75, parts: [ // standing
+    partR(.3, j(.42, .03), .94, .72, coat), ...furPattern(rand, coat, .34, .44, .92, .7), partR(.33, .66, .45, 1, coat), partR(.5, .66, .6, 1, coat), partR(.66, .66, .76, 1, coat), partR(.82, .66, .94, 1, coat),
+    partR(.88, j(.12, .05), 1, .46, coat), partE(.3, .3, .2, .24, coat), ...muzzle(0, .24, .2, .46, coat), dogEar(.38, .36, .1, .28, accent), partE(.24, .22, .045, .06, NET_DARK),
+  ] }),
+  (coat, rand, j, accent) => ({ h: .55, parts: [ // long and low
+    partR(.88, .06, 1, .5, coat), partR(.22, j(.36, .03), 1, .78, coat), ...furPattern(rand, coat, .28, .38, .96, .76), partR(.26, .7, .4, 1, coat), partR(.8, .7, .94, 1, coat),
+    partE(.24, .3, .18, .28, coat), ...muzzle(0, .22, .18, .5, coat), dogEar(.3, .42, .08, .36, accent), partE(.18, .2, .035, .08, NET_DARK),
+  ] }),
+  (coat, rand, j, accent) => ({ h: .95, parts: [ // tall and slender
+    partR(.9, j(.14, .04), .99, .46, coat), partE(.62, .46, .32, .14, coat), ...furPattern(rand, coat, .36, .36, .9, .56), partR(.36, .48, .44, 1, coat), partR(.5, .48, .58, 1, coat), partR(.74, .48, .82, 1, coat), partR(.86, .48, .94, 1, coat),
+    partP([[.24, .42], [.3, .14], [.46, .34], [.42, .52]], coat), partE(.24, .16, .16, .15, coat), ...muzzle(0, .12, .18, .27, coat), dogEar(.36, .2, .07, .18, accent), partE(.2, .1, .03, .04, NET_DARK),
+  ] }),
+  (coat, rand, j, accent) => ({ h: 1, parts: [ // sitting
+    partE(.92, .86, .08, .08, coat), partP([[.26, .36], [.56, .32], [.94, .94], [.26, 1]], coat), ...furPattern(rand, coat, .32, .5, .8, .96), partR(.28, .56, .42, 1, coat), partE(.7, .84, .24, .16, coat),
+    partE(.32, .24, .22, .22, coat), ...muzzle(0, .18, .2, .36, coat), dogEar(.46, .3, .09, .24, accent), partE(.26, .16, .035, .04, NET_DARK),
+  ] }),
+  (coat, rand, j, accent) => ({ h: .8, parts: [ // standing, tail curled up
+    partE(.92, .24, .08, .16, coat), partR(.3, .4, .92, .72, coat), ...furPattern(rand, coat, .34, .42, .88, .7), partR(.34, .68, .46, 1, coat), partR(.5, .68, .6, 1, coat), partR(.68, .68, .78, 1, coat), partR(.82, .68, .92, 1, coat),
+    partE(.28, .32, .2, .24, coat), ...muzzle(0, .26, .2, .5, coat), dogEar(.36, .38, .09, .26, accent), partE(.22, .24, .04, .05, NET_DARK),
+  ] }),
+  (coat, rand, j, accent) => ({ h: .85, parts: [ // puppy: big head, short body
+    partE(.94, .46, .06, .12, coat), partE(.68, .6, .3, .24, coat), ...furPattern(rand, coat, .44, .42, .92, .8), partR(.48, .72, .6, 1, coat), partR(.78, .72, .9, 1, coat), partR(.3, .7, .42, 1, coat),
+    partE(.32, .34, .26, .32, coat), ...muzzle(0, .3, .18, .54, coat), dogEar(.52, .36, .09, .3, accent), partE(.24, .26, .04, .05, NET_DARK),
+  ] }),
+];
+function wheels(j, x0, x1, y, r) {
+  const a = j(r, r * .15), D = NET_DARK, L = NET_LIGHT;
+  return [partE(x0, y, a, a * 1.3, D), partE(x1, y, a, a * 1.3, D), partE(x0, y, a * .4, a * .5, L), partE(x1, y, a * .4, a * .5, L)];
+}
+const CAR_VARIANTS = [
+  (coat, rand, j, accent, glass) => ({ h: .62, parts: [ // sedan
+    partR(0, .5, 1, .84, coat), partP([[.2, .5], [.34, .14], [.72, .14], [.86, .5]], coat), partP([[.3, .48], [.39, .22], [.5, .22], [.5, .48]], glass), partP([[.54, .48], [.54, .22], [.68, .22], [.78, .48]], glass), ...wheels(j, .23, .77, .84, .13),
+  ] }),
+  (coat, rand, j, accent, glass) => ({ h: .68, parts: [ // hatchback
+    partR(.02, .5, 1, .84, coat), partP([[.2, .5], [.36, .08], [.92, .08], [.98, .5]], coat), partP([[.3, .46], [.41, .17], [.58, .17], [.58, .46]], glass), partP([[.63, .46], [.63, .17], [.88, .17], [.92, .46]], glass), ...wheels(j, .24, .78, .84, .13),
+  ] }),
+  (coat, rand, j, accent, glass) => ({ h: .85, parts: [ // SUV
+    partR(0, .44, 1, .82, coat), partR(.16, .04, 1, .46, coat), partR(.24, .12, .54, .4, glass), partR(.6, .12, .92, .4, glass), partR(0, .6, 1, .66, mixRgb(coat, NET_DARK, .4)), ...wheels(j, .22, .78, .84, .15),
+  ] }),
+  (coat, rand, j, accent, glass) => ({ h: .45, parts: [ // sports car
+    partP([[0, .58], [.34, .34], [.46, .02], [.76, .02], [1, .36], [1, .8], [0, .8]], coat), partP([[.42, .34], [.5, .1], [.72, .1], [.84, .34]], glass), ...wheels(j, .2, .8, .8, .12),
+  ] }),
+  (coat, rand, j, accent, glass) => ({ h: .95, parts: [ // van
+    partR(0, .02, 1, .84, coat), partP([[0, .5], [.06, .12], [.28, .12], [.28, .5]], glass), partR(.36, .12, .62, .4, glass), partR(.68, .12, .94, .4, glass), ...wheels(j, .2, .8, .86, .13),
+  ] }),
+  (coat, rand, j, accent, glass) => ({ h: .66, parts: [ // pickup
+    partR(0, .46, 1, .82, coat), partR(.2, .06, .58, .5, coat), partR(.27, .14, .52, .44, glass), partR(.64, .36, 1, .48, mixRgb(coat, NET_DARK, .35)), ...wheels(j, .2, .8, .84, .14),
+  ] }),
+  (coat, rand, j, accent, glass) => ({ h: .85, parts: [ // front view
+    partR(.04, .78, .22, 1, NET_DARK), partR(.78, .78, .96, 1, NET_DARK), partR(0, .42, 1, .86, coat), partP([[.14, .44], [.26, .06], [.74, .06], [.86, .44]], coat), partP([[.22, .42], [.31, .14], [.69, .14], [.78, .42]], glass),
+    partE(.14, .6, .08, .07, NET_LIGHT), partE(.86, .6, .08, .07, NET_LIGHT), partR(.34, .56, .66, .68, NET_DARK),
+  ] }),
+];
+const NET_VARIANTS = [CAT_VARIANTS, DOG_VARIANTS, CAR_VARIANTS];
+function backgroundExtras(rand, tone) {
+  const out = [], n = Math.floor(rand() * 3);
+  for (let i = 0; i < n; i++) {
+    const kind = Math.floor(rand() * 4), x = rand(), y = rand() * .5;
+    if (kind === 0) out.push(partE(x, y, .08 + rand() * .05, .08 + rand() * .05, hexRgb(COLOR.yellow))); // sun or lamp
+    if (kind === 1) { out.push(partE(x, y, .16, .06, hexRgb(COLOR.paper))); out.push(partE(x + .1, y - .03, .1, .06, hexRgb(COLOR.paper))); } // cloud
+    if (kind === 2) { out.push(partR(x - .025, y + .1, x + .025, .95, hexRgb(COLOR.ink3))); out.push(partE(x, y, .11, .15, hexRgb(COLOR.green6))); } // tree
+    if (kind === 3) out.push(partR(x - .1, y, x + .1, y + .2, mixRgb(tone, NET_DARK, .35))); // window or building
+  }
+  return out;
+}
+function makeSample(rand) {
+  const S = NET_SIZE, cls = Math.floor(rand() * 3), table = NET_VARIANTS[cls], variant = Math.floor(rand() * table.length);
+  const coatIdx = Math.floor(rand() * NET_COATS.length), bgIdx = Math.floor(rand() * NET_BACKGROUNDS.length);
+  const j = (v, a) => v + (rand() * 2 - 1) * a;
+  const coat = mixRgb(NET_COATS[coatIdx], rand() < .5 ? NET_DARK : NET_LIGHT, rand() * .22);
+  const shape = table[variant](coat, rand, j, rand() < .5 ? mixRgb(coat, NET_DARK, .6) : mixRgb(coat, NET_LIGHT, .6), rand() < .7 ? NET_LIGHT : hexRgb(COLOR.ink3));
+  // The longer side of the object takes 75-100% of the frame; aspect ratio and tilt vary too.
+  const longSide = (.75 + rand() * .25) * S, aspect = shape.h * j(1, .1), boxW = aspect > 1 ? longSide / aspect : longSide, boxH = aspect > 1 ? longSide : longSide * aspect;
+  const flip = rand() < .5, tilt = j(0, .14), cosT = Math.cos(tilt), sinT = Math.sin(tilt);
+  const cx = boxW / 2 + rand() * (S - boxW), cy = boxH / 2 + rand() * (S - boxH);
+  const bg = NET_BACKGROUNDS[bgIdx], sky = mixRgb(bg[0], NET_DARK, rand() * .18), ground = mixRgb(bg[1], NET_DARK, rand() * .18), horizon = .3 + rand() * .45, extras = backgroundExtras(rand, sky);
+  const pix = new Float32Array(NET_CH * S * S), mask = new Uint8Array(S * S);
+  let x0 = S, y0 = S, x1 = -1, y1 = -1;
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+    const i = y * S + x, nx = (x + .5) / S, ny = (y + .5) / S; let col = ny < horizon ? sky : ground, on = false;
+    for (const p of extras) if (hitPart(p, nx, ny)) col = p.c;
+    const dx = x + .5 - cx, dy = y + .5 - cy, u0 = (cosT * dx + sinT * dy) / boxW + .5, v = (-sinT * dx + cosT * dy) / boxH + .5, u = flip ? 1 - u0 : u0;
+    if (u >= -.05 && u <= 1.05 && v >= -.05 && v <= 1.05) for (const p of shape.parts) if (hitPart(p, u, v)) { col = p.c; on = true; }
+    const noise = (rand() - .5) * 26;
+    for (let c = 0; c < NET_CH; c++) pix[c * S * S + i] = clamp((col[c] + noise) / 255, 0, 1);
+    if (on) { mask[i] = cls + 1; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  }
+  return { pix, mask, cls, variant, coatIdx, bgIdx, box: [x0 / S, y0 / S, (x1 + 1) / S, (y1 + 1) / S], corrupted: false };
+}
+function hitPart(p, x, y) {
+  if (p.t === 'e') { const dx = (x - p.x) / p.a, dy = (y - p.y) / p.b; return dx * dx + dy * dy <= 1; }
+  if (p.t === 'r') return x >= p.x0 && x <= p.x1 && y >= p.y0 && y <= p.y1;
+  let pos = false, neg = false;
+  for (let i = 0; i < p.p.length; i++) {
+    const a = p.p[i], b = p.p[(i + 1) % p.p.length], c = (b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]);
+    if (c > 0) pos = true; if (c < 0) neg = true;
+  }
+  return !(pos && neg);
+}
+function corruptSample(s, rand) {
+  const S = NET_SIZE, cls = (s.cls + 1 + Math.floor(rand() * 2)) % 3, dx = Math.round((rand() - 0.5) * 14), dy = Math.round((rand() - 0.5) * 14);
+  const mask = new Uint8Array(S * S);
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+    const sx = x - dx, sy = y - dy;
+    if (sx >= 0 && sy >= 0 && sx < S && sy < S && s.mask[sy * S + sx]) mask[y * S + x] = cls + 1;
+  }
+  const d = [dx / S, dy / S, dx / S, dy / S];
+  return { ...s, cls, mask, box: s.box.map((v, i) => clamp(v + d[i], 0, 1)), corrupted: true, trueCls: s.cls };
+}
+// Sample i is the same for every setting, so a bigger set extends a smaller one and
+// raising the noise only corrupts labels, never the pictures.
+const sampleCache = [];
+function buildTrainSet(n, noise) {
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const s = sampleCache[i] || (sampleCache[i] = makeSample(rng(TRAIN_SEED + i))), r = rng(NOISE_SEED + i);
+    out.push(r() < noise ? corruptSample(s, r) : s);
+  }
+  return out;
+}
+let testSetCache = null;
+function getTestSet() {
+  if (!testSetCache) { const r = rng(TEST_SEED); testSetCache = Array.from({ length: TEST_COUNT }, () => makeSample(r)); }
+  return testSetCache;
+}
+function param(n, scale, rand) {
+  const w = new Float32Array(n);
+  if (scale) for (let i = 0; i < n; i++) w[i] = (rand() * 2 - 1) * scale;
+  return { w, g: new Float32Array(n), m: new Float32Array(n), v: new Float32Array(n) };
+}
+function makeNet(task, seed) {
+  const R = rng(seed), nOut = task === 'cls' ? 3 : task === 'loc' ? 7 : NET_PIXELS * 4;
+  return {
+    task, nOut, t: 0,
+    c1: param(C1 * NET_CH * 9, .3, R), b1: param(C1, 0, R), c2: param(C2 * C1 * 9, .2, R), b2: param(C2, 0, R),
+    d1: param(FLAT * DENSE, .08, R), e1: param(DENSE, 0, R), d2: param(DENSE * nOut, .15, R), e2: param(nOut, 0, R), sk: param(C1 * 4, .1, R),
+    a1: new Float32Array(NET_PIXELS * C1), p1: new Float32Array(HALF_PIXELS * C1), i1: new Int32Array(HALF_PIXELS * C1),
+    a2: new Float32Array(HALF_PIXELS * C2), p2: new Float32Array(FLAT), i2: new Int32Array(FLAT),
+    h: new Float32Array(DENSE), o: new Float32Array(nOut),
+    dh: new Float32Array(DENSE), dp: new Float32Array(FLAT), da2: new Float32Array(HALF_PIXELS * C2), dp1: new Float32Array(HALF_PIXELS * C1), da1: new Float32Array(NET_PIXELS * C1), dx: new Float32Array(NET_PIXELS * NET_CH),
+  };
+}
+function conv(inp, ch, sz, out, cn, w, b) {
+  for (let c = 0; c < cn; c++) {
+    const wo = c * ch * 9;
+    for (let y = 0; y < sz; y++) for (let x = 0; x < sz; x++) {
+      let s = b[c];
+      for (let k = 0; k < ch; k++) {
+        const ci = k * sz * sz, wk = wo + k * 9; let q = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          const yy = y + dy;
+          if (yy < 0 || yy >= sz) { q += 3; continue; }
+          for (let dx = -1; dx <= 1; dx++, q++) { const xx = x + dx; if (xx >= 0 && xx < sz) s += w[wk + q] * inp[ci + yy * sz + xx]; }
+        }
+      }
+      out[c * sz * sz + y * sz + x] = s > 0 ? s : 0;
+    }
+  }
+}
+function convBack(inp, ch, sz, out, cn, P, B, dOut, dIn) {
+  dIn.fill(0); const w = P.w, g = P.g;
+  for (let c = 0; c < cn; c++) {
+    const wo = c * ch * 9;
+    for (let y = 0; y < sz; y++) for (let x = 0; x < sz; x++) {
+      const idx = c * sz * sz + y * sz + x, d = dOut[idx];
+      if (d === 0 || out[idx] <= 0) continue;
+      B.g[c] += d;
+      for (let k = 0; k < ch; k++) {
+        const ci = k * sz * sz, wk = wo + k * 9; let q = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          const yy = y + dy;
+          if (yy < 0 || yy >= sz) { q += 3; continue; }
+          for (let dx = -1; dx <= 1; dx++, q++) { const xx = x + dx; if (xx < 0 || xx >= sz) continue; const ii = ci + yy * sz + xx; g[wk + q] += d * inp[ii]; dIn[ii] += d * w[wk + q]; }
+        }
+      }
+    }
+  }
+}
+function pool(inp, ch, sz, out, idx) {
+  const h = sz / 2;
+  for (let c = 0; c < ch; c++) {
+    const o = c * sz * sz, p = c * h * h;
+    for (let y = 0; y < h; y++) for (let x = 0; x < h; x++) {
+      let bv = -1, bi = 0;
+      for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) { const k = o + (2 * y + j) * sz + 2 * x + i; if (inp[k] > bv) { bv = inp[k]; bi = k; } }
+      out[p + y * h + x] = bv; idx[p + y * h + x] = bi;
+    }
+  }
+}
+function forward(n, pix) {
+  conv(pix, NET_CH, NET_SIZE, n.a1, C1, n.c1.w, n.b1.w); pool(n.a1, C1, NET_SIZE, n.p1, n.i1);
+  conv(n.p1, C1, NET_SIZE / 2, n.a2, C2, n.c2.w, n.b2.w); pool(n.a2, C2, NET_SIZE / 2, n.p2, n.i2);
+  for (let j = 0; j < DENSE; j++) { let s = n.e1.w[j]; const o = j * FLAT; for (let i = 0; i < FLAT; i++) s += n.d1.w[o + i] * n.p2[i]; n.h[j] = s > 0 ? s : 0; }
+  for (let j = 0; j < n.nOut; j++) { let s = n.e2.w[j]; const o = j * DENSE; for (let i = 0; i < DENSE; i++) s += n.d2.w[o + i] * n.h[i]; n.o[j] = s; }
+  if (n.task === 'seg') for (let k = 0; k < NET_PIXELS; k++) for (let q = 0; q < 4; q++) { let s = 0; for (let c = 0; c < C1; c++) s += n.sk.w[q * C1 + c] * n.a1[c * NET_PIXELS + k]; n.o[k * 4 + q] += s; }
+  return n.o;
+}
+function backward(n, pix, dO) {
+  const dh = n.dh.fill(0);
+  for (let j = 0; j < n.nOut; j++) { const d = dO[j]; if (!d) continue; n.e2.g[j] += d; const o = j * DENSE; for (let i = 0; i < DENSE; i++) { n.d2.g[o + i] += d * n.h[i]; dh[i] += d * n.d2.w[o + i]; } }
+  const dp = n.dp.fill(0);
+  for (let j = 0; j < DENSE; j++) { const d = dh[j]; if (!d || n.h[j] <= 0) continue; n.e1.g[j] += d; const o = j * FLAT; for (let i = 0; i < FLAT; i++) { n.d1.g[o + i] += d * n.p2[i]; dp[i] += d * n.d1.w[o + i]; } }
+  const da2 = n.da2.fill(0);
+  for (let i = 0; i < FLAT; i++) da2[n.i2[i]] += dp[i];
+  convBack(n.p1, C1, NET_SIZE / 2, n.a2, C2, n.c2, n.b2, da2, n.dp1);
+  const da1 = n.da1.fill(0);
+  for (let i = 0; i < n.dp1.length; i++) da1[n.i1[i]] += n.dp1[i];
+  if (n.task === 'seg') for (let k = 0; k < NET_PIXELS; k++) for (let q = 0; q < 4; q++) { const d = dO[k * 4 + q]; if (!d) continue; for (let c = 0; c < C1; c++) { n.sk.g[q * C1 + c] += d * n.a1[c * NET_PIXELS + k]; da1[c * NET_PIXELS + k] += d * n.sk.w[q * C1 + c]; } }
+  convBack(pix, NET_CH, NET_SIZE, n.a1, C1, n.c1, n.b1, da1, n.dx);
+}
+const sigmoid = v => 1 / (1 + Math.exp(-v));
+function softmax(o, st, k, p) { let mx = -Infinity; for (let i = 0; i < k; i++) if (o[st + i] > mx) mx = o[st + i]; let t = 0; for (let i = 0; i < k; i++) { p[i] = Math.exp(o[st + i] - mx); t += p[i]; } for (let i = 0; i < k; i++) p[i] /= t; return p; }
+const SEG_WEIGHT = 20, BOX_WEIGHT = 8, SEG_SHAPE_OK = .5;
+function lossGrad(n, s, d) {
+  const o = n.o, p = new Float64Array(4); let L = 0;
+  if (d) d.fill(0);
+  if (n.task !== 'seg') {
+    softmax(o, 0, 3, p); L -= Math.log(p[s.cls] + 1e-7);
+    if (d) for (let i = 0; i < 3; i++) d[i] = p[i] - (i === s.cls ? 1 : 0);
+    if (n.task === 'loc') for (let i = 0; i < 4; i++) { const v = sigmoid(o[3 + i]), e = v - s.box[i]; L += BOX_WEIGHT * e * e; if (d) d[3 + i] = 2 * BOX_WEIGHT * e * v * (1 - v); }
+  } else {
+    for (let k = 0; k < NET_PIXELS; k++) { softmax(o, k * 4, 4, p); const c = s.mask[k]; L -= Math.log(p[c] + 1e-7) * SEG_WEIGHT / NET_PIXELS; if (d) for (let i = 0; i < 4; i++) d[k * 4 + i] = (p[i] - (i === c ? 1 : 0)) * SEG_WEIGHT / NET_PIXELS; }
+  }
+  return L;
+}
+const netParams = n => [n.c1, n.b1, n.c2, n.b2, n.d1, n.e1, n.d2, n.e2, n.sk];
+function adamStep(n, lr, bs) {
+  n.t++; const c1 = 1 - 0.9 ** n.t, c2 = 1 - 0.999 ** n.t;
+  for (const P of netParams(n)) for (let i = 0; i < P.w.length; i++) {
+    const g = P.g[i] / bs; P.g[i] = 0;
+    P.m[i] = 0.9 * P.m[i] + 0.1 * g; P.v[i] = 0.999 * P.v[i] + 0.001 * g * g;
+    P.w[i] -= lr * (P.m[i] / c1) / (Math.sqrt(P.v[i] / c2) + 1e-8);
+  }
+}
+function boxIoU(a, b) {
+  const w = Math.min(a[2], b[2]) - Math.max(a[0], b[0]), h = Math.min(a[3], b[3]) - Math.max(a[1], b[1]);
+  if (w <= 0 || h <= 0) return 0;
+  const inter = w * h, u = Math.max(0, a[2] - a[0]) * Math.max(0, a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter;
+  return u > 0 ? inter / u : 0;
+}
+function predict(n, s) {
+  const o = forward(n, s.pix), p = new Float64Array(4);
+  if (n.task === 'seg') { const mask = new Uint8Array(NET_PIXELS); for (let k = 0; k < NET_PIXELS; k++) { let b = 0; for (let i = 1; i < 4; i++) if (o[k * 4 + i] > o[k * 4 + b]) b = i; mask[k] = b; } return { mask }; }
+  softmax(o, 0, 3, p); let cls = 0; for (let i = 1; i < 3; i++) if (p[i] > p[cls]) cls = i;
+  return { cls, conf: p[cls], box: n.task === 'loc' ? [0, 1, 2, 3].map(i => sigmoid(o[3 + i])) : null };
+}
+function shapeIoU(a, b) { let I = 0, U = 0; for (let k = 0; k < a.length; k++) { if (a[k] > 0 && b[k] > 0) I++; if (a[k] > 0 || b[k] > 0) U++; } return U ? I / U : 1; }
+function maskIoU(a, b) { let I = 0, U = 0; for (let k = 0; k < a.length; k++) { if (a[k] === b[k] && a[k] > 0) I++; if (a[k] > 0 || b[k] > 0) U++; } return U ? I / U : 1; }
+// A segmentation model labels pixels, not images. Its answer for the whole image is the class
+// holding most object pixels, or null when it marks no object at all.
+function segClass(mask) {
+  const count = [0, 0, 0]; for (let k = 0; k < mask.length; k++) if (mask[k]) count[mask[k] - 1]++;
+  const total = count[0] + count[1] + count[2]; if (!total) return { cls: null, share: 0, total };
+  let cls = 0; for (let i = 1; i < 3; i++) if (count[i] > count[cls]) cls = i;
+  return { cls, share: count[cls] / total, total };
+}
+// Class and shape are judged separately: a mask can have the right outline and the wrong class.
+function segVerdict(mask, s) {
+  const c = segClass(mask), iou = maskIoU(mask, s.mask), shape = shapeIoU(mask, s.mask), classOk = c.cls === s.cls, shapeOk = shape >= SEG_SHAPE_OK;
+  return { cls: c.cls, share: c.share, iou, shape, classOk, shapeOk, ok: classOk && shapeOk };
+}
+function evaluate(n, test) {
+  let acc = 0, iou = 0, shape = 0;
+  for (const s of test) {
+    const r = predict(n, s);
+    if (n.task === 'seg') { iou += maskIoU(r.mask, s.mask); shape += shapeIoU(r.mask, s.mask); if (segClass(r.mask).cls === s.cls) acc++; }
+    else { if (r.cls === s.cls) acc++; if (r.box) iou += boxIoU(r.box, s.box); }
+  }
+  return { acc: acc / test.length, iou: iou / test.length, shape: shape / test.length };
+}
+function meanLoss(n, list) { let t = 0; for (const s of list) { forward(n, s.pix); t += lossGrad(n, s, null); } return t / list.length; }
+
+  // View and training loop
+function buildTrening() {
+  return `<div class="net-lab">
+  <header class="page-head">
+    <h1 class="app-title" tabindex="-1">Trening sieci konwolucyjnej</h1>
+    <p class="edu-lead">Mała sieć konwolucyjna uczy się tu, na Twoim komputerze, rozpoznawać koty, psy i samochody. Startuje z losowych wag, a wyniki nie są nagrane ani przygotowane wcześniej. Zmieniasz tylko dane, a liczba kroków zostaje stała.</p>
+  </header>
+  <section class="sec stone"><div class="wrap">
+    <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('database')}</span><h2>Przygotuj dane i uruchom</h2></div>
+    <div class="split">
+      <div class="stack">
+        <div class="card"><div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('sliders-horizontal')}</span><h3>Ustawienia</h3></span></div>
+          <div class="card-body controls">
+            <div><span class="field-label">Zadanie</span><div class="pills" role="group" aria-label="Wybór zadania">${TASK_IDS.map(id => `<button type="button" data-net-task="${id}" aria-pressed="false">${TASK_NAMES[id]}</button>`).join('')}</div></div>
+            <div class="slider"><label class="field-label" for="nRange">Obrazy treningowe <span class="field-val" id="nVal"></span></label>
+              <input type="range" id="nRange" min="0" max="${N_STEPS.length - 1}" step="1" value="2">
+              <div class="ticks" aria-hidden="true">${N_STEPS.map(v => `<span>${plNum(v)}</span>`).join('')}</div></div>
+            <div class="slider"><label class="field-label" for="noiseRange">Błędy w etykietach <span class="field-val" id="noiseVal"></span></label>
+              <input type="range" id="noiseRange" min="0" max="50" step="10" value="0">
+              <div class="ticks" aria-hidden="true">${[0, 10, 20, 30, 40, 50].map(v => `<span>${v}%</span>`).join('')}</div></div>
+          </div>
+          <div class="card-foot"><button type="button" class="btn btn-primary" id="trainBtn" data-train-toggle>${ic('play')} <span id="trainBtnLabel">Trenuj</span> <kbd>T</kbd></button><span class="edu-small" id="trainInfo"></span></div>
+        </div>
+        <div class="block tone-blue edu-block"><span class="edu-overline">Spróbuj</span><p>Porównaj 20 i 600 obrazów. Potem wróć do 200 i dodaj 40% błędnych etykiet. Powtórz ten sam trening: wynik będzie trochę inny, bo sieć startuje z innych losowych wag.</p></div>
+        <details class="more"><summary>Co dokładnie tu działa?</summary>
+          <p>Dwie warstwy splotowe ze zmniejszaniem obrazu (pooling), warstwa gęsta i głowa zależna od zadania. Segmentacja ma też połączenie skrótowe z pierwszej warstwy, jak w U-Net. Sieć jest napisana od zera w JavaScripcie i uczy się metodą Adam.</p>
+          <p>Obrazy mają 24 × 24 piksele i są rysowane przez program, a nie fotografowane. Jest ${CAT_VARIANTS.length} odmian kota, ${DOG_VARIANTS.length} psa i ${CAR_VARIANTS.length} samochodu. Do tego losowe są kolor, wzór, rozmiar, nachylenie, kierunek i tło, także w innych klasach, więc sieć musi patrzeć na kształt. Żeby tak mała sieć dała radę, obiekt zajmuje większość kadru, kot ma zawsze dwa duże szpiczaste uszy, a pies długi pysk z ciemnym nosem i zwisające ucho.</p>
+          <p>Prawdziwe modele są tysiące razy większe, ale zasada jest ta sama. Liczby stąd nie przenoszą się na zdjęcia ze świata.</p>
+          <p>Liczba kroków jest stała, więc przy 2000 obrazów sieć widzi każdy z nich tylko 3 razy. Zysk względem 600 obrazów jest już niewielki.</p>
+          <p>Końcowy wynik pochodzi z ${TEST_COUNT} osobnych obrazów, których sieć nie widzi podczas treningu. Linia na żywo używa ${CURVE_TEST} z nich, więc trochę drga.</p>
+        </details>
+      </div>
+      <div class="stack">
+        <div class="card"><div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('eye')}</span><h3>Co dostaje model</h3></span><span class="edu-small" id="previewMeta"></span></div>
+          <div class="card-body"><div class="net-grid" id="preview"></div></div>
+          <div class="card-foot"><span class="edu-small">Rasy, pozy, typy nadwozi, wzory i tła są losowane.</span><button type="button" class="btn" id="previewMore">${ic('shuffle')} Inne przykłady</button></div></div>
+      </div>
+    </div>
+  </div></section>
+  <section class="sec" id="liveSec"><div class="wrap">
+    <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('activity')}</span><h2>Trening na żywo</h2></div>
+    <div class="stack" id="trainLab" data-state="idle" data-task="cls" data-n="200" data-noise="0" data-done="0" data-updates="${UPDATES.cls}">
+      <div class="live-grid">
+        <div class="card" id="liveNow" data-step="0">
+          <div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('cpu')}</span><h3>Co sieć robi teraz</h3></span></div>
+          <div class="card-body stack">
+            <div class="meter" role="progressbar" id="trainProgress" aria-label="Postęp treningu" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="trainFill"></span></div>
+            <div class="live-step" id="liveStep"></div>
+            <div class="live-now-body" id="liveBody"></div>
+          </div>
+          <div class="card-foot"><span class="edu-small" id="trainStatus" aria-live="polite"></span><button type="button" class="btn" data-train-toggle id="trainBtn2">Trenuj</button></div>
+        </div>
+        <div class="card"><div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('trending-up')}</span><h3>Jakość na nowych obrazach</h3></span></div>
+          <div class="card-body stack">
+            <div class="before-after"><span><small>Bez treningu</small><b id="metricBefore">–</b></span><span aria-hidden="true" class="ba-arrow">→</span><span><small id="metricNowLabel">Teraz</small><b id="metricBig">–</b></span></div>
+            <canvas id="qualityChart" class="chart-canvas chart-small" role="img" aria-label="Wykres jakości sieci na obrazach testowych podczas treningu"></canvas>
+            <div id="metricSub" class="edu-small"></div>
+          </div></div>
+        <div class="card"><div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('network')}</span><h3>Wagi sieci</h3></span></div>
+          <div class="card-body stack">
+            <div class="filter-grid" id="filterGrid" role="img" aria-label="Filtry pierwszej warstwy narysowane z aktualnych wag">${Array.from({ length: C1 }, () => '<canvas width="3" height="3"></canvas>').join('')}</div>
+            <div class="readout"><span><b id="weightCount">–</b>wag w sieci</span><span><b id="weightDelta">0</b>średnia zmiana wagi</span></div>
+            <p class="edu-small" style="margin:0">Kwadraty to ${C1} filtrów pierwszej warstwy, narysowanych z ich aktualnych wag. Na starcie są losowe.</p>
+          </div></div>
+      </div>
+      <div class="card"><div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('scan-search')}</span><h3>Odpowiedzi na obrazach testowych</h3></span><span class="edu-small" id="galleryMeta"></span></div>
+        <div class="card-body stack"><div class="net-grid" id="gallery"></div><div class="legend mask-legend" id="maskLegend" hidden></div></div></div>
+      <div class="split">
+        <div class="stack">
+          <div class="card" id="tryCard" data-tries="0" data-right="0"><div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('dices')}</span><h3>Sprawdź na nowym obrazie</h3></span><span class="edu-small" id="tryTally"></span></div>
+            <div class="card-body stack"><div id="tryOut"></div></div>
+            <div class="card-foot"><span class="edu-small">Program rysuje obraz właśnie teraz, więc sieć nie mogła go widzieć.</span><button type="button" class="btn" id="tryNew">${ic('shuffle')} Losuj obraz</button></div></div>
+          <div class="card"><div class="card-head"><h3>Błąd podczas treningu</h3></div>
+            <div class="card-body stack"><canvas id="chart" class="chart-canvas" role="img" aria-label="Wykres błędu treningowego i testowego"></canvas>
+              <div class="legend"><span><i></i>Obrazy treningowe</span><span><i class="dash"></i>Obrazy testowe</span></div>
+              <p class="edu-small" style="margin:0">Gdy linie się rozchodzą, sieć zapamiętuje przykłady zamiast uczyć się reguły.</p>
+            </div></div>
+        </div>
+        <div class="table-card" id="runTable"></div>
+      </div>
+    </div>
+  </div></section></div>`;
+}
+function blankMaskCanvas() {
+  const m = sampleCanvas({ pix: new Float32Array(NET_CH * NET_PIXELS) });
+  m.ctx.fillStyle = COLOR.ink; m.ctx.fillRect(0, 0, m.cv.width, m.cv.height);
+  return m;
+}
+function sampleCanvas(s, scale = 6) {
+  const S = NET_SIZE, cv = document.createElement('canvas'); cv.width = S; cv.height = S;
+  const ctx = cv.getContext('2d'), img = ctx.createImageData(S, S);
+  for (let k = 0; k < S * S; k++) { for (let c = 0; c < NET_CH; c++) img.data[k * 4 + c] = Math.round(s.pix[c * S * S + k] * 255); img.data[k * 4 + 3] = 255; }
+  ctx.putImageData(img, 0, 0);
+  const big = document.createElement('canvas'); big.width = S * scale; big.height = S * scale;
+  const bx = big.getContext('2d'); bx.imageSmoothingEnabled = false; bx.drawImage(cv, 0, 0, S * scale, S * scale);
+  return { cv: big, ctx: bx, scale };
+}
+function paintNetMask(ctx, mask, scale, alpha = .8) {
+  ctx.save(); ctx.globalAlpha = alpha;
+  for (let k = 0; k < mask.length; k++) { if (!mask[k]) continue; ctx.fillStyle = NET_CLASS_COLOR[mask[k] - 1]; ctx.fillRect((k % NET_SIZE) * scale, Math.floor(k / NET_SIZE) * scale, scale, scale); }
+  ctx.restore();
+}
+// Right pixels are green. Wrong ones are yellow with an X, because red already means "samochód" in a mask.
+function paintMaskMatch(ctx, pred, truth, scale) {
+  for (let k = 0; k < pred.length; k++) {
+    if (!pred[k] && !truth[k]) continue;
+    const x = (k % NET_SIZE) * scale, y = Math.floor(k / NET_SIZE) * scale, right = pred[k] === truth[k];
+    ctx.fillStyle = right ? COLOR.green : COLOR.yellow; ctx.fillRect(x, y, scale, scale);
+    if (!right) { ctx.strokeStyle = COLOR.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + 1, y + 1); ctx.lineTo(x + scale - 1, y + scale - 1); ctx.moveTo(x + scale - 1, y + 1); ctx.lineTo(x + 1, y + scale - 1); ctx.stroke(); }
+  }
+}
+function maskPanel(cv, label) {
+  const fig = document.createElement('figure'), cap = document.createElement('figcaption');
+  fig.className = 'mask-panel'; cap.textContent = label; fig.append(cv, cap);
+  return fig;
+}
+function renderMaskLegend() {
+  const el = $('maskLegend'); if (!el) return;
+  el.hidden = state.task !== 'seg'; if (el.hidden || el.childElementCount) return;
+  const item = (color, label, cross) => { const s = document.createElement('span'), i = document.createElement('i'); i.style.backgroundColor = color; if (cross) i.className = 'crossed'; s.append(i, label); return s; };
+  el.append(...NET_CLASSES.map((name, c) => item(NET_CLASS_COLOR[c], `Maska: ${name}`)), item(COLOR.green, 'Zgodność: piksel dobrze'), item(COLOR.yellow, 'Zgodność: piksel źle', true));
+}
+function paintNetBox(ctx, b, scale, dashed) {
+  const S = NET_SIZE * scale, x = b[0] * S, y = b[1] * S, w = (b[2] - b[0]) * S, h = (b[3] - b[1]) * S;
+  ctx.save(); ctx.lineWidth = 3; ctx.strokeStyle = COLOR.ink; ctx.strokeRect(x, y, w, h);
+  ctx.lineWidth = 1.5; ctx.strokeStyle = COLOR.paper; if (dashed) ctx.setLineDash([4, 3]); ctx.strokeRect(x, y, w, h);
+  ctx.restore();
+}
+function renderPreview() {
+  const t = state.train, task = state.task, set = buildTrainSet(t.n, t.noise / 100);
+  t.corruptedCount = set.filter(s => s.corrupted).length;
+  // Corrupted examples come first so the slider's effect shows at once; the rest rotate through the classes.
+  const offset = t.previewOffset % set.length, ordered = [...set.slice(offset), ...set.slice(0, offset)];
+  const show = ordered.filter(s => s.corrupted).slice(0, 2);
+  for (let c = 0; show.length < Math.min(PREVIEW_COUNT, set.length); c = (c + 1) % 3) {
+    const next = ordered.find(s => s.cls === c && !show.includes(s));
+    if (next) show.push(next); else if (!ordered.some(s => !show.includes(s))) break;
+  }
+  const wrap = $('preview'); wrap.innerHTML = '';
+  show.forEach(s => {
+    const el = document.createElement('div'); el.className = 'sample'; el.dataset.corrupted = String(s.corrupted); el.dataset.cls = s.cls; el.dataset.variant = s.variant;
+    const a = sampleCanvas(s); const imgs = document.createElement('div'); imgs.className = 'sample-imgs'; imgs.appendChild(a.cv);
+    let text = `Etykieta: ${NET_CLASSES[s.cls]}`;
+    if (task === 'loc') { paintNetBox(a.ctx, s.box, a.scale); text += ' + prostokąt'; }
+    if (task === 'seg') { const m = blankMaskCanvas(); paintNetMask(m.ctx, s.mask, m.scale, 1); imgs.appendChild(m.cv); text += ' + maska'; }
+    a.cv.setAttribute('role', 'img'); a.cv.setAttribute('aria-label', text);
+    el.innerHTML = `<small>${text}</small>${s.corrupted ? '<span class="chip chip-red">Błędna etykieta</span>' : ''}`;
+    el.prepend(imgs); wrap.appendChild(el);
+  });
+  $('previewMeta').textContent = `${plNum(t.n)} obrazów, ${plNum(t.corruptedCount)} z błędem`;
+}
+function metricValue(r, task) { return task === 'loc' ? r.iou : r.acc; }
+function metricFormat(v, task) { return task === 'loc' ? dec(v) : pct(v); }
+function metricSubText(task, r) {
+  if (task === 'cls') return 'Trafność: odsetek poprawnych odpowiedzi. Zgadywanie daje około 33%.';
+  if (task === 'loc') return `IoU (Intersection over Union) prostokąta: 1 to idealne pokrycie.${r ? ` Trafność klasy: ${pct(r.acc)}.` : ''}`;
+  return `Trafność klasy: na ilu obrazach większość maski ma właściwą klasę. Zgadywanie daje około 33%.${r ? ` Dokładność maski: IoU z klasą ${dec(r.iou)}, sam kształt ${dec(r.shape)}.` : ''}`;
+}
+// Real answers of the untrained network: the "before" that training has to beat.
+const untrainedCache = {};
+function getUntrained(task) {
+  if (!untrainedCache[task]) { const net = makeNet(task, BASE_SEED); untrainedCache[task] = { net, baseline: evaluate(net, getTestSet()) }; }
+  return untrainedCache[task];
+}
+function displayCurve() {
+  const t = state.train;
+  if (t.status === 'running') return t.curve;
+  const r = t.results[state.task]; return r ? r.curve : [];
+}
+function chartFrame(cv) {
+  if (!cv || !cv.offsetWidth) return null;
+  const W = cv.offsetWidth, H = cv.offsetHeight, ctx = setupCanvas(cv, W, H);
+  ctx.clearRect(0, 0, W, H);
+  return { ctx, W, H, L: 44, R: 10, T: 10, B: 26, pw: W - 54, ph: H - 36 };
+}
+function chartAxes(f, maxLabel, fmt) {
+  const { ctx, W, H, L, R, T, ph } = f, updates = UPDATES[state.task];
+  ctx.font = "500 11px 'Roboto Mono', monospace"; ctx.fillStyle = COLOR.ink3; ctx.textBaseline = 'middle'; ctx.strokeStyle = COLOR.stone2; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) { const y = T + ph * i / 4; ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - R, y); ctx.stroke(); ctx.fillText(fmt(maxLabel * (1 - i / 4)), 4, y); }
+  ctx.textBaseline = 'alphabetic'; ctx.fillText('0', L, H - 8);
+  const end = plNum(updates) + ' kroków'; ctx.fillText(end, W - R - ctx.measureText(end).width, H - 8);
+}
+function renderChart() {
+  const c = displayCurve(), updates = UPDATES[state.task];
+  const q = chartFrame($('qualityChart'));
+  if (q) {
+    const { ctx, L, T, W, R, ph, pw } = q, yOf = v => T + ph * (1 - v);
+    chartAxes(q, 1, v => state.task === 'loc' ? dec(v, 2) : Math.round(v * 100) + '%');
+    if (state.task !== 'loc') {
+      ctx.strokeStyle = COLOR.ink3; ctx.lineWidth = 1.5; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(L, yOf(1 / 3)); ctx.lineTo(W - R, yOf(1 / 3)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = COLOR.ink3; ctx.fillText('zgadywanie', W - R - ctx.measureText('zgadywanie').width, yOf(1 / 3) - 6);
+    }
+    if (c.length) {
+      ctx.strokeStyle = COLOR.ink; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.beginPath();
+      c.forEach((p, i) => { const x = L + pw * p.at / updates, y = yOf(p.metric); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
+      const last = c[c.length - 1]; ctx.fillStyle = COLOR.yellow; ctx.strokeStyle = COLOR.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(L + pw * last.at / updates, yOf(last.metric), 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+  }
+  const f = chartFrame($('chart'));
+  if (f) {
+    const pts = c.filter(p => p.train !== undefined), max = Math.max(0.5, ...pts.flatMap(p => [p.train, p.test])) * 1.05, { ctx, L, T, pw, ph } = f;
+    chartAxes(f, max, v => dec(v, 2));
+    const line = (key, col, dash) => { ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.setLineDash(dash); ctx.beginPath(); pts.forEach((p, i) => { const x = L + pw * p.at / updates, y = T + ph * (1 - p[key] / max); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); ctx.setLineDash([]); };
+    if (pts.length) { line('train', COLOR.ink, []); line('test', COLOR.blue6, [7, 5]); }
+  }
+}
+// One network answer on one image, judged against that image's label.
+function answerTile(net, s) {
+  const r = predict(net, s), el = document.createElement('div'); el.className = 'sample';
+  const a = sampleCanvas(s), imgs = document.createElement('div'); imgs.className = 'sample-imgs'; imgs.appendChild(a.cv);
+  let text, ok, answer, verdict = null;
+  if (net.task === 'cls') { ok = r.cls === s.cls; answer = NET_CLASSES[r.cls]; text = `Model: ${answer} (${pct(r.conf)}). Etykieta: ${NET_CLASSES[s.cls]}.`; }
+  if (net.task === 'loc') { const iou = boxIoU(r.box, s.box); ok = r.cls === s.cls && iou >= .5; answer = NET_CLASSES[r.cls]; paintNetBox(a.ctx, s.box, a.scale, true); paintNetBox(a.ctx, r.box, a.scale, false); text = `Model: ${answer}, IoU ${dec(iou)}. Etykieta: ${NET_CLASSES[s.cls]}.`; }
+  if (net.task === 'seg') {
+    verdict = segVerdict(r.mask, s); ok = verdict.ok; answer = verdict.cls === null ? 'brak obiektu' : NET_CLASSES[verdict.cls];
+    const truth = blankMaskCanvas(), model = blankMaskCanvas(), match = blankMaskCanvas();
+    paintNetMask(truth.ctx, s.mask, truth.scale, 1); paintNetMask(model.ctx, r.mask, model.scale, 1); paintMaskMatch(match.ctx, r.mask, s.mask, match.scale);
+    el.classList.add('seg-tile'); imgs.classList.add('quad');
+    imgs.append(maskPanel(a.cv, 'Obraz'), maskPanel(truth.cv, 'Wzorzec'), maskPanel(model.cv, 'Model'), maskPanel(match.cv, 'Zgodność'));
+    text = verdict.cls === null ? `Model nie zaznaczył obiektu. Etykieta: ${NET_CLASSES[s.cls]}.` : `Model: ${answer} (${pct(verdict.share)} maski). Etykieta: ${NET_CLASSES[s.cls]}. IoU kształtu ${dec(verdict.shape)}.`;
+    truth.cv.setAttribute('role', 'img'); truth.cv.setAttribute('aria-label', `Wzorcowa maska: ${NET_CLASSES[s.cls]}`);
+    model.cv.setAttribute('role', 'img'); model.cv.setAttribute('aria-label', `Maska modelu: ${answer}`);
+    match.cv.setAttribute('role', 'img'); match.cv.setAttribute('aria-label', `Zgodność masek co do piksela. IoU z klasą ${dec(verdict.iou)}.`);
+  }
+  a.cv.setAttribute('role', 'img'); a.cv.setAttribute('aria-label', text);
+  el.dataset.ok = String(ok); el.dataset.answer = answer;
+  const chip = (good, label) => `<span class="chip ${good ? 'chip-green' : 'chip-red'}">${label}${good ? 'dobrze' : 'źle'}</span>`;
+  if (verdict) { el.dataset.classOk = String(verdict.classOk); el.dataset.shapeOk = String(verdict.shapeOk); }
+  el.innerHTML = `<small>${text}</small><span class="chip-row">${verdict ? chip(verdict.classOk, 'Klasa: ') + chip(verdict.shapeOk, 'Kształt: ') : `<span class="chip ${ok ? 'chip-green' : 'chip-red'}">${ok ? 'Dobrze' : 'Źle'}</span>`}</span>`;
+  el.prepend(imgs);
+  return { el, ok, answer, text, verdict };
+}
+function renderGallery(net) {
+  const wrap = $('gallery'); wrap.innerHTML = '';
+  getTestSet().slice(0, GALLERY).forEach(s => wrap.appendChild(answerTile(net, s).el));
+  wrap.classList.toggle('grid-wide', net.task === 'seg');
+  wrap.dataset.signature = [...wrap.children].map(e => e.dataset.answer + e.dataset.ok).join();
+  $('galleryMeta').textContent = net.task === 'loc' ? 'Linia ciągła: model. Linia przerywana: wzorzec.' : net.task === 'seg' ? 'Klasa i kształt oceniane osobno.' : '';
+}
+function renderWeights(net, init) {
+  const canvases = $('filterGrid').children, W = net.c1.w;
+  for (let c = 0; c < C1; c++) {
+    const o = c * NET_CH * 9, cv = canvases[c], ctx = cv.getContext('2d'), img = ctx.createImageData(3, 3);
+    let max = 1e-6; for (let i = 0; i < NET_CH * 9; i++) max = Math.max(max, Math.abs(W[o + i]));
+    for (let q = 0; q < 9; q++) { for (let k = 0; k < NET_CH; k++) img.data[q * 4 + k] = 127.5 + 127.5 * W[o + k * 9 + q] / max; img.data[q * 4 + 3] = 255; }
+    ctx.putImageData(img, 0, 0);
+  }
+  $('weightCount').textContent = plNum(netParams(net).reduce((a, P) => a + P.w.length, 0));
+  let delta = 0;
+  if (init) { let n = 0; for (const key of ['c1', 'c2', 'd1']) for (let i = 0; i < init[key].length; i++) { delta += Math.abs(net[key].w[i] - init[key][i]); n++; } delta /= n; }
+  $('weightDelta').textContent = dec(delta, 3);
+  const lab = $('trainLab'); lab.dataset.weightDelta = delta.toFixed(4); lab.dataset.weightSum = W.reduce((a, v) => a + v, 0).toFixed(4);
+}
+function renderLiveNow(net, s, step, total, n) {
+  const tile = answerTile(net, s), card = $('liveNow');
+  card.dataset.step = step; card.dataset.answer = tile.answer; card.dataset.ok = String(tile.ok);
+  $('liveStep').textContent = `Krok ${plNum(step)} z ${plNum(total)} · przejście przez zbiór numer ${plNum(Math.floor(step / n) + 1)}`;
+  const body = $('liveBody'); body.innerHTML = '';
+  const note = document.createElement('p'); note.className = 'edu-small'; note.style.margin = '0';
+  note.textContent = tile.ok ? 'Odpowiedź zgodna z etykietą, więc wagi zmienią się niewiele.' : 'Odpowiedź niezgodna z etykietą, więc błąd przesunie wagi mocniej.';
+  body.append(tile.el, note);
+}
+function renderLiveIdle(message) {
+  $('liveStep').textContent = message; $('liveBody').innerHTML = '';
+}
+function renderRunTable() {
+  const runs = state.train.runs;
+  $('runTable').innerHTML = `<table><thead><tr><th scope="col">Zadanie</th><th scope="col" class="num">Obrazy</th><th scope="col" class="num">Błędy w etykietach</th><th scope="col" class="num">Trafność klasy</th><th scope="col" class="num">IoU</th></tr></thead><tbody>
+    ${runs.length ? runs.slice().reverse().map(r => `<tr><td>${TASK_NAMES[r.task]}</td><td class="num">${plNum(r.n)}</td><td class="num">${r.noise}%</td><td class="num">${pct(r.acc)}</td><td class="num">${r.task === 'cls' ? '–' : dec(r.iou)}${r.task === 'seg' ? ` (kształt ${dec(r.shape)})` : ''}</td></tr>`).join('') : '<tr><td colspan="5" style="font-weight:400;color:var(--ink-3)">Brak przebiegów. Każdy trening dopisze tu wiersz.</td></tr>'}
+  </tbody></table>`;
+}
+function renderTry() {
+  const t = state.train, r = t.results[state.task], running = t.status === 'running', tries = t.tries[state.task], card = $('tryCard');
+  $('tryNew').disabled = !r || running;
+  card.dataset.tries = tries.n; card.dataset.right = tries.right;
+  card.dataset.classRight = tries.classRight || 0; card.dataset.shapeRight = tries.shapeRight || 0;
+  $('tryTally').textContent = !tries.n ? '' : state.task === 'seg' ? `Klasa dobrze: ${tries.classRight} z ${tries.n}, kształt dobrze: ${tries.shapeRight} z ${tries.n}` : `Dobrze: ${tries.right} z ${tries.n}`;
+  if (!r || running) $('tryOut').innerHTML = `<p class="empty">${running ? 'Poczekaj na koniec treningu.' : 'Najpierw wytrenuj sieć.'}</p>`;
+  else if (!tries.n) $('tryOut').innerHTML = '<p class="empty">Wylosuj obraz i zobacz odpowiedź sieci.</p>';
+}
+function tryNewImage() {
+  const t = state.train, r = t.results[state.task]; if (!r || t.status === 'running') return;
+  const s = makeSample(rng(TRY_SEED + t.tryCounter++)), tile = answerTile(r.net, s), tries = t.tries[state.task];
+  tries.n++; if (tile.ok) tries.right++;
+  if (tile.verdict) { tries.classRight = (tries.classRight || 0) + (tile.verdict.classOk ? 1 : 0); tries.shapeRight = (tries.shapeRight || 0) + (tile.verdict.shapeOk ? 1 : 0); }
+  const out = $('tryOut'); out.innerHTML = ''; out.appendChild(tile.el);
+  renderTry(); announce(tile.text);
+}
+function renderTrain() {
+  if (!$('trainLab')) return;
+  const t = state.train, lab = $('trainLab'), running = t.status === 'running', task = state.task;
+  $('nVal').textContent = plNum(t.n); $('noiseVal').textContent = t.noise + '%';
+  $('nRange').value = N_STEPS.indexOf(t.n); $('noiseRange').value = t.noise;
+  $('nRange').setAttribute('aria-valuetext', `${plNum(t.n)} obrazów`); $('noiseRange').setAttribute('aria-valuetext', `${t.noise} procent`);
+  lab.dataset.state = t.status; lab.dataset.task = task; lab.dataset.n = t.n; lab.dataset.noise = t.noise; lab.dataset.done = t.done; lab.dataset.updates = UPDATES[task];
+  $('trainBtnLabel').textContent = running ? 'Zatrzymaj' : 'Trenuj';
+  $('trainBtn2').textContent = running ? 'Zatrzymaj' : t.results[task] ? 'Trenuj ponownie' : 'Trenuj';
+  const icon = $('trainBtn').querySelector('svg, i');
+  if (icon && icon.dataset.want !== (running ? 'square' : 'play')) {
+    const fresh = document.createElement('i'); fresh.setAttribute('data-lucide', running ? 'square' : 'play'); fresh.className = 'ic'; fresh.dataset.want = running ? 'square' : 'play'; fresh.setAttribute('aria-hidden', 'true');
+    icon.replaceWith(fresh); icons($('trainBtn'));
+  }
+  $('trainInfo').textContent = `${plNum(UPDATES[task])} kroków, zwykle do 2 minut, zależnie od komputera`;
+  renderPreview();
+  if (!running) {
+    const r = t.results[task], un = getUntrained(task), base = r ? r.baseline : un.baseline;
+    $('metricBefore').textContent = metricFormat(metricValue(base, task), task);
+    lab.dataset.baseline = metricValue(base, task).toFixed(3);
+    if (r) {
+      $('metricNowLabel').textContent = 'Po treningu'; $('metricBig').textContent = metricFormat(metricValue(r, task), task); $('metricSub').textContent = metricSubText(task, r);
+      lab.dataset.acc = r.acc.toFixed(3); lab.dataset.iou = r.iou.toFixed(3); lab.dataset.shape = r.shape.toFixed(3);
+      renderGallery(r.net); renderWeights(r.net, r.init);
+      renderLiveIdle(`Gotowe: ${plNum(UPDATES[task])} kroków na ${plNum(r.n)} obrazach, w ${dec(r.seconds, 1)} sekundy na Twoim komputerze.`);
+      if (t.stopped !== task) $('trainStatus').textContent = 'Wynik policzono na obrazach, których sieć nie widziała.';
+    } else {
+      $('metricNowLabel').textContent = 'Po treningu'; $('metricBig').textContent = '?'; $('metricSub').textContent = metricSubText(task, null);
+      delete lab.dataset.acc; delete lab.dataset.iou; delete lab.dataset.shape;
+      renderGallery(un.net); renderWeights(un.net, null);
+      renderLiveIdle('Sieć ma na razie losowe wagi, więc tylko zgaduje. Odpowiedzi poniżej to jej prawdziwe odpowiedzi bez treningu.');
+      if (t.stopped !== task) $('trainStatus').textContent = 'Naciśnij „Trenuj”, a zobaczysz każdy etap.';
+    }
+  }
+  renderChart(); renderRunTable(); renderTrainProgress(); renderTry(); renderMaskLegend();
+}
+function renderTrainProgress() {
+  const t = state.train, total = UPDATES[state.task], p = t.status === 'running' ? Math.round(t.done / total * 100) : t.status === 'done' ? 100 : 0;
+  $('trainFill').style.width = p + '%'; $('trainProgress').setAttribute('aria-valuenow', p);
+}
+
+// ─── Training loop ───
+function startTraining() {
+  const t = state.train;
+  if (t.status === 'running') { t.stop = true; return; }
+  const task = state.task, n = t.n, noise = t.noise, seed = BASE_SEED + t.seedCounter++;
+  // Every run starts from different random weights, so repeating a run gives a slightly different result.
+  const set = buildTrainSet(n, noise / 100), net = makeNet(task, seed), total = UPDATES[task], d = new Float32Array(net.nOut), R = rng(77 + seed);
+  const test = getTestSet(), curveTest = test.slice(GALLERY, GALLERY + CURVE_TEST), curveEvery = Math.floor(total / CURVE_POINTS);
+  const init = { c1: net.c1.w.slice(), c2: net.c2.w.slice(), d1: net.d1.w.slice() }, baseline = evaluate(net, test), startedAt = performance.now();
+  Object.assign(t, { status: 'running', stop: false, stopped: null, done: 0, curve: [{ at: 0, metric: metricValue(baseline, task) }] });
+  t.tries[task] = { n: 0, right: 0 }; $('tryOut').innerHTML = '';
+  let idx = [], c = 0, emaLoss = null, lastTick = 0;
+  const lab = $('trainLab'), scale = task === 'seg' ? SEG_WEIGHT : 1;
+  renderTrain();
+  $('trainStatus').textContent = 'Trening trwa. Liczy go Twój komputer.'; announce('Trening rozpoczęty.');
+  $('metricBefore').textContent = metricFormat(metricValue(baseline, task), task); lab.dataset.baseline = metricValue(baseline, task).toFixed(3);
+  $('metricNowLabel').textContent = 'Teraz'; $('metricBig').textContent = metricFormat(metricValue(baseline, task), task); $('metricSub').textContent = metricSubText(task, null);
+  delete lab.dataset.acc; delete lab.dataset.iou; delete lab.dataset.shape;
+  if (isVisible()) $('liveSec').scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  renderGallery(net); renderWeights(net, init); renderLiveNow(net, set[0], 0, total, n);
+  const finish = () => {
+    if (c) adamStep(net, LEARNING_RATE, c);
+    if (t.stop) {
+      t.status = 'idle'; t.done = 0; t.stopped = task;
+      $('trainStatus').textContent = 'Trening zatrzymany.'; renderTrain(); announce('Trening zatrzymany.'); return;
+    }
+    const res = evaluate(net, test), run = { task, n, noise, acc: res.acc, iou: res.iou, shape: res.shape, net, baseline, init, curve: t.curve, seconds: (performance.now() - startedAt) / 1000 };
+    t.results[task] = run; t.runs.push(run); t.status = 'done'; t.done = total;
+    renderTrain(); renderTaskButtons();
+    announce(`Trening zakończony. Bez treningu: ${metricFormat(metricValue(baseline, task), task)}. Po treningu: ${metricFormat(metricValue(run, task), task)}.`);
+  };
+  const slice = () => {
+    if (t !== state.train) return;
+    if (t.stop) { finish(); return; }
+    const end = performance.now() + SLICE_MS;
+    let newPoint = false;
+    while (t.done < total && performance.now() < end) {
+      if (!idx.length) { idx = set.map((_, i) => i); for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; } }
+      const s = set[idx.pop()];
+      forward(net, s.pix); const L = lossGrad(net, s, d); backward(net, s.pix, d);
+      emaLoss = emaLoss === null ? L : emaLoss * .97 + L * .03;
+      if (++c === BATCH) { adamStep(net, LEARNING_RATE, BATCH); c = 0; }
+      t.done++;
+      if (t.done % curveEvery === 0) {
+        const m = evaluate(net, curveTest);
+        t.curve.push({ at: t.done, train: emaLoss / scale, test: meanLoss(net, curveTest) / scale, metric: metricValue(m, task) });
+        newPoint = true;
+      }
+    }
+    lab.dataset.done = t.done; renderTrainProgress();
+    const now = performance.now(), visible = isVisible();
+    if (visible && newPoint) {
+      const last = t.curve[t.curve.length - 1];
+      $('metricBig').textContent = metricFormat(last.metric, task); lab.dataset.liveMetric = last.metric.toFixed(3);
+      renderGallery(net); renderChart();
+    }
+    if (visible && now - lastTick > LIVE_TICK_MS && t.done < total) {
+      lastTick = now;
+      renderLiveNow(net, idx.length ? set[idx[idx.length - 1]] : set[0], t.done, total, n); renderWeights(net, init);
+    }
+    if (t.done >= total) finish(); else setTimeout(slice, 0);
+  };
+  setTimeout(slice, 0);
+}
+
+  // Controls
+  function renderTaskButtons() {
+    document.querySelectorAll('[data-net-task]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.netTask === state.task)));
+  }
+  function renderTrainSettings() {
+    const t = state.train;
+    $('nVal').textContent = plNum(t.n); $('noiseVal').textContent = t.noise + '%';
+    $('trainLab').dataset.n = t.n; $('trainLab').dataset.noise = t.noise;
+    $('nRange').setAttribute('aria-valuetext', `${plNum(t.n)} obrazów`); $('noiseRange').setAttribute('aria-valuetext', `${t.noise} procent`);
+    renderPreview();
+  }
+  function setTask(task) {
+    if (!TASK_IDS.includes(task)) return;
+    if (state.train.status === 'running') { announce('Poczekaj na koniec treningu albo go zatrzymaj.'); return; }
+    const changed = task !== state.task;
+    state.task = task;
+    renderTaskButtons(); renderTrain();
+    if (changed) announce('Zadanie: ' + TASK_NAMES[task]);
+  }
+  function bind(root) {
+    root.addEventListener('click', e => {
+      const task = e.target.closest('[data-net-task]');
+      if (task) { setTask(task.dataset.netTask); return; }
+      if (e.target.closest('#previewMore')) { state.train.previewOffset += PREVIEW_COUNT; renderPreview(); return; }
+      if (e.target.closest('#tryNew')) { tryNewImage(); return; }
+      if (e.target.closest('[data-train-toggle]')) startTraining();
+    });
+    root.addEventListener('input', e => {
+      if (state.train.status === 'running') return;
+      if (e.target.id === 'nRange') { state.train.n = N_STEPS[+e.target.value]; renderTrainSettings(); }
+      if (e.target.id === 'noiseRange') { state.train.noise = +e.target.value; renderTrainSettings(); }
+    });
+    window.addEventListener('resize', () => { if (isVisible()) renderChart(); });
+  }
+  function onShow() { renderTaskButtons(); renderTrain(); }
+  function reset() {
+    state.task = 'cls'; state.train = newTrain();
+    if (isVisible()) onShow();
+  }
+
+  // Checks for the probes panel
+function gradientErrors(task, layer, seed) {
+  const net = makeNet(task, 3), s = makeSample(rng(seed)), d = new Float32Array(net.nOut), P = net[layer], R = rng(seed * 7 + 1), eps = 1e-3, errors = [];
+  forward(net, s.pix); lossGrad(net, s, d); backward(net, s.pix, d);
+  for (let t = 0; t < 15; t++) {
+    const i = Math.floor(R() * P.w.length), orig = P.w[i];
+    P.w[i] = orig + eps; const up = P.w[i]; forward(net, s.pix); const a = lossGrad(net, s, null);
+    P.w[i] = orig - eps; const down = P.w[i]; forward(net, s.pix); const b = lossGrad(net, s, null);
+    P.w[i] = orig;
+    const num = (a - b) / (up - down), an = P.g[i];
+    errors.push(Math.abs(num - an) / Math.max(1e-2, Math.abs(num) + Math.abs(an)));
+  }
+  return errors;
+}
+function gradientCheck(task) {
+  const gather = layer => [1, 2, 3, 4].flatMap(seed => gradientErrors(task, layer, seed)).sort((x, y) => x - y);
+  const denseOk = ['d2', 'd1'].every(l => gather(l).at(-1) < .02);
+  const convOk = ['c2', 'c1'].every(l => { const e = gather(l); return e[e.length >> 1] < .01 && e.filter(v => v > .05).length / e.length <= .1; });
+  return denseOk && convOk;
+}
+  const CHECKS = {
+  'Gradient zgadza się z pomiarem numerycznym': () => TASK_IDS.every(t => gradientCheck(t)),
+  'Zbiór testowy nie pokrywa się z treningowym': () => { const a = new Set(getTestSet().map(s => s.pix.join())); return buildTrainSet(60, 0).every(s => !a.has(s.pix.join())); },
+  'Błędne etykiety nie zmieniają pikseli': () => { const a = buildTrainSet(50, 0), b = buildTrainSet(50, .5); return b.some(s => s.corrupted) && a.every((s, i) => s.pix === b[i].pix || s.pix.join() === b[i].pix.join()); },
+  'Większy zbiór rozszerza mniejszy': () => { const a = buildTrainSet(20, 0), b = buildTrainSet(60, 0); return a.every((s, i) => s.cls === b[i].cls); },
+  'Kolor i tło nie zdradzają klasy': () => [0, 1, 2].every(c => { const list = getTestSet().filter(s => s.cls === c); return new Set(list.map(s => s.coatIdx)).size === NET_COATS.length && new Set(list.map(s => s.bgIdx)).size === NET_BACKGROUNDS.length; }),
+  'Każda klasa ma wszystkie odmiany': () => NET_VARIANTS.every((table, c) => new Set(getTestSet().filter(s => s.cls === c).map(s => s.variant)).size === table.length),
+  'Obrazy w klasie różnią się kształtem': () => [0, 1, 2].every(c => { const list = getTestSet().filter(s => s.cls === c), a = list.map(s => (s.box[2] - s.box[0]) / (s.box[3] - s.box[1])); return new Set(list.map(s => s.mask.join())).size >= list.length * .95 && Math.max(...a) / Math.min(...a) > 1.5; }),
+  'Maska i prostokąt próbek są spójne': () => getTestSet().slice(0, 40).every(s => { const S = NET_SIZE; let ok = s.mask.some(v => v === s.cls + 1); s.mask.forEach((v, k) => { if (!v) return; const x = (k % S) / S, y = Math.floor(k / S) / S; if (x < s.box[0] || x >= s.box[2] || y < s.box[1] || y >= s.box[3]) ok = false; }); return ok; }),
+  'Obiekt zajmuje większość kadru': () => getTestSet().every(s => Math.max(s.box[2] - s.box[0], s.box[3] - s.box[1]) >= .6),
+  'Segmentacja ocenia klasę i kształt osobno': () => {
+    const S = NET_PIXELS, s = { mask: new Uint8Array(S).fill(1, 0, 100), cls: 0 }, right = segVerdict(s.mask.slice(), s), wrongClass = segVerdict(s.mask.map(v => v ? 2 : 0), s), empty = segVerdict(new Uint8Array(S), s);
+    return right.ok && !wrongClass.classOk && wrongClass.shapeOk && !wrongClass.ok && wrongClass.iou === 0 && empty.cls === null && !empty.classOk && !empty.shapeOk;
+  },
+  };
+  const checkResults = () => Object.entries(CHECKS).map(([name, fn]) => { try { return [name, fn() === true]; } catch (err) { return [name, false]; } });
+
+  return { html: buildTrening, bind, onShow, reset, setTask, start: startTraining, checkResults, taskIds: TASK_IDS };
+}
+
 // ─── Constants ───
 const core = cvCore();
+const netLab = createNetLab();
 const { SIZE, PIXELS, CLASS_NAMES } = core;
 const TASKS = ['cls', 'loc', 'seg'];
-const VIEWS = ['start', 'klasyfikacja', 'lokalizacja', 'segmentacja', 'dane', 'laboratorium', 'dane-do-treningu', 'quiz'];
-const VIEW_LABELS = { start: 'Start', klasyfikacja: 'Klasyfikacja', lokalizacja: 'Lokalizacja', segmentacja: 'Segmentacja', dane: 'Dane', laboratorium: 'Laboratorium', 'dane-do-treningu': 'Dane do treningu', quiz: 'Quiz' };
+const VIEWS = ['start', 'klasyfikacja', 'lokalizacja', 'segmentacja', 'trening', 'dane', 'laboratorium', 'dane-do-treningu', 'quiz'];
+const VIEW_LABELS = { start: 'Start', klasyfikacja: 'Klasyfikacja', lokalizacja: 'Lokalizacja', segmentacja: 'Segmentacja', trening: 'Trening', dane: 'Porównanie', laboratorium: 'Demo', 'dane-do-treningu': 'Oznaczenia', quiz: 'Quiz' };
+const VIEW_DESCRIPTIONS = {
+  start: 'Jak komputer widzi obraz i trzy rodzaje odpowiedzi na ten sam obraz',
+  klasyfikacja: 'Ćwiczenie i trening modelu: jedna etykieta na cały obraz',
+  lokalizacja: 'Ćwiczenie i trening modelu: klasa i prostokąt wokół obiektu',
+  segmentacja: 'Ćwiczenie i trening modelu: klasa każdego piksela',
+  trening: 'Trening sieci konwolucyjnej na żywo: koty, psy i samochody',
+  dane: 'Porównanie zadań i nakład pracy: tabela, kalkulator i znane zbiory danych',
+  laboratorium: 'Demo na zdjęciach: przygotowany przebieg, bez uruchamiania modelu',
+  'dane-do-treningu': 'Oznaczenia na zdjęciach: jak wyglądają poprawne dane treningowe',
+  quiz: 'Osiem pytań o wybór zadania i jakość danych',
+};
+const STEP_DESCRIPTIONS = {
+  a: 'Oznacz jeden obraz. To ćwiczenie nie zmienia zbioru treningowego.',
+  b: 'Ustaw dane i wytrenuj model na automatycznie przygotowanych przykładach.',
+  c: 'Zobacz, jak model radzi sobie z obrazami, których nie widział w treningu.',
+};
 const IMAGE_STEPS = [10, 50, 200, 500];
 const NOISE_STEPS = [0, 10, 20, 40];
 const DEFAULTS = { images: 200, noise: 0, diversity: 'full' };
 const STORAGE_KEY = 'edulab.jakWidziKomputer.v1';
 const PROGRESS_KEYS = ['annot-cls', 'train-cls', 'annot-loc', 'train-loc', 'annot-seg', 'train-seg', 'quiz'];
+const PROGRESS_LABELS = { 'annot-cls': 'Klasyfikacja: oznacz obraz', 'train-cls': 'Klasyfikacja: wytrenuj model', 'annot-loc': 'Lokalizacja: oznacz obraz', 'train-loc': 'Lokalizacja: wytrenuj model', 'annot-seg': 'Segmentacja: oznacz obraz', 'train-seg': 'Segmentacja: wytrenuj model', quiz: 'Quiz: odpowiedz na wszystkie pytania' };
+const NARROW_QUERY = window.matchMedia('(max-width: 768px)');
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 const MIN_BOX_SIDE = 2;
 const CALC_LIMITS = { images: [1, 10000000], objects: [1, 100] };
@@ -1301,10 +2243,10 @@ const RATE_SECONDS = { cls: 5, loc: 35, seg: 79 };
 const STAGE_PX = 384;
 const NO_REFERENCE_TEXT = 'Własne zdjęcie nie ma wzorca, więc IoU nie da się policzyć.';
 // Canvas cannot read CSS variables: literal edulab values.
-const COLORS = { ink: '#1C1917', paper: '#FFFFFF', yellow: '#FFD500', stone: '#EAE6E0' };
+const COLORS = { ink: '#1C1917', paper: '#FFFFFF', stone: '#EAE6E0' };
 // A mask is drawn as hatching, not a tint: the fruit's real colour stays visible and each class differs without colour too.
 const CLASS_MASKS = [{ token: '--mask-apple', hatch: 'rising' }, { token: '--mask-banana', hatch: 'falling' }, { token: '--mask-pear', hatch: 'vertical' }];
-const YOUR_MASK = { token: '--mask-yours', hatch: 'rising' };
+const YOUR_MASK = { token: '--mask-yours', hatch: 'cross' };
 // Photographs, places and hand-drawn outlines, in 720×440 coordinates. Copied from the Codex vision-lab; assets/scenes holds the files.
 const PHOTO_SCENES = [{"id":"apple-inference-kitchen","sample":"apple","pool":"inference","file":"apple-inference-kitchen.webp","place":"drewniany blat kuchenny","bounds":[195,151,351,303],"rings":[[[285,151],[283,153],[284,154],[282,155],[281,154],[263,154],[249,157],[248,158],[246,158],[244,159],[239,160],[238,161],[237,161],[229,164],[226,167],[225,167],[216,174],[213,177],[212,179],[208,183],[208,185],[205,188],[200,198],[197,211],[197,213],[196,216],[196,221],[195,221],[195,226],[196,226],[196,237],[198,241],[198,243],[199,245],[200,248],[201,249],[201,253],[202,255],[204,255],[204,256],[205,257],[204,261],[206,262],[208,264],[212,273],[215,276],[216,277],[217,279],[218,280],[220,283],[223,284],[224,286],[223,287],[225,287],[226,289],[228,290],[230,290],[231,291],[233,289],[234,290],[242,295],[244,295],[246,298],[256,301],[258,301],[259,302],[260,302],[262,303],[273,303],[274,302],[277,302],[283,300],[293,299],[294,299],[297,299],[299,297],[301,297],[306,295],[316,289],[324,282],[325,280],[330,274],[339,261],[339,260],[342,255],[347,246],[350,233],[350,230],[351,226],[351,214],[351,213],[351,209],[349,202],[347,196],[343,187],[337,179],[331,172],[330,173],[327,170],[325,170],[324,167],[315,163],[299,157],[294,156],[290,156],[290,155],[290,158],[288,160],[286,164],[286,166],[285,167],[284,172],[281,172],[280,171],[281,170],[281,164],[282,163],[282,161],[283,159],[283,157],[282,158],[282,156],[284,155],[285,156],[286,155],[286,152]]]},{"id":"apple-inference-grass","sample":"apple","pool":"inference","file":"apple-inference-grass.webp","place":"trawnik w parku","bounds":[351,146,535,309],"rings":[[[502,155],[493,151],[492,151],[490,150],[487,150],[484,149],[482,149],[477,147],[467,147],[466,146],[457,147],[450,147],[429,148],[417,149],[404,151],[399,153],[396,154],[395,154],[383,160],[382,162],[382,163],[378,167],[376,167],[374,168],[368,175],[368,176],[364,182],[361,185],[356,198],[355,201],[354,203],[353,211],[352,211],[352,212],[352,213],[351,225],[352,226],[352,233],[353,235],[354,236],[353,238],[355,240],[355,242],[356,244],[355,245],[356,246],[356,250],[360,254],[361,256],[360,259],[362,261],[362,262],[363,264],[364,266],[366,269],[366,271],[370,275],[373,275],[374,276],[375,276],[374,274],[375,273],[377,275],[377,277],[378,279],[382,284],[384,284],[386,286],[387,288],[389,290],[403,290],[405,288],[407,288],[410,292],[411,291],[410,290],[411,289],[412,290],[414,295],[415,296],[415,297],[420,308],[420,309],[437,309],[438,304],[439,305],[439,308],[440,309],[448,309],[451,307],[451,305],[452,304],[454,305],[456,305],[458,307],[459,307],[458,306],[458,305],[465,305],[466,305],[470,309],[473,309],[475,303],[479,296],[479,295],[480,294],[479,292],[476,289],[476,286],[476,285],[476,284],[478,286],[483,287],[484,286],[484,287],[486,284],[486,285],[486,288],[487,289],[490,290],[495,292],[494,293],[489,296],[493,300],[494,299],[495,298],[497,297],[498,297],[498,296],[499,296],[500,295],[500,296],[501,293],[499,286],[497,277],[497,276],[501,279],[500,278],[501,278],[502,278],[505,286],[504,287],[505,290],[511,284],[511,283],[513,282],[514,278],[517,275],[518,274],[520,271],[520,270],[525,261],[530,247],[530,246],[532,238],[533,234],[534,233],[533,230],[534,228],[535,228],[534,227],[534,224],[534,213],[534,212],[534,208],[533,206],[533,205],[532,200],[533,198],[531,195],[531,193],[530,192],[530,190],[529,188],[528,186],[527,182],[527,181],[526,180],[524,178],[523,176],[523,175],[517,167],[509,159],[506,158]]]},{"id":"pear-inference-market","sample":"pear","pool":"inference","file":"pear-inference-market.webp","place":"stragan warzywny","bounds":[167,111,330,353],"rings":[[[294,111],[292,111],[291,112],[289,112],[291,113],[290,115],[289,116],[289,117],[289,118],[286,120],[285,120],[285,119],[285,118],[284,117],[279,120],[271,128],[270,130],[269,130],[268,132],[268,133],[268,132],[268,133],[267,134],[267,135],[264,138],[262,143],[260,144],[253,144],[251,143],[246,143],[246,144],[244,144],[244,145],[243,147],[239,149],[228,159],[226,163],[222,169],[221,172],[215,180],[213,185],[212,186],[211,188],[209,191],[207,195],[200,207],[189,221],[182,230],[176,242],[174,246],[174,247],[173,248],[172,252],[172,255],[171,259],[170,264],[168,266],[168,268],[167,285],[167,287],[167,290],[168,290],[168,293],[169,294],[169,297],[170,298],[170,299],[171,301],[171,303],[172,304],[172,305],[174,308],[174,310],[177,315],[178,317],[187,328],[195,337],[197,337],[200,341],[203,343],[206,345],[209,347],[210,348],[211,348],[212,349],[213,349],[214,350],[215,350],[218,352],[220,352],[229,353],[238,353],[239,353],[242,353],[245,352],[247,352],[254,350],[258,350],[259,349],[266,348],[269,348],[274,347],[285,344],[290,342],[294,339],[296,339],[297,338],[299,337],[300,336],[301,336],[311,326],[312,324],[317,317],[320,311],[322,310],[323,310],[322,308],[324,304],[325,302],[325,301],[326,298],[329,291],[329,286],[330,284],[330,282],[330,281],[330,273],[330,266],[329,262],[329,259],[328,258],[328,255],[327,254],[326,250],[325,248],[325,246],[324,246],[324,244],[321,240],[320,236],[320,233],[317,229],[317,227],[316,226],[315,223],[312,219],[312,218],[311,216],[309,213],[308,209],[307,208],[306,206],[306,204],[305,202],[305,200],[303,195],[303,192],[301,188],[300,184],[298,180],[298,178],[297,177],[293,167],[292,167],[290,164],[290,163],[282,154],[282,152],[280,151],[272,147],[275,141],[277,137],[282,132],[283,132],[285,130],[289,128],[290,128],[291,128],[293,128],[297,128],[299,125],[297,125],[294,123],[294,122],[292,121],[295,120],[295,118],[294,116],[294,115],[295,115],[294,113],[295,112]]]},{"id":"pear-inference-desk","sample":"pear","pool":"inference","file":"pear-inference-desk.webp","place":"biurko do pracy","bounds":[367,97,493,299],"rings":[[[408,97],[407,98],[404,98],[403,101],[403,104],[404,106],[405,109],[408,117],[408,123],[411,133],[411,138],[413,139],[408,141],[402,146],[399,151],[398,154],[397,155],[395,158],[392,167],[391,172],[391,173],[391,174],[386,189],[385,192],[384,193],[383,193],[384,194],[383,195],[379,202],[378,203],[378,205],[376,207],[375,210],[373,212],[373,214],[372,215],[371,218],[369,220],[369,222],[369,224],[369,229],[369,231],[367,233],[367,238],[368,251],[370,259],[371,260],[371,262],[373,264],[375,269],[384,279],[383,280],[395,291],[397,291],[401,294],[403,294],[404,295],[411,295],[413,294],[417,296],[418,296],[419,297],[426,299],[433,298],[439,296],[451,296],[457,294],[461,293],[467,288],[469,287],[477,279],[481,275],[482,272],[484,270],[484,269],[486,266],[487,264],[487,262],[488,261],[488,260],[489,259],[490,256],[490,255],[491,253],[493,244],[493,238],[493,230],[492,227],[492,224],[490,218],[489,216],[488,213],[488,212],[487,211],[486,208],[484,207],[481,201],[478,198],[478,197],[473,191],[473,190],[470,189],[467,183],[466,182],[463,173],[461,169],[461,168],[460,167],[460,166],[454,155],[449,148],[448,147],[448,146],[447,146],[443,141],[437,137],[432,136],[428,136],[429,136],[428,137],[424,137],[423,137],[422,136],[421,134],[420,133],[420,132],[420,130],[418,124],[417,120],[416,117],[416,114],[412,105],[412,103],[413,102],[413,103],[413,99],[412,98],[411,99],[411,97]]]},{"id":"mug-inference-office","sample":"mug","pool":"inference","file":"mug-inference-office.webp","place":"biurko z laptopem","bounds":[222,117,451,318],"rings":[[[263,124],[248,130],[240,135],[239,134],[239,135],[238,136],[235,138],[228,144],[224,151],[224,160],[224,162],[229,169],[233,174],[238,177],[245,180],[246,181],[247,181],[248,182],[249,182],[250,183],[249,183],[246,183],[241,181],[238,181],[233,178],[231,175],[229,174],[230,174],[226,170],[226,169],[223,162],[222,155],[222,160],[223,166],[227,171],[226,172],[225,171],[225,172],[224,171],[223,170],[223,174],[224,178],[225,190],[226,196],[226,202],[227,204],[227,208],[229,216],[229,220],[230,223],[231,233],[232,234],[232,236],[232,237],[232,242],[233,244],[233,250],[234,251],[234,254],[235,256],[236,263],[238,267],[238,270],[241,276],[241,278],[243,281],[245,286],[248,290],[248,294],[250,296],[253,296],[259,302],[259,303],[260,302],[260,304],[262,303],[268,308],[270,308],[271,309],[272,309],[277,312],[279,312],[284,314],[286,314],[287,315],[292,316],[293,317],[297,317],[301,318],[306,318],[307,318],[321,318],[328,317],[332,315],[334,314],[337,314],[338,312],[342,312],[344,310],[345,310],[348,310],[351,308],[359,301],[364,296],[366,296],[382,279],[382,278],[383,276],[384,274],[385,272],[391,272],[396,270],[400,269],[402,269],[407,267],[411,267],[412,267],[416,266],[417,266],[420,266],[423,264],[427,263],[429,261],[432,262],[432,261],[436,258],[439,254],[439,253],[442,250],[445,243],[446,242],[446,240],[447,238],[447,236],[448,235],[450,224],[450,217],[451,216],[450,202],[449,199],[448,195],[446,191],[446,190],[444,187],[443,186],[437,179],[434,178],[433,178],[431,176],[422,174],[403,174],[400,175],[397,175],[395,174],[393,174],[391,172],[391,170],[394,167],[397,159],[396,149],[394,144],[393,143],[393,142],[384,133],[383,133],[381,133],[389,140],[392,145],[393,149],[393,156],[391,161],[389,163],[389,162],[391,157],[391,150],[390,148],[391,147],[390,145],[389,145],[389,144],[386,140],[379,134],[379,132],[370,127],[369,127],[366,126],[363,125],[361,123],[359,122],[358,122],[354,121],[352,120],[350,120],[343,118],[340,118],[338,118],[334,118],[330,117],[312,117],[307,118],[287,119],[282,120],[279,120]],[[429,197],[435,205],[436,206],[438,214],[438,225],[436,228],[436,230],[435,235],[434,235],[433,239],[429,243],[428,243],[426,244],[419,247],[416,248],[414,248],[403,249],[402,250],[394,250],[393,249],[391,249],[390,248],[388,249],[386,246],[383,239],[383,234],[382,231],[382,228],[382,227],[381,211],[382,211],[385,211],[393,202],[397,201],[402,196],[405,196],[406,195],[408,195],[408,194],[419,194]]]},{"id":"mug-inference-patio","sample":"mug","pool":"inference","file":"mug-inference-patio.webp","place":"stół na tarasie","bounds":[187,129,399,310],"rings":[[[191,139],[189,142],[189,173],[189,174],[189,178],[189,179],[189,197],[188,198],[188,199],[188,201],[188,202],[188,219],[187,219],[188,242],[188,250],[189,251],[189,255],[189,256],[189,258],[189,259],[189,261],[190,262],[191,266],[190,272],[191,272],[193,273],[193,277],[192,277],[192,279],[194,279],[195,281],[197,281],[197,282],[198,283],[198,286],[197,286],[200,287],[201,290],[202,291],[203,290],[205,292],[205,293],[206,293],[207,295],[208,295],[217,299],[226,303],[237,305],[241,305],[246,306],[253,306],[272,306],[277,310],[280,310],[287,308],[293,308],[295,307],[299,306],[300,305],[304,305],[308,304],[311,301],[314,301],[314,299],[316,297],[322,297],[325,296],[325,293],[327,291],[327,290],[329,288],[330,286],[331,284],[332,283],[334,282],[334,280],[335,279],[335,277],[336,275],[336,273],[339,270],[347,268],[349,267],[358,265],[374,257],[376,255],[378,254],[388,244],[389,242],[391,240],[394,234],[395,234],[395,233],[395,231],[396,228],[399,219],[399,218],[399,215],[399,199],[398,198],[398,195],[397,194],[398,194],[398,190],[397,188],[397,186],[395,183],[395,181],[395,180],[392,175],[389,172],[388,172],[383,167],[384,166],[383,165],[377,161],[373,161],[371,159],[365,158],[363,158],[356,158],[354,158],[354,159],[352,161],[348,161],[347,162],[344,162],[343,161],[343,159],[342,159],[341,158],[340,154],[339,154],[340,143],[338,142],[337,141],[338,140],[339,138],[335,135],[332,135],[331,134],[329,134],[325,132],[321,132],[317,131],[314,131],[310,130],[296,130],[296,129],[277,129],[276,130],[248,129],[247,130],[242,130],[228,131],[224,131],[217,132],[214,132],[211,133],[212,133],[211,134],[206,134],[204,135],[202,135],[194,137]],[[363,172],[365,173],[369,174],[373,176],[378,181],[378,182],[380,183],[383,188],[384,191],[385,192],[386,198],[386,203],[386,204],[386,205],[386,206],[386,208],[387,209],[387,212],[386,213],[386,220],[384,220],[385,221],[384,222],[384,224],[382,231],[378,236],[376,237],[377,238],[371,242],[372,243],[372,244],[368,247],[367,248],[366,247],[364,248],[364,250],[356,253],[351,253],[349,254],[347,254],[345,253],[347,251],[346,251],[344,250],[342,247],[342,242],[342,233],[343,232],[343,224],[343,216],[342,216],[343,209],[342,208],[342,190],[341,190],[341,187],[342,186],[342,185],[345,181],[347,178],[351,174],[356,172]]]},{"id":"apple-dataset-board","sample":"apple","pool":"dataset","file":"apple-dataset-board.webp","place":"deska kuchenna","bounds":[206,150,338,276],"rings":[[[285,150],[269,150],[268,150],[266,150],[259,152],[249,155],[248,156],[245,157],[238,161],[237,161],[231,166],[217,180],[215,185],[212,189],[211,192],[209,196],[209,201],[208,202],[208,205],[206,207],[207,208],[207,213],[208,213],[207,216],[210,229],[212,231],[212,233],[213,234],[213,237],[217,242],[217,243],[220,246],[220,247],[224,251],[225,253],[237,264],[241,266],[242,268],[244,268],[246,270],[249,270],[250,271],[251,271],[253,273],[256,273],[257,274],[267,276],[274,276],[275,276],[280,275],[285,275],[285,274],[288,275],[290,273],[291,273],[294,271],[296,271],[299,269],[300,270],[300,269],[304,266],[305,266],[310,262],[311,262],[312,261],[314,260],[319,254],[321,252],[320,252],[325,246],[327,242],[329,241],[328,240],[331,234],[331,233],[332,232],[332,230],[334,226],[334,224],[336,224],[335,223],[335,222],[336,218],[337,216],[337,209],[338,208],[338,201],[337,201],[337,194],[334,184],[332,180],[325,170],[319,163],[309,157],[302,154],[299,154],[297,152],[294,152],[292,151],[288,151]]]},{"id":"apple-dataset-denim","sample":"apple","pool":"dataset","file":"apple-dataset-denim.webp","place":"parkowa ławka z kurtką dżinsową","bounds":[415,169,561,298],"rings":[[[527,177],[526,176],[524,176],[519,173],[518,173],[517,172],[514,172],[513,172],[512,172],[511,170],[509,170],[508,171],[506,171],[504,170],[488,169],[487,170],[483,170],[480,171],[477,171],[468,173],[466,174],[464,174],[463,175],[460,175],[454,177],[452,177],[449,180],[443,182],[435,189],[428,197],[421,210],[418,216],[418,218],[417,219],[416,224],[416,228],[415,232],[415,240],[416,241],[417,250],[417,251],[417,252],[417,254],[419,255],[419,257],[420,259],[420,260],[422,263],[422,265],[426,270],[428,274],[440,287],[444,289],[447,292],[448,292],[451,294],[452,294],[452,295],[454,295],[457,297],[458,297],[460,298],[462,298],[488,298],[493,296],[495,296],[496,295],[498,295],[501,294],[507,294],[512,292],[517,292],[520,291],[533,291],[534,290],[534,288],[535,287],[535,285],[549,270],[549,269],[551,267],[553,262],[554,260],[556,254],[558,251],[558,247],[559,246],[560,236],[561,235],[561,233],[560,233],[561,231],[560,229],[560,225],[558,223],[558,217],[557,215],[557,212],[556,211],[556,209],[554,207],[554,205],[552,202],[550,198],[548,195],[548,194],[546,193],[546,191],[545,191],[538,185]]]},{"id":"pear-dataset-table","sample":"pear","pool":"dataset","file":"pear-dataset-table.webp","place":"stół przykryty obrusem","bounds":[143,155,396,314],"rings":[[[395,158],[393,155],[391,155],[391,156],[390,156],[379,165],[374,169],[356,185],[354,186],[352,186],[351,185],[351,184],[351,183],[345,181],[332,181],[331,182],[317,182],[316,182],[312,182],[311,180],[304,180],[302,179],[299,179],[294,178],[292,178],[286,176],[283,175],[282,174],[279,174],[266,169],[263,168],[262,168],[255,166],[250,166],[248,165],[244,165],[243,165],[234,165],[235,165],[234,166],[231,165],[229,164],[228,164],[228,163],[227,163],[226,164],[225,164],[220,164],[218,165],[215,165],[214,166],[212,166],[211,166],[209,166],[199,170],[189,175],[188,177],[182,180],[172,189],[164,197],[158,204],[151,215],[146,226],[146,227],[144,233],[144,235],[143,238],[143,248],[144,250],[145,254],[145,256],[146,261],[148,265],[147,270],[149,270],[150,270],[153,277],[159,286],[159,287],[167,296],[173,300],[176,301],[177,303],[179,303],[180,304],[185,305],[186,306],[189,307],[189,308],[195,308],[196,309],[198,309],[207,311],[212,311],[214,312],[220,312],[222,313],[233,313],[233,314],[235,314],[238,313],[244,313],[246,311],[250,312],[254,309],[255,309],[257,307],[258,307],[260,307],[265,304],[268,305],[271,301],[277,297],[287,290],[288,289],[289,289],[290,288],[307,271],[326,256],[338,244],[353,227],[353,226],[357,220],[357,219],[360,213],[360,212],[363,208],[363,200],[362,198],[362,197],[360,195],[360,193],[375,178],[389,166],[395,163],[396,161],[395,161],[394,159],[395,159]]]},{"id":"pear-dataset-crate","sample":"pear","pool":"dataset","file":"pear-dataset-crate.webp","place":"stół w warsztacie","bounds":[423,116,563,326],"rings":[[[461,116],[460,117],[461,118],[459,121],[461,123],[463,123],[465,124],[467,126],[474,145],[476,148],[478,154],[474,157],[473,158],[468,163],[465,166],[461,175],[457,188],[452,198],[439,214],[430,230],[429,236],[427,238],[425,248],[425,251],[424,254],[424,260],[423,260],[424,270],[425,273],[425,276],[424,277],[426,278],[427,285],[428,286],[428,288],[431,293],[431,294],[433,297],[433,299],[434,299],[435,301],[435,304],[435,305],[436,306],[439,307],[440,308],[440,309],[442,311],[442,312],[443,313],[446,313],[450,317],[449,317],[452,318],[456,320],[456,321],[458,321],[461,323],[462,323],[464,322],[468,323],[469,321],[470,321],[475,323],[480,323],[481,323],[487,324],[490,325],[494,326],[499,326],[505,326],[511,326],[516,323],[518,323],[519,322],[522,322],[523,321],[525,321],[526,321],[527,321],[530,318],[533,317],[534,317],[537,314],[538,314],[544,307],[553,295],[558,286],[560,278],[560,277],[562,273],[562,257],[563,256],[563,255],[562,255],[562,253],[562,250],[560,246],[560,243],[556,231],[552,225],[552,224],[549,219],[547,217],[547,216],[540,203],[528,174],[522,163],[518,158],[513,153],[512,153],[511,152],[506,150],[492,150],[491,150],[493,153],[491,156],[487,158],[484,157],[483,158],[483,157],[483,156],[483,152],[483,153],[482,152],[482,149],[480,147],[480,145],[478,140],[477,139],[477,138],[475,135],[470,128],[469,126],[467,124],[466,121],[462,117],[462,116],[461,117]]]},{"id":"mug-dataset-cafe","sample":"mug","pool":"dataset","file":"mug-dataset-cafe.webp","place":"kawiarniany stolik","bounds":[278,99,550,331],"rings":[[[288,165],[284,171],[279,182],[278,189],[278,199],[279,204],[281,213],[282,214],[282,216],[284,220],[285,221],[285,220],[286,222],[286,221],[287,222],[291,229],[293,231],[292,232],[290,230],[297,239],[303,246],[312,253],[318,257],[320,258],[322,259],[352,276],[355,278],[356,278],[363,284],[367,286],[371,286],[373,289],[376,298],[382,305],[382,306],[383,307],[383,309],[388,314],[395,319],[395,320],[396,319],[404,323],[405,323],[408,325],[409,325],[414,326],[421,328],[426,329],[429,330],[432,330],[436,330],[442,330],[442,331],[458,331],[462,330],[466,330],[467,330],[474,329],[477,328],[479,328],[480,327],[490,324],[499,320],[504,316],[505,315],[506,314],[506,312],[509,308],[509,307],[512,303],[514,298],[515,297],[515,295],[518,291],[519,284],[522,278],[523,277],[523,275],[525,271],[526,270],[528,261],[530,257],[531,251],[532,249],[533,246],[533,242],[538,220],[538,214],[540,207],[540,204],[541,199],[541,196],[542,195],[542,196],[543,192],[544,190],[544,180],[545,177],[545,172],[546,163],[547,159],[546,158],[548,156],[548,153],[549,150],[548,149],[548,150],[546,153],[545,152],[546,151],[546,139],[548,136],[548,135],[549,133],[550,131],[550,127],[548,122],[543,117],[540,115],[530,110],[527,109],[526,109],[525,110],[525,109],[523,108],[524,108],[522,108],[522,107],[521,108],[521,107],[520,107],[519,107],[520,106],[518,107],[518,106],[516,106],[512,105],[510,106],[503,104],[501,104],[495,102],[492,102],[489,101],[485,101],[482,101],[477,101],[476,100],[472,100],[465,100],[465,99],[427,99],[427,100],[417,99],[417,100],[412,100],[408,100],[404,101],[400,101],[395,102],[393,103],[391,103],[388,104],[383,104],[374,107],[373,108],[372,108],[370,109],[370,111],[369,113],[364,118],[362,118],[360,119],[355,119],[354,121],[354,123],[352,126],[351,127],[350,126],[350,132],[349,132],[350,151],[348,153],[346,153],[347,154],[346,154],[342,154],[341,153],[340,153],[339,153],[340,152],[339,152],[337,152],[333,150],[328,150],[328,151],[327,150],[318,150],[317,150],[312,150],[309,151],[307,152],[306,152],[299,155],[293,159]],[[306,173],[313,169],[318,167],[329,167],[332,169],[334,169],[338,172],[342,176],[345,180],[345,181],[346,182],[347,187],[351,189],[357,187],[358,183],[360,183],[361,182],[369,182],[369,183],[369,185],[375,192],[376,206],[375,207],[375,228],[372,229],[367,229],[366,229],[364,249],[362,253],[360,252],[360,250],[359,252],[357,254],[356,255],[355,255],[351,255],[343,252],[341,253],[331,248],[330,247],[325,244],[325,243],[326,243],[325,242],[321,240],[320,239],[314,233],[313,234],[309,231],[302,221],[299,217],[296,213],[294,208],[294,206],[293,202],[293,194],[295,187],[297,184],[297,182],[299,180]]]},{"id":"mug-dataset-workshop","sample":"mug","pool":"dataset","file":"mug-dataset-workshop.webp","place":"stół warsztatowy","bounds":[192,133,419,311],"rings":[[[193,140],[193,154],[193,166],[192,167],[192,213],[193,214],[193,233],[193,242],[193,251],[193,252],[195,254],[195,274],[196,276],[196,279],[194,280],[194,282],[195,282],[196,283],[196,290],[197,291],[197,293],[198,293],[199,295],[200,295],[202,295],[203,296],[206,298],[207,299],[206,299],[210,299],[214,303],[219,306],[233,310],[237,310],[239,311],[242,311],[243,311],[249,311],[251,309],[290,309],[291,308],[303,307],[305,306],[313,305],[316,304],[320,304],[323,302],[327,302],[328,301],[332,301],[335,298],[338,298],[339,296],[342,295],[346,295],[349,292],[351,287],[351,284],[351,281],[355,277],[358,276],[361,273],[362,273],[366,271],[368,271],[372,268],[374,268],[383,263],[384,263],[394,256],[402,249],[406,244],[408,239],[408,237],[409,235],[409,229],[409,221],[410,217],[410,204],[411,204],[413,205],[417,205],[419,202],[418,190],[416,182],[413,177],[413,176],[408,168],[403,163],[402,163],[400,161],[393,158],[392,157],[385,155],[373,155],[371,156],[369,158],[368,158],[366,158],[364,158],[364,157],[362,157],[359,154],[359,140],[358,140],[354,140],[351,137],[339,136],[334,135],[320,135],[319,134],[312,134],[299,134],[298,133],[252,133],[253,133],[253,134],[247,134],[246,134],[215,135],[213,136],[213,138],[212,139],[201,138],[200,137],[201,136],[198,136],[196,136]],[[378,172],[386,180],[388,180],[391,183],[395,191],[395,192],[397,194],[399,199],[400,200],[400,202],[401,202],[401,218],[396,233],[395,234],[395,236],[395,237],[394,239],[386,247],[381,251],[372,255],[367,256],[366,255],[368,255],[368,254],[361,255],[359,255],[356,253],[356,251],[356,242],[356,234],[357,229],[357,214],[356,213],[356,210],[357,208],[358,207],[358,199],[357,199],[357,197],[357,196],[357,193],[357,187],[357,186],[358,185],[360,185],[363,182],[366,178],[370,173],[374,172]]]}];
 const PHOTO_SAMPLES = {
@@ -1314,11 +2256,11 @@ const PHOTO_SAMPLES = {
 };
 const PHOTO_TASKS = {
   cls: { name: 'Klasyfikacja', short: 'Co jest na obrazie?', icon: 'tag', tone: 'grape', type: 'Etykieta', explain: 'Jedna etykieta dla całego obrazu. Bez informacji o położeniu i kształcie obiektu.', insight: 'Model może rozpoznać jabłko, nie wskazując, gdzie się znajduje. Rozpoznawanie to nie to samo co lokalizowanie.', trainTitle: 'Obraz + etykieta', trainSub: 'Człowiek nazywa to, co jest na obrazie.', training: 'Każdy obraz ma poprawną klasę, na przykład „jabłko”. Potrzebne są też zdjęcia pozostałych klas, na przykład gruszek i kubków.' },
-  loc: { name: 'Klasyfikacja + lokalizacja', short: 'Co to jest i gdzie?', icon: 'scan', tone: 'blue', type: 'Etykieta + ramka', explain: 'Nazwa klasy i prostokąt otaczający jeden obiekt. Ramka zawiera też fragmenty tła.', insight: 'Tu lokalizujemy jeden obiekt. Wyszukiwanie wielu obiektów z osobnymi ramkami to detekcja.', trainTitle: 'Obraz + klasa + ramka', trainSub: 'Człowiek nazywa obiekt i zaznacza jego położenie.', training: 'Dla każdego obrazu zapisz klasę i współrzędne ramki obiektu. Tutaj: piksele, początek układu w lewym górnym rogu.' },
+  loc: { name: 'Lokalizacja z klasyfikacją', short: 'Co to jest i gdzie?', icon: 'scan', tone: 'blue', type: 'Etykieta + prostokąt', explain: 'Nazwa klasy i prostokąt otaczający jeden obiekt. Prostokąt zawiera też fragmenty tła.', insight: 'Tu lokalizujemy jeden obiekt. Wyszukiwanie wielu obiektów z osobnymi prostokątami to detekcja.', trainTitle: 'Obraz + klasa + prostokąt', trainSub: 'Człowiek nazywa obiekt i zaznacza jego położenie.', training: 'Dla każdego obrazu zapisz klasę i współrzędne prostokąta wokół obiektu. Tutaj: piksele, początek układu w lewym górnym rogu.' },
   seg: { name: 'Segmentacja', short: 'Które piksele do czego należą?', icon: 'paintbrush', tone: 'yellow', type: 'Maska pikseli', explain: 'Każdy piksel otrzymuje klasę. Maska odtwarza kształt obiektu, a nie otaczający go prostokąt.', insight: 'Segmentacja semantyczna nadaje klasy pikselom. Osobne maski dla poszczególnych obiektów to segmentacja instancji.', trainTitle: 'Obraz + maska klas', trainSub: 'Człowiek przypisuje klasy pikselom.', training: 'Do każdego obrazu dołącz maskę o tych samych wymiarach. Każdy piksel maski przechowuje numer klasy, także dla tła.' },
 };
 const PHOTO_STAGES = [
-  { name: 'Obraz', text: 'Zdjęcie wygenerowano w AI. Ramki i maski są oznaczeniami demonstracyjnymi, nie wynikami działającego modelu.' },
+  { name: 'Obraz', text: 'Zdjęcie wygenerowano w AI. Prostokąty i maski są oznaczeniami demonstracyjnymi, nie wynikami działającego modelu.' },
   { name: 'Piksele', text: 'Komputer otrzymuje tablicę liczb: wartości kanałów czerwonego, zielonego i niebieskiego (RGB) dla każdego piksela. Siatka jest powiększeniem poglądowym.' },
   { name: 'Cechy', text: 'W czasie analizy model łączy wyuczone cechy: od krawędzi i tekstur do bardziej złożonych wzorców. Kontury tutaj są tylko ilustracją.' },
   { name: 'Wynik', text: 'Postać odpowiedzi zależy od zadania i oznaczeń użytych w treningu. Wynik tej demonstracji jest zapisany z góry, nie obliczony przez AI.' },
@@ -1328,7 +2270,7 @@ const RESULT_NAMES = { cls: 'Trafność', loc: 'IoU prostokąta', seg: 'IoU mask
 
 const TASK_INFO = {
   cls: {
-    view: 'klasyfikacja', name: 'Klasyfikacja', tone: 'grape', icon: 'tag',
+    view: 'klasyfikacja', name: 'Klasyfikacja', practice: 'Ćwicz klasyfikację', tone: 'grape', icon: 'tag',
     lead: 'Model odpowiada na jedno pytanie: co jest na obrazie?',
     labelOverline: 'Etykieta: 1 wartość na obraz', labelLead: 'Jedna klasa dla całego obrazu.',
     doTitle: 'Wybierz klasę', doText: 'Kliknij nazwę owocu. Wybór od razu zatwierdza adnotację.',
@@ -1338,7 +2280,7 @@ const TASK_INFO = {
     relatedHtml: '<ul><li><b>Wiele etykiet na obraz:</b> kilka klas naraz, gdy na zdjęciu jest więcej rzeczy.</li><li><b>Transfer learning:</b> gotowy trzon sieci uczony na dużym zbiorze skraca potrzebne dane nawet o rząd wielkości.</li></ul>',
   },
   loc: {
-    view: 'lokalizacja', name: 'Lokalizacja z klasyfikacją', tone: 'blue', icon: 'scan',
+    view: 'lokalizacja', name: 'Lokalizacja z klasyfikacją', practice: 'Ćwicz lokalizację', tone: 'blue', icon: 'scan',
     lead: 'Model mówi, co to jest i gdzie leży jeden obiekt na obrazie.',
     labelOverline: 'Etykieta: 5 wartości na obraz', labelLead: 'Klasa oraz prostokąt (bounding box): x, y, szerokość, wysokość.',
     doTitle: 'Narysuj prostokąt', doText: 'Przeciągnij wokół owocu, wybierz klasę, zatwierdź. Strzałki przesuwają, Shift+strzałki zmieniają rozmiar.',
@@ -1348,7 +2290,7 @@ const TASK_INFO = {
     relatedHtml: '<ul><li><b>Detekcja:</b> wiele obiektów na obrazie, po jednym prostokącie i klasie na obiekt. Etykiety rosną z liczbą obiektów.</li><li><b>Transfer learning:</b> gotowy trzon sieci zmniejsza liczbę potrzebnych obrazów, ale prostokąty nadal trzeba narysować.</li></ul>',
   },
   seg: {
-    view: 'segmentacja', name: 'Segmentacja', tone: 'yellow', icon: 'paintbrush',
+    view: 'segmentacja', name: 'Segmentacja', practice: 'Ćwicz segmentację', tone: 'yellow', icon: 'paintbrush',
     lead: 'Model przypisuje klasę każdemu pikselowi, więc zna dokładny kształt obiektu.',
     labelOverline: 'Etykieta: 1024 wartości na obraz', labelLead: 'Maska: klasa dla każdego z pikseli obrazu 32×32.',
     doTitle: 'Zamaluj owoc', doText: 'Maluj pędzlem, wybierz klasę, zatwierdź. Strzałki przesuwają kursor, spacja maluje.',
@@ -1381,7 +2323,7 @@ const QUIZ = [
   { q: 'Robot ma chwycić owoc i musi wiedzieć, gdzie on leży. Dokładny kształt nie jest potrzebny. Co oznaczasz?', a: ['Tylko klasę obrazu', 'Klasę i prostokąt', 'Każdy piksel', 'Jasność tła'], ok: 1, why: 'Prostokąt z klasą to lokalizacja: pięć wartości na obiekt.', task: 'loc' },
   { q: 'Chcesz policzyć, jaki procent powierzchni owocu jest zgniły. Jakie etykiety zbierasz?', a: ['Klasę „zgniły” dla obrazu', 'Prostokąt wokół plamy', 'Maskę na poziomie pikseli', 'Liczbę plam na obraz'], ok: 2, why: 'Powierzchnię daje dopiero maska, więc potrzebna jest segmentacja.', task: 'seg' },
   { q: 'Ile wartości etykiety ma w segmentacji jeden obraz 32×32?', a: ['1', '5', '32', '1024'], ok: 3, why: '32 × 32 = 1024 piksele, każdy ma swoją klasę.', task: 'seg' },
-  { q: 'Co się dzieje, gdy 40% etykiet w zbiorze treningowym jest błędnych?', a: ['Model uczy się też błędów i na teście wypada gorzej', 'Nic, bo model sam odrzuca błędy', 'Wynik rośnie dzięki różnorodności', 'Trening nie może się zakończyć'], ok: 0, why: 'Etykieta jest dla modelu wzorcem. Sprawdź to suwakiem błędów w laboratorium.', task: 'cls' },
+  { q: 'Co się dzieje, gdy 40% etykiet w zbiorze treningowym jest błędnych?', a: ['Model uczy się też błędów i na teście wypada gorzej', 'Nic, bo model sam odrzuca błędy', 'Wynik rośnie dzięki różnorodności', 'Trening nie może się zakończyć'], ok: 0, why: 'Etykieta jest dla modelu wzorcem. Sprawdź to suwakiem „Błędy w etykietach”.', task: 'cls' },
   { q: 'Model uczony tylko na jasnym tle słabo działa na ciemnym. Co jest najbardziej prawdopodobną przyczyną?', a: ['Za mało epok', 'Dane treningowe nie obejmowały takich warunków', 'Zbyt duże obrazy', 'Błąd w zbiorze testowym'], ok: 1, why: 'Model radzi sobie z tym, co widział. Dane muszą pokrywać warunki użycia.', task: 'loc' },
   { q: 'IoU prostokąta przewidzianego i wzorcowego wynosi 1. Co to znaczy?', a: ['Prostokąty są rozłączne', 'Pokrywają się w połowie', 'Pokrywają się dokładnie', 'Klasa jest poprawna'], ok: 2, why: 'IoU (Intersection over Union) to część wspólna przez sumę, a klasę ocenia się osobno.', task: 'loc' },
   { q: 'Która adnotacja jednego obiektu jest według podanych stawek najdroższa?', a: ['Klasa obrazu', 'Prostokąt', 'Etykieta tła', 'Obrys maski'], ok: 3, why: 'Stawki: 5 sekund na klasę, 35 sekund na prostokąt, 79 sekund na obrys obiektu.', task: 'seg' },
@@ -1395,7 +2337,7 @@ function newLabState(task) {
     run: { id: 0, epoch: 0, epochs: 0, step: 0, totalSteps: 0, curve: [], worker: null, cancel: null, startedAt: 0, half: false },
     history: [],
     annot: { n: 0, scene: null, cls: null, box: null, mask: new Uint8Array(PIXELS), undo: [], tool: 'brush', brush: 3, cursor: { x: 16, y: 16 }, drag: null, committed: false, verdict: null, msg: '', msgKind: '', since: null, elapsedMs: 0, samples: [] },
-    check: { n: 0, scene: null, pred: null, overlay: 'pred', msg: '', alert: '', uploaded: false },
+    check: { n: 0, scene: null, pred: null, overlay: 'pred', msg: '', alert: '', uploaded: false, viewed: false },
   };
 }
 const App = {
@@ -1409,6 +2351,7 @@ const App = {
   choice: null,
   quiz: { index: 0, score: 0, picked: null, wrongTasks: [], finished: false },
   storageOk: true,
+  scrollByView: {},
 };
 const baselines = {};
 
@@ -1421,6 +2364,7 @@ const progressLabelEl = document.getElementById('progress-label');
 const progressFillEl = document.getElementById('progress-fill');
 const helpDialog = document.getElementById('help-dialog');
 const resetDialog = document.getElementById('reset-dialog');
+const progressDialog = document.getElementById('progress-dialog');
 const labEls = {};
 const viewEls = {};
 
@@ -1492,35 +2436,42 @@ function paintBytes(canvas, bytes) {
 }
 const paintImage = (canvas, img) => paintBytes(canvas, imageToBytes(img));
 const hatchTiles = new Map();
-function hatchTile(style, period) {
-  const key = `${style.token}/${style.hatch}/${period}`;
+function hatchTile(style, period, width) {
+  const key = `${style.token}/${style.hatch}/${period}/${width}`;
   if (hatchTiles.has(key)) return hatchTiles.get(key);
   const tile = document.createElement('canvas');
   tile.width = tile.height = period;
   const tctx = tile.getContext('2d');
   tctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(style.token).trim();
   for (let y = 0; y < period; y++) for (let x = 0; x < period; x++) {
-    const phase = style.hatch === 'rising' ? x + y : style.hatch === 'falling' ? x - y + period : x;
-    if (phase % period < period / 2) tctx.fillRect(x, y, 1, 1);
+    const rising = (x + y) % period < width, falling = (x - y + period) % period < width;
+    const on = style.hatch === 'cross' ? rising || falling : style.hatch === 'rising' ? rising : style.hatch === 'falling' ? falling : x % period < width;
+    if (on) tctx.fillRect(x, y, 1, 1);
   }
   hatchTiles.set(key, tile);
   return tile;
 }
 function drawMask(ctx, canvas, mask, fixedStyle) {
   const scale = canvas.width / SIZE;
-  const period = Math.max(6, Math.round(2 + scale / 2));
+  const period = Math.max(8, Math.round(2 + scale / 2));
+  // Thin stripes on small images, so the fruit's own colour stays readable.
+  const width = scale <= 6 ? 2 : Math.max(2, Math.round(period / 3));
+  const patterns = new Map();
   for (let p = 0; p < PIXELS; p++) {
     if (!mask[p]) continue;
-    ctx.fillStyle = ctx.createPattern(hatchTile(fixedStyle || CLASS_MASKS[mask[p] - 1], period), 'repeat');
+    const style = fixedStyle || CLASS_MASKS[mask[p] - 1];
+    if (!patterns.has(style)) patterns.set(style, ctx.createPattern(hatchTile(style, period, width), 'repeat'));
+    ctx.fillStyle = patterns.get(style);
     ctx.fillRect((p % SIZE) * scale, Math.floor(p / SIZE) * scale, scale + 0.5, scale + 0.5);
   }
-  drawOutline(ctx, canvas, mask, COLORS.paper);
+  drawOutline(ctx, canvas, mask);
 }
 function maskLegendHtml() {
   return `<div class="legend">${CLASS_NAMES.map((n, i) => `<span class="chip chip-stone"><span class="swatch swatch-${i}"></span>${n}</span>`).join('')}</div>
     <p class="legend-note">Kreskowanie oznacza klasę, a nie kolor owocu.</p>`;
 }
-function drawOutline(ctx, canvas, mask, innerColor = COLORS.yellow) {
+/** Solid outline = a mask being shown; dashed = the reference, as with boxes. White on ink: no fruit has that colour. */
+function drawOutline(ctx, canvas, mask, dashed = false) {
   const scale = canvas.width / SIZE;
   const at = (x, y) => x >= 0 && y >= 0 && x < SIZE && y < SIZE && mask[y * SIZE + x];
   const path = () => {
@@ -1536,7 +2487,10 @@ function drawOutline(ctx, canvas, mask, innerColor = COLORS.yellow) {
     ctx.stroke();
   };
   ctx.lineWidth = Math.max(2, scale * 0.3); ctx.strokeStyle = COLORS.ink; path();
-  ctx.lineWidth = Math.max(1, scale * 0.12); ctx.strokeStyle = innerColor; path();
+  ctx.save();
+  if (dashed) ctx.setLineDash([scale * 0.55, scale * 0.45]);
+  ctx.lineWidth = Math.max(1, scale * (dashed ? 0.2 : 0.12)); ctx.strokeStyle = COLORS.paper; path();
+  ctx.restore();
 }
 /** kind solid = prediction or the user's box, dashed = reference. Differs without colour too. */
 function drawBox(ctx, canvas, box, kind) {
@@ -1548,7 +2502,7 @@ function drawBox(ctx, canvas, box, kind) {
   if (kind === 'dashed') {
     ctx.setLineDash([]); ctx.lineWidth = unit * 2; ctx.strokeStyle = COLORS.ink;
     ctx.strokeRect(box.x * scale, box.y * scale, box.w * scale, box.h * scale);
-    ctx.setLineDash([scale * 0.8, scale * 0.55]); ctx.lineWidth = unit; ctx.strokeStyle = COLORS.yellow;
+    ctx.setLineDash([scale * 0.8, scale * 0.55]); ctx.lineWidth = unit; ctx.strokeStyle = COLORS.paper;
     ctx.strokeRect(box.x * scale, box.y * scale, box.w * scale, box.h * scale);
   } else {
     ctx.lineWidth = unit * 2.2; ctx.strokeStyle = COLORS.ink;
@@ -1566,11 +2520,11 @@ function maskClassSummary(counts) {
 function validateCalcField(name, raw) {
   const [min, max] = CALC_LIMITS[name];
   const what = name === 'images' ? 'obrazów' : 'obiektów na obraz';
-  const text = String(raw).trim();
+  const text = String(raw).trim().replace(/\s/g, ' ');
   const range = `od ${groupDigits(min)} do ${groupDigits(max)}`;
   if (text === '') return { ok: false, msg: `Podaj liczbę ${what}: ${range}.` };
-  if (!/^\d+$/.test(text)) return { ok: false, msg: `Wpisz liczbę całkowitą ${range}, bez liter i przecinków.` };
-  const value = Number(text);
+  if (!/^(\d+|\d{1,3}( \d{3})+)$/.test(text)) return { ok: false, msg: `Wpisz liczbę całkowitą ${range}, na przykład ${name === 'images' ? '1 000' : '2'}.` };
+  const value = Number(text.replace(/ /g, ''));
   if (value < min || value > max) return { ok: false, msg: `Liczba ${what} musi mieścić się w zakresie ${range}.` };
   return { ok: true, value };
 }
@@ -1643,7 +2597,7 @@ function labHtml(task) {
       <button type="button" data-tool="brush" aria-pressed="true">${ic('paintbrush')} Pędzel</button>
       <button type="button" data-tool="erase" aria-pressed="false">${ic('eraser')} Gumka</button>
     </div></div>
-    <div><span class="field-label">Rozmiar pędzla</span><div class="pills" role="group" aria-label="Rozmiar pędzla">
+    <div><span class="field-label">Szerokość pędzla</span><div class="pills" role="group" aria-label="Szerokość pędzla">
       ${[1, 3, 5].map(s => `<button type="button" data-brush="${s}" aria-pressed="${s === 3}">${countPixels(s)}</button>`).join('')}
     </div></div>
     <div class="btn-row"><button type="button" class="btn" data-el="undo">${ic('undo-2')} Cofnij</button><button type="button" class="btn" data-el="clear">${ic('trash-2')} Wyczyść</button></div>` : '';
@@ -1657,10 +2611,11 @@ function labHtml(task) {
   </div>
   <section class="sec" id="${task}-krok-a"><div class="wrap"><div class="split">
     <div class="concept">
-      <div class="row-head"><span class="badge badge-lg tone-${info.tone}">${ic('mouse-pointer-2')}</span><h2>Oznacz sam</h2></div>
+      <div class="row-head"><span class="badge badge-lg tone-${info.tone}">${ic('mouse-pointer-2')}</span><h2>Ćwiczenie: oznacz jeden obraz</h2></div>
       <div class="tiles">
         <div class="tile"><span class="${toneBadge}">${ic(info.icon)}</span><h4>${info.doTitle}</h4><p>${info.doText}</p></div>
         <div class="tile"><span class="${toneBadge}">${ic('clock')}</span><h4>${info.costTitle}</h4><p>${info.costText}</p></div>
+        <div class="tile"><span class="${toneBadge}">${ic('info')}</span><h4>To tylko ćwiczenie</h4><p>To ćwiczenie nie zmienia zbioru treningowego. Trening korzysta z automatycznie przygotowanych przykładów i ustawień poniżej.</p></div>
       </div>
     </div>
     <div class="card annot" data-el="annot">
@@ -1668,12 +2623,14 @@ function labHtml(task) {
       <div class="card-body stage-body"><div class="workbench has-record">
         <canvas class="stage ${task === 'cls' ? 'stage-free' : ''}" data-el="annot-canvas" width="${STAGE_PX}" height="${STAGE_PX}" ${task === 'cls' ? 'role="img"' : 'tabindex="0" role="application"'}></canvas>
         <div class="side">
+          ${task === 'cls' ? '' : '<p class="touch-hint">Aby przewinąć stronę, przesuń palcem obok obrazu.</p>'}
           <div><span class="field-label">Klasa</span>${classButtonsHtml('data-annot-class')}</div>
           ${tools}
           <div class="btn-row">${commit}<button type="button" class="btn" data-el="next">${ic('arrow-right')} Następny obraz</button></div>
           <p class="msg" data-el="annot-msg" role="status"></p>
+          <a class="btn" href="#${info.view}" data-el="to-train" data-step-link="${task}-krok-b" hidden>${ic('arrow-down')} Teraz wytrenuj model</a>
           ${task === 'loc' ? '<div class="legend"><span class="chip chip-stone">linia ciągła: Twój prostokąt</span><span class="chip chip-stone">linia przerywana: wzorzec po zatwierdzeniu</span></div>' : ''}
-          ${task === 'seg' ? '<div class="legend"><span class="chip chip-stone"><span class="swatch swatch-yours"></span>Twoja maska</span><span class="chip chip-stone">żółta obwódka: wzorzec po zatwierdzeniu</span></div>' : ''}
+          ${task === 'seg' ? '<div class="legend"><span class="chip chip-stone"><span class="swatch swatch-yours"></span>Twoja maska</span><span class="chip chip-stone">linia przerywana: wzorzec po zatwierdzeniu</span></div>' : ''}
           <div class="readout">
             ${hasIou ? '<span><b data-el="annot-iou">–</b>IoU ze wzorcem</span>' : ''}
             ${task === 'seg' ? '<span><b data-el="annot-painted">0</b>oznaczone piksele</span>' : ''}
@@ -1681,21 +2638,15 @@ function labHtml(task) {
             <span><b data-el="annot-pace">–</b><span data-el="annot-pace-label"></span></span>
           </div>
         </div>
-        <div class="rec-wrap"><span class="field-label">Rekord w zbiorze</span><pre class="record" data-el="annot-record" tabindex="0" aria-label="Rekord adnotacji w formacie JSON"></pre>${task === 'seg' ? '<p class="legend-note">rle (Run-Length Encoding): długości kolejnych odcinków tła i maski.</p>' : ''}</div>
+        <div class="rec-wrap"><span class="field-label">Tak wyglądałby rekord w zbiorze</span><pre class="record" data-el="annot-record" tabindex="0" aria-label="Rekord adnotacji w formacie JSON"></pre>${task === 'seg' ? '<p class="legend-note">rle (Run-Length Encoding): długości kolejnych odcinków tła i maski.</p>' : ''}</div>
       </div></div>
     </div>
   </div>
-  <div class="band">
-    <div class="card">
-      <div class="card-head"><span class="tile-h"><span class="${toneBadge}">${ic('images')}</span><h3>Przykłady ze zbioru treningowego</h3></span><span class="chip chip-stone" data-el="gallery-count"></span></div>
-      <div class="card-body">${task === 'seg' ? `<div class="legend-block">${maskLegendHtml()}</div>` : task === 'loc' ? '<div class="legend legend-block"><span class="chip chip-stone">linia przerywana: etykieta ze zbioru</span></div>' : ''}<div class="gallery" data-el="gallery"></div></div>
-    </div>
-  </div>
   </div></section>
-  <section class="sec stone" id="${task}-krok-b"><div class="wrap"><div class="split">
-    <div class="concept">
+  <section class="sec stone" id="${task}-krok-b"><div class="wrap">
+    <div class="concept train-intro">
       <div class="row-head"><span class="badge badge-lg tone-${info.tone}">${ic('sliders-horizontal')}</span><h2>Przygotuj dane i wytrenuj</h2></div>
-      <div class="tiles">
+      <div class="tiles tiles-row">
         <div class="tile"><span class="${toneBadge}">${ic('database')}</span><h4>${info.dataTitle}</h4><p>${info.dataText}</p></div>
         <div class="tile"><span class="${toneBadge}">${ic('triangle-alert')}</span><h4>Jakość</h4><p>Błędne etykiety uczą błędów, a tło spoza zbioru myli model.</p></div>
       </div>
@@ -1704,16 +2655,26 @@ function labHtml(task) {
       <div class="card-head"><span class="tile-h"><span class="${toneBadge}">${ic('layers')}</span><h3>Trening</h3></span><span class="chip chip-stone" data-el="status-chip"></span></div>
       <div class="card-body"><div class="train-grid">
         <div class="side">
-          ${sliderHtml(task + '-images', 'Liczba obrazów', IMAGE_STEPS, '')}
-          ${sliderHtml(task + '-noise', 'Błędy w etykietach', NOISE_STEPS, '%')}
-          <div><span class="field-label">Różnorodność tła</span><div class="pills" role="group" aria-label="Różnorodność tła">
-            <button type="button" data-diversity="full" aria-pressed="true">Pełna</button>
-            <button type="button" data-diversity="light" aria-pressed="false">Tylko jasne tło</button>
-          </div></div>
-          <div class="readout"><span><b data-el="values">0</b>wartości etykiet do przygotowania</span></div>
+          <div class="setting-row">
+            ${sliderHtml(task + '-images', 'Liczba obrazów', IMAGE_STEPS, '')}
+            ${sliderHtml(task + '-noise', 'Błędy w etykietach', NOISE_STEPS, '%')}
+          </div>
+          <div class="setting-row">
+            <div><span class="field-label">Różnorodność tła</span><div class="pills" role="group" aria-label="Różnorodność tła">
+              <button type="button" data-diversity="full" aria-pressed="true">Pełna</button>
+              <button type="button" data-diversity="light" aria-pressed="false">Tylko jasne tło</button>
+            </div></div>
+            <div class="readout"><span><b data-el="values">0</b>wartości etykiet do przygotowania</span></div>
+          </div>
+          <div data-el="gallery-block">
+            <div class="gallery-head"><h4>Przykłady ze zbioru treningowego</h4><span class="chip chip-stone" data-el="gallery-count"></span></div>
+            ${task === 'seg' ? `<div class="legend-block">${maskLegendHtml()}</div>` : task === 'loc' ? '<div class="legend legend-block"><span class="chip chip-stone">linia przerywana: etykieta ze zbioru</span></div>' : ''}
+            <div class="gallery" data-el="gallery"></div>
+          </div>
         </div>
         <div class="side">
           <div class="btn-row"><button type="button" class="btn btn-primary" data-el="train">${ic('play')} Trenuj</button><button type="button" class="btn" data-el="stop" disabled>${ic('square')} Przerwij</button></div>
+          <p class="legend-note" data-el="train-source"></p>
           <div><span class="field-label" data-el="train-progress-label">Postęp treningu: czeka na start</span><div class="bar fill-yellow" data-el="train-bar"><span data-el="train-fill"></span></div></div>
           <div class="metric-box" data-el="metric-box">
             <p class="edu-overline">${info.metricName}</p>
@@ -1722,10 +2683,10 @@ function labHtml(task) {
             ${task === 'loc' ? '<p data-el="class-acc-text"></p>' : ''}
           </div>
           <p class="notice" data-el="explain" hidden></p>
+          <a class="btn btn-primary" href="#${info.view}" data-el="to-check" data-step-link="${task}-krok-c" hidden>${ic('arrow-down')} Sprawdź model</a>
         </div>
       </div></div>
     </div>
-  </div>
   <div class="band">
     <div class="band-two">
       <div class="card">
@@ -1773,7 +2734,8 @@ function labHtml(task) {
 function startHtml() {
   return `
   <header class="page-head"><h1 class="app-title" tabindex="-1">Jak widzi komputer</h1>
-    <p class="edu-lead">Trzy zadania widzenia komputerowego i dane, których każde potrzebuje. Oznaczasz obrazy, trenujesz model w przeglądarce i sprawdzasz skutki.</p></header>
+    <p class="edu-lead">Trzy zadania widzenia komputerowego i dane, których każde potrzebuje. Oznaczasz obrazy, trenujesz model w przeglądarce i sprawdzasz skutki.</p>
+    <p class="page-cta"><a class="btn btn-primary" href="#klasyfikacja">${ic('arrow-right')} Zacznij od klasyfikacji</a></p></header>
   <section class="sec"><div class="wrap"><div class="split">
     <div class="concept">
       <div class="row-head"><span class="badge badge-lg tone-ink">${ic('grid-3x3')}</span><h2>Obraz to liczby</h2></div>
@@ -1817,7 +2779,7 @@ function startHtml() {
 function daneHtml() {
   const taskHead = TASKS.map(t => `<th>${TASK_INFO[t].name}</th>`).join('');
   return `
-  <header class="page-head"><h1 class="app-title" tabindex="-1">Co, ile, za ile</h1>
+  <header class="page-head"><h1 class="app-title" tabindex="-1">Porównanie i nakład pracy</h1>
     <p class="edu-lead">Porównanie danych, których potrzebuje każde zadanie, oraz szacunek pracy nad adnotacjami dla Twojego projektu.</p></header>
   <section class="sec"><div class="wrap">
     <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('table')}</span><h2>Porównanie zadań</h2></div>
@@ -1828,8 +2790,8 @@ function daneHtml() {
     <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('calculator')}</span><h2>Kalkulator pracy</h2></div>
     <div class="card" id="calc"><div class="card-body"><div class="calc-grid">
       <div>
-        <div class="field"><label class="field-label" for="calc-images">Liczba obrazów</label><input class="input" id="calc-images" type="text" inputmode="numeric" autocomplete="off" aria-describedby="calc-images-error"><p class="field-error" id="calc-images-error" role="alert" hidden></p></div>
-        <div class="field"><label class="field-label" for="calc-objects">Obiekty na obraz</label><input class="input" id="calc-objects" type="text" inputmode="numeric" autocomplete="off" aria-describedby="calc-objects-error"><p class="field-error" id="calc-objects-error" role="alert" hidden></p></div>
+        <div class="field"><label class="field-label" for="calc-images">Liczba obrazów</label><input class="input" id="calc-images" type="text" inputmode="numeric" autocomplete="off" aria-describedby="calc-images-hint calc-images-error"><p class="field-hint" id="calc-images-hint">Od 1 do 10 000 000</p><p class="field-error" id="calc-images-error" role="alert" hidden></p></div>
+        <div class="field"><label class="field-label" for="calc-objects">Obiekty na obraz</label><input class="input" id="calc-objects" type="text" inputmode="numeric" autocomplete="off" aria-describedby="calc-objects-hint calc-objects-error"><p class="field-hint" id="calc-objects-hint">Od 1 do 100</p><p class="field-error" id="calc-objects-error" role="alert" hidden></p></div>
       </div>
       <div id="calc-bars" aria-live="polite">${TASKS.map(t => `<div class="hbar"><div class="hbar-name">${TASK_INFO[t].name}<small data-rate="${t}"></small></div><div class="hbar-track"><span data-bar="${t}"></span></div><div class="hbar-value" data-value="${t}">–</div></div>`).join('')}</div>
     </div></div>
@@ -1847,7 +2809,8 @@ function daneHtml() {
   </div></section>
   <section class="sec stone"><div class="wrap">
     <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('trophy')}</span><h2>Twoje wyniki</h2></div>
-    <div class="card"><div class="scroll-x"><table class="stack-table" id="results-table" aria-label="Twoje wyniki"><thead><tr><th>Zadanie</th><th>Najlepszy wynik</th><th>Twój czas na adnotację</th><th>Stawka z kalkulatora</th></tr></thead><tbody></tbody></table></div></div>
+    <div class="card"><div class="scroll-x"><table class="stack-table" id="results-table" aria-label="Twoje wyniki"><thead><tr><th>Zadanie</th><th>Najlepszy wynik</th><th>Twój czas na adnotację</th><th>Stawka z kalkulatora</th></tr></thead><tbody></tbody></table></div>
+    <div class="card-foot"><span class="edu-small">Wyniki zostają po odświeżeniu strony, ale modele i historię prób trzeba wytworzyć od nowa.</span></div></div>
   </div></section>
   <section class="sec"><div class="wrap">
     <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('compass')}</span><h2>Co wybrać?</h2></div>
@@ -1922,6 +2885,8 @@ function commitAnnot(task) {
   announce(a.msg);
   renderAnnot(task);
   renderResults();
+  const els = labEls[task];
+  if (document.activeElement !== els['annot-canvas']) els.next.focus({ preventScroll: true });
 }
 function setBoxMessage(task) {
   const a = App.labs[task].annot;
@@ -2066,8 +3031,11 @@ function startTraining(task) {
   run.epochs = core.EPOCHS[task][lab.images]; run.totalSteps = 0;
   run.settings = currentSettings(task);
   run.startedAt = performance.now();
-  lab.status = 'training'; lab.net = null; lab.metric = null; lab.classAcc = null; lab.trained = null; lab.stale = false;
-  lab.check.scene = null; lab.check.pred = null; lab.check.alert = ''; lab.check.uploaded = false;
+  // The previous model keeps answering until the new one finishes.
+  run.prev = lab.net ? { metric: lab.metric, classAcc: lab.classAcc } : null;
+  lab.status = 'training'; lab.metric = null; lab.classAcc = null; lab.stale = false;
+  lab.check.alert = '';
+  if (!lab.net) { lab.check.scene = null; lab.check.pred = null; lab.check.uploaded = false; lab.check.msg = ''; }
   renderTrain(task); renderCurve(task); renderCheck(task); renderStartCards();
   announce(`${TASK_INFO[task].name}: trening rozpoczęty, ${lab.images} obrazów.`);
   const onMessage = data => {
@@ -2113,7 +3081,7 @@ function finishTraining(task, data) {
   const net = core.buildNet(task, 1);
   net.load(data.weights);
   lab.net = net; lab.status = 'done'; lab.metric = data.metric; lab.classAcc = data.classAcc === undefined ? null : data.classAcc;
-  lab.trained = run.settings; lab.stale = false;
+  lab.trained = run.settings; lab.stale = false; lab.check.viewed = false;
   run.curve = data.curve; run.step = run.totalSteps;
   const seconds = (performance.now() - run.startedAt) / 1000;
   lab.history.push({ images: run.settings.images, noise: run.settings.noise, diversity: run.settings.diversity, metric: data.metric, classAcc: lab.classAcc, seconds });
@@ -2129,9 +3097,11 @@ function stopTraining(task) {
   if (lab.status !== 'training') return;
   if (run.worker) { run.worker.terminate(); run.worker = null; }
   run.id++;
+  if (run.prev) { lab.metric = run.prev.metric; lab.classAcc = run.prev.classAcc; }
+  lab.stale = settingsChanged(lab);
   lab.status = 'stopped';
-  renderTrain(task);
-  announce(`${TASK_INFO[task].name}: trening przerwany, nie ma wyniku końcowego.`);
+  renderTrain(task); renderCheck(task);
+  announce(`${TASK_INFO[task].name}: trening przerwany. ${lab.net ? 'Nadal działa poprzedni model.' : 'Nie ma wyniku końcowego.'}`);
 }
 function explainResult(task) {
   const t = App.labs[task].trained;
@@ -2142,17 +3112,25 @@ function explainResult(task) {
   if (t.images <= 50) return `Tylko ${t.images} obrazów: model zapamiętuje przykłady i słabo radzi sobie z nowymi.`;
   return 'Czyste etykiety i pełna różnorodność: wynik ogranicza głównie liczba obrazów.';
 }
+function settingsChanged(lab) {
+  const t = lab.trained;
+  return !!t && !!lab.net && (lab.images !== t.images || lab.noise !== t.noise || lab.diversity !== t.diversity);
+}
 function setLabSetting(task, key, value) {
   const lab = App.labs[task];
   if (lab.status === 'training') return;
   lab[key] = value;
-  if (lab.status === 'done' && lab.trained) {
-    lab.stale = lab.images !== lab.trained.images || lab.noise !== lab.trained.noise || lab.diversity !== lab.trained.diversity;
-  }
+  lab.stale = settingsChanged(lab);
   renderTrain(task); renderGallery(task); renderAnnot(task);
 }
 
 // ─── Model check logic ───
+function markChecked(task) {
+  const lab = App.labs[task];
+  if (!lab.net) return;
+  lab.check.viewed = true;
+  renderSteps(task);
+}
 function newCheckScene(task, mode) {
   const lab = App.labs[task], c = lab.check;
   c.alert = '';
@@ -2180,6 +3158,7 @@ async function handleUpload(task, file) {
     c.pred = core.predict(lab.net, img);
     c.msg = 'Zdjęcie przeskalowane do 32×32 i przetworzone tylko na tym urządzeniu. Model uczył się na rysowanych owocach, więc odpowiedź może być zupełnie błędna.';
     renderCheck(task);
+    markChecked(task);
     announce(c.msg);
   } catch (err) {
     showAlert('Nie udało się odczytać obrazu. Plik może być uszkodzony.');
@@ -2191,9 +3170,10 @@ function renderProgress() {
   const done = PROGRESS_KEYS.filter(k => App.progress[k]).length;
   const total = PROGRESS_KEYS.length;
   progressEl.dataset.progress = `${done}/${total}`;
-  progressEl.setAttribute('aria-valuenow', String(done));
-  progressEl.setAttribute('aria-valuetext', `Ukończone kroki: ${done} z ${total}`);
-  progressLabelEl.innerHTML = `<span class="progress-word">Postęp </span>${done}/${total}`;
+  progressEl.setAttribute('aria-label', `Postęp: ${done} z ${total}. Pokaż listę kroków.`);
+  progressLabelEl.textContent = `Postęp ${done}/${total}`;
+  document.getElementById('progress-list').innerHTML = PROGRESS_KEYS.map(k => `<li data-progress-key="${k}" data-done="${!!App.progress[k]}"><span class="chip ${App.progress[k] ? 'chip-green' : 'chip-stone'}">${App.progress[k] ? 'gotowe' : 'do zrobienia'}</span>${PROGRESS_LABELS[k]}</li>`).join('');
+  document.getElementById('storage-note').hidden = App.storageOk;
   progressFillEl.style.width = (done / total * 100) + '%';
   TASKS.forEach(renderSteps);
 }
@@ -2201,12 +3181,13 @@ function renderSteps(task) {
   const els = labEls[task];
   if (!els) return;
   const lab = App.labs[task];
+  const trainedEarlier = App.progress['train-' + task] && !lab.net;
   const items = [
-    ['a', 'Oznacz', App.progress['annot-' + task]],
-    ['b', 'Wytrenuj', App.progress['train-' + task]],
-    ['c', 'Sprawdź', !!lab.net],
+    ['a', 'Ćwiczenie', App.progress['annot-' + task]],
+    ['b', trainedEarlier ? 'Wytrenuj ponownie' : 'Wytrenuj', App.progress['train-' + task] && !!lab.net],
+    ['c', 'Sprawdź', !!lab.net && lab.check.viewed],
   ];
-  els.steps.innerHTML = items.map(([id, name, done]) => `<li><a href="#${TASK_INFO[task].view}" data-step-link="${task}-krok-${id}" data-done="${!!done}">${done ? ic('circle-check') : ic('arrow-right')} ${name}${done ? ': gotowe' : ''}</a></li>`).join('');
+  els.steps.innerHTML = items.map(([id, name, done]) => `<li><a class="has-desc" href="#${TASK_INFO[task].view}" data-step-link="${task}-krok-${id}" data-done="${!!done}" data-desc="${STEP_DESCRIPTIONS[id]}" aria-description="${STEP_DESCRIPTIONS[id]}">${done ? ic('circle-check') : ic('arrow-right')} ${name}${done ? ': gotowe' : ''}</a></li>`).join('');
   icons(els.steps);
 }
 function renderNav() {
@@ -2230,33 +3211,34 @@ function photoControlsHtml(prefix) {
   </div>`;
 }
 function photoLabHtml() {
-  return `<header class="page-head"><h1 class="app-title" tabindex="-1">Laboratorium na zdjęciach</h1>
-    <p class="edu-lead">Te same trzy zadania na realistycznych zdjęciach. Zdjęcia wygenerowano w AI, a ramki i maski narysowano ręcznie: ten widok nie uruchamia modelu.</p></header>
+  return `<header class="page-head"><h1 class="app-title" tabindex="-1">Demo na zdjęciach</h1>
+    <p class="edu-lead">Te same trzy zadania na zdjęciach wygenerowanych w AI. Prostokąty i maski narysowano ręcznie: ten widok nie uruchamia modelu.</p></header>
   <section class="sec"><div class="wrap">
     ${photoControlsHtml('photo-lab')}
     <div class="photo-layout">
       <div class="card" id="photo-lab-card">
         <div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('image')}</span><h3>Obraz wejściowy</h3></span><span class="chip chip-stone">nowe zdjęcie spoza zbioru treningowego</span></div>
         <div class="card-body"><div id="photo-lab-scene"></div><div id="photo-lab-legend" class="photo-legend"></div>
-          <div class="photo-pipeline">
-            <ol class="photo-steps" id="photo-lab-steps" aria-label="Uproszczony przebieg analizy"></ol>
-            <div class="btn-row"><button type="button" class="btn btn-primary" id="photo-lab-next"></button><button type="button" class="btn" id="photo-lab-reveal"></button><button type="button" class="btn" id="photo-lab-reset">Od początku</button></div>
-          </div>
-          <div class="bar fill-yellow" id="photo-lab-progress" role="progressbar" aria-label="Etapy demonstracji" aria-valuemin="0" aria-valuemax="3" style="margin-top:12px"><span></span></div>
-          <p class="photo-explain" id="photo-lab-explain"></p>
         </div>
       </div>
       <div class="photo-side">
+        <div class="card"><div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('workflow')}</span><h3>Przebieg analizy</h3></span></div>
+          <div class="card-body"><div class="photo-pipeline">
+            <ol class="photo-steps" id="photo-lab-steps" aria-label="Uproszczony przebieg analizy"></ol>
+            <div class="btn-row"><button type="button" class="btn btn-primary" id="photo-lab-next"></button><button type="button" class="btn" id="photo-lab-reveal"></button><button type="button" class="btn" id="photo-lab-reset">Od początku</button></div>
+            <div class="bar fill-yellow" id="photo-lab-progress" role="progressbar" aria-label="Etapy demonstracji" aria-valuemin="0" aria-valuemax="3"><span></span></div>
+            <p class="photo-explain" id="photo-lab-explain" style="margin:0"></p>
+          </div></div></div>
         <div class="card"><div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('sparkles')}</span><h3>Przykładowa odpowiedź</h3></span><span class="chip chip-stone" id="photo-lab-type"></span></div>
           <div class="card-body" id="photo-lab-result" role="status"></div>
-          <div class="card-foot"><span class="edu-small">Symulacja edukacyjna: odpowiedź jest zapisana z góry, nie obliczona.</span></div></div>
+          <div class="card-foot"><span class="edu-small">Symulacja edukacyjna: odpowiedź jest zapisana z góry, nie obliczona. Klasy na zdjęciach to jabłko, gruszka i kubek, a w ćwiczeniach z rysunkami jabłko, banan i gruszka.</span></div></div>
         <div class="tile"><span class="badge tone-ink">${ic('lightbulb')}</span><h4>Warto zauważyć</h4><p id="photo-lab-insight"></p></div>
       </div>
     </div>
   </div></section>`;
 }
 function photoTrainHtml() {
-  return `<header class="page-head"><h1 class="app-title" tabindex="-1">Dane do treningu na zdjęciach</h1>
+  return `<header class="page-head"><h1 class="app-title" tabindex="-1">Oznaczenia na zdjęciach</h1>
     <p class="edu-lead">Czego trzeba nauczyć model, pokazane na realistycznych zdjęciach. To mała próbka dydaktyczna ze zdjęć AI, nie wystarczający zbiór do treningu.</p></header>
   <section class="sec"><div class="wrap">
     ${photoControlsHtml('photo-train')}
@@ -2265,7 +3247,7 @@ function photoTrainHtml() {
         <div class="card-head"><span class="tile-h"><span class="badge tone-ink" id="photo-train-icon"></span><h3 id="photo-train-title"></h3></span></div>
         <div class="card-body">
           <p class="answer" id="photo-train-sub" style="margin-top:0"></p>
-          <div class="photo-count"><span>Mini-zbiór treningowy</span><span>6 zdjęć, 3 klasy</span></div>
+          <div class="photo-count"><span>Mini-zbiór treningowy</span><span>6 zdjęć, 3 klasy: jabłko, gruszka, kubek</span></div>
           <div class="photo-gallery" id="photo-train-gallery" role="group" aria-label="Zdjęcia przykładowego zbioru treningowego"></div>
           <p class="answer" id="photo-train-text"></p>
           <details class="more photo-fold"><summary>Zobacz przykładowy rekord danych</summary><div class="photo-fold-body"><pre class="record" id="photo-train-record"></pre><p>Schemat poglądowy, nie gotowy format dla konkretnej biblioteki. To człowiek dostarcza poprawne odpowiedzi w treningu nadzorowanym.</p></div></details>
@@ -2273,10 +3255,10 @@ function photoTrainHtml() {
             <p><b>Różnorodność:</b> różne tła, światło, kąty i przykłady każdej klasy.</p>
             <p><b>Oddzielne zbiory:</b> trening uczy, walidacja pomaga dobierać ustawienia, test sprawdza wynik na nowych danych.</p>
             <p><b>Spójne oznaczenia:</b> te same zasady dla nazw klas, ramek i granic masek.</p>
-            <p>Zdjęcia do laboratorium są osobne. Maski są poglądowymi ręcznymi adnotacjami, nie wynikiem modelu.</p>
+            <p>Zdjęcia do analizy są osobne. Maski są poglądowymi ręcznymi adnotacjami, nie wynikiem modelu.</p>
           </div></details>
           <details class="more photo-fold"><summary>A detekcja, segmentacja instancji i liczba zdjęć?</summary><div class="photo-fold-body">
-            <p><b>Detekcja:</b> obraz oraz klasa i ramka każdego obiektu, również gdy obiektów jest wiele. W przeciwieństwie do lokalizacji jednego obiektu model zwraca listę wyników.</p>
+            <p><b>Detekcja:</b> obraz oraz klasa i prostokąt każdego obiektu, również gdy obiektów jest wiele. W przeciwieństwie do lokalizacji jednego obiektu model zwraca listę wyników.</p>
             <p><b>Segmentacja instancji:</b> oddzielna maska i identyfikator dla każdego obiektu. Dwa jabłka mają tę samą klasę, ale inne identyfikatory. Segmentacja semantyczna nie rozdziela ich tożsamości.</p>
             <p><b>Maska</b> obejmuje widoczny obiekt, nie jego cień. Otwór w uchwycie kubka i przedmioty w tle nie należą do obiektu. Numery klas: 0 = tło, 1 = jabłko, 2 = gruszka, 3 = kubek.</p>
             <p><b>Liczba zdjęć:</b> nie ma jednej wymaganej liczby. Zależy ona od różnorodności zadania, jakości oznaczeń, wybranego modelu i oczekiwanej skuteczności. Dostosowanie modelu wstępnie wytrenowanego zwykle wymaga mniej danych niż trening od zera.</p>
@@ -2294,14 +3276,16 @@ function photoSceneSvg(prefix, scene, overlay, stage) {
   const [x1, y1, x2, y2] = scene.bounds;
   const path = photoPath(scene);
   const hatchId = `${prefix}-hatch`, gridId = `${prefix}-grid`;
-  const hint = text => `<g transform="translate(20 20)"><rect class="ph-hint-bg" width="${text.length * 9.4 + 24}" height="34" rx="7"/><text class="ph-hint-text" x="12" y="22">${text}</text></g>`;
-  const badge = (x, y) => `<rect class="ph-badge" x="${x}" y="${y}" width="${sample.name.length * 11 + 22}" height="30" rx="5"/><text class="ph-badge-text" x="${x + 11}" y="${y + 21}">${sample.name}</text>`;
+  // viewBox units shrink with the image, so phones get a larger badge.
+  const unit = NARROW_QUERY.matches ? 1.7 : 1;
+  const badgeHeight = 30 * unit;
+  const badge = (x, y) => `<rect class="ph-badge" x="${x}" y="${y}" width="${sample.name.length * 11 * unit + 22}" height="${badgeHeight}" rx="5"/><text class="ph-badge-text" style="font-size:${18 * unit}px" x="${x + 11}" y="${y + 21 * unit}">${sample.name}</text>`;
   let layer = '';
-  if (overlay === 'cls') layer = `<rect class="ph-line-under" x="12" y="12" width="696" height="416" rx="8"/><rect class="ph-line-frame" x="12" y="12" width="696" height="416" rx="8"/>${badge(26, 26)}`;
-  if (overlay === 'loc') layer = `<rect class="ph-line-under" x="${x1}" y="${y1}" width="${x2 - x1}" height="${y2 - y1}"/><rect class="ph-line-dash" x="${x1}" y="${y1}" width="${x2 - x1}" height="${y2 - y1}"/>${badge(x1, Math.max(4, y1 - 34))}`;
-  if (overlay === 'seg') layer = `<path d="${path}" fill-rule="evenodd" fill="url(#${hatchId})"/><path class="ph-line-under" style="stroke-width:4" d="${path}"/><path class="ph-outline" d="${path}"/>${badge(x1, Math.min(404, y2 + 6))}`;
-  if (overlay === 'none' && stage === 1) layer = `<rect width="720" height="440" fill="url(#${gridId})"/>${hint('Trzy kanały: czerwony, zielony, niebieski')}`;
-  if (overlay === 'none' && stage === 2) layer = `<rect class="ph-veil" width="720" height="440"/><path class="ph-contour" d="${path}"/>${hint('Poglądowy kontur obiektu')}`;
+  if (overlay === 'cls') layer = badge(26, 26);
+  if (overlay === 'loc') layer = `<rect class="ph-line-under" x="${x1}" y="${y1}" width="${x2 - x1}" height="${y2 - y1}"/><rect class="ph-line-dash" x="${x1}" y="${y1}" width="${x2 - x1}" height="${y2 - y1}"/>${badge(x1, Math.max(4, y1 - badgeHeight - 4))}`;
+  if (overlay === 'seg') layer = `<path d="${path}" fill-rule="evenodd" fill="url(#${hatchId})"/><path class="ph-line-under" style="stroke-width:4" d="${path}"/><path class="ph-outline" d="${path}"/>${badge(x1, Math.min(434 - badgeHeight, y2 + 6))}`;
+  if (overlay === 'none' && stage === 1) layer = `<rect width="720" height="440" fill="url(#${gridId})"/>`;
+  if (overlay === 'none' && stage === 2) layer = `<rect class="ph-veil" width="720" height="440"/><path class="ph-contour" d="${path}"/>`;
   return `<svg class="photo-scene" viewBox="0 0 720 440" role="img" aria-label="${sample.title}, ${scene.place}. Zdjęcie wygenerowane w AI.${overlay === 'none' ? '' : ' ' + PHOTO_TASKS[overlay].explain}" data-photo-id="${scene.id}" data-overlay="${overlay}">
     <defs><pattern id="${hatchId}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(${sample.hatchAngle})"><rect class="ph-hatch-${scene.sample}" width="6" height="12"/></pattern>
     <pattern id="${gridId}" width="18" height="18" patternUnits="userSpaceOnUse"><path class="ph-grid" d="M18 0H0V18"/></pattern></defs>
@@ -2316,7 +3300,7 @@ function photoRecord(scene, task) {
   const sample = PHOTO_SAMPLES[scene.sample];
   const record = { obraz: `${scene.id}.jpg`, podzial: 'trening-pokazowy', szerokosc: 720, wysokosc: 440 };
   if (task !== 'seg') record.klasa = sample.name;
-  if (task === 'loc') record.ramka_x1_y1_x2_y2_w_pikselach = scene.bounds;
+  if (task === 'loc') record.prostokat_x1_y1_x2_y2_w_pikselach = scene.bounds;
   if (task === 'seg') {
     record.maska = `${scene.id}_maska.png`;
     record.numery_klas = { 0: 'tło', 1: 'jabłko', 2: 'gruszka', 3: 'kubek' };
@@ -2338,7 +3322,8 @@ function renderPhotoLab() {
   renderPhotoControls('laboratorium', 'inference');
   Object.assign($('photo-lab-card').dataset, { task: p.task, sample: p.sample, stage: p.stage, revealed: p.revealed, photoId: scene.id, overlay });
   $('photo-lab-scene').innerHTML = photoSceneSvg('photo-lab', scene, overlay, p.stage);
-  $('photo-lab-legend').innerHTML = p.revealed ? photoLegendHtml(p.task, p.sample) : '';
+  const stageHint = { 1: 'Trzy kanały: czerwony, zielony, niebieski', 2: 'Poglądowy kontur obiektu' }[p.stage];
+  $('photo-lab-legend').innerHTML = p.revealed ? photoLegendHtml(p.task, p.sample) : stageHint ? `<div class="legend"><span class="chip chip-stone">${stageHint}</span></div>` : '';
   $('photo-lab-type').textContent = info.type;
   $('photo-lab-insight').textContent = info.insight;
   $('photo-lab-steps').innerHTML = PHOTO_STAGES.map((s, i) => `<li data-active="${i === p.stage}"${i === p.stage ? ' aria-current="step"' : ''}>${s.name}</li>`).join('');
@@ -2348,7 +3333,7 @@ function renderPhotoLab() {
   $('photo-lab-next').textContent = p.stage === 3 ? 'Powtórz analizę' : 'Następny krok';
   $('photo-lab-reveal').textContent = p.revealed ? 'Ukryj wynik' : 'Pokaż wynik';
   $('photo-lab-reveal').setAttribute('aria-pressed', String(p.revealed));
-  const detail = p.task === 'cls' ? 'Klasa obrazu' : p.task === 'loc' ? `Ramka [x₁, y₁, x₂, y₂]<code class="photo-code">[${scene.bounds.join(', ')}]</code>` : 'Maska semantyczna: obiekt i tło';
+  const detail = p.task === 'cls' ? 'Klasa obrazu' : p.task === 'loc' ? `Prostokąt [x₁, y₁, x₂, y₂]<code class="photo-code">[${scene.bounds.join(', ')}]</code>` : 'Maska semantyczna: obiekt i tło';
   $('photo-lab-result').innerHTML = p.revealed
     ? `<p class="photo-question">${info.short}</p><p class="photo-word">${p.task === 'seg' ? 'Maska semantyczna' : sample.title}</p><p class="answer" style="margin-top:0">${detail}</p><p class="answer">${info.explain}</p>`
     : `<p class="photo-question">${info.short}</p><p class="photo-word">Co zobaczy model?</p><p class="answer" style="margin-top:0">Odkryj odpowiedź albo przejdź analizę krok po kroku.</p>`;
@@ -2372,7 +3357,11 @@ function renderPhotoTrain() {
   $('photo-train-caption').textContent = `${scene.place[0].toUpperCase()}${scene.place.slice(1)}. ${info.explain}`;
   icons($('photo-train-card'));
 }
-function renderPhotoViews() { renderPhotoLab(); renderPhotoTrain(); }
+// Only the open view is rendered, so Start does not download photos nobody sees.
+function renderPhotoViews() {
+  if (App.view === 'laboratorium') renderPhotoLab();
+  if (App.view === 'dane-do-treningu') renderPhotoTrain();
+}
 function photoNextStep() {
   const p = App.photo;
   if (p.stage === 3) { p.stage = 0; p.revealed = false; } else { p.stage += 1; p.revealed = p.stage === 3; }
@@ -2405,7 +3394,7 @@ function renderAnnot(task) {
   }
   if (task === 'seg') {
     drawMask(ctx, canvas, a.mask, YOUR_MASK);
-    if (a.committed) drawOutline(ctx, canvas, a.scene.mask);
+    if (a.committed) drawOutline(ctx, canvas, a.scene.mask, true);
     else if (document.activeElement === canvas) {
       const scale = canvas.width / SIZE, half = Math.floor(a.brush / 2);
       ctx.lineWidth = 2; ctx.strokeStyle = COLORS.ink;
@@ -2431,6 +3420,14 @@ function renderAnnot(task) {
   els['annot-id'].textContent = a.scene.id;
   setPressed(annot, 'data-annot-class', a.cls === null ? '' : a.cls);
   annot.querySelectorAll('[data-annot-class]').forEach(btn => { btn.disabled = a.committed; });
+  // After a commit the only useful actions are the next image or training.
+  if (els.commit) { els.commit.disabled = a.committed; els.commit.classList.toggle('btn-primary', !a.committed); }
+  els.next.classList.toggle('btn-primary', a.committed);
+  els['to-train'].hidden = !a.committed;
+  if (task === 'seg') {
+    els.undo.disabled = els.clear.disabled = a.committed;
+    annot.querySelectorAll('[data-tool], [data-brush]').forEach(btn => { btn.disabled = a.committed; });
+  }
   if (task === 'seg') {
     setPressed(annot, 'data-tool', a.tool);
     setPressed(annot, 'data-brush', a.brush);
@@ -2477,6 +3474,7 @@ function renderTrain(task) {
   imagesInput.disabled = noiseInput.disabled = training;
   els[task + '-images-label'].textContent = `Liczba obrazów: ${lab.images}`;
   els[task + '-noise-label'].textContent = `Błędy w etykietach: ${lab.noise}%`;
+  els['train-source'].textContent = `Skąd dane: ${lab.images} ${pluralPl(lab.images, 'rysunek', 'rysunki', 'rysunków')} z etykietami przygotowuje automatycznie ta przeglądarka, według ustawień obok. Twoje oznaczenia z ćwiczenia nie trafiają do treningu.`;
   setPressed(root, 'data-diversity', lab.diversity);
   root.querySelectorAll('[data-diversity]').forEach(btn => { btn.disabled = training; });
   els.train.disabled = training;
@@ -2489,13 +3487,15 @@ function renderTrain(task) {
   if (task === 'loc') els['class-acc-text'].textContent = lab.classAcc === null ? 'Trafność klasy: –' : `Trafność klasy: ${comma(lab.classAcc * 100, 1)}%`;
   const explain = els.explain;
   let note = '';
-  if (lab.status === 'stopped') note = 'Trening przerwany: model nie jest gotowy i nie ma wyniku końcowego.';
+  if (lab.status === 'stopped') note = lab.net ? 'Trening przerwany. Nadal działa poprzedni model i jego wynik.' : 'Trening przerwany: model nie jest gotowy i nie ma wyniku końcowego.';
+  else if (lab.status === 'idle' && App.progress['train-' + task]) note = 'Modele i historia prób nie są zapisywane po odświeżeniu strony. Najlepszy wynik znajdziesz w widoku „Porównanie”. Wytrenuj model ponownie.';
   else if (lab.status === 'done') {
     note = explainResult(task);
     if (lab.stale) { const t = lab.trained; note = `Wynik dotyczy innych ustawień: ${t.images} obrazów, ${t.noise}% błędów, różnorodność ${diversityLabel(t.diversity)}. Wytrenuj ponownie.`; }
   }
   explain.textContent = note;
   explain.hidden = !note;
+  els['to-check'].hidden = !lab.net || training;
   renderTrainProgress(task);
   renderSteps(task);
 }
@@ -2594,12 +3594,12 @@ function renderCheck(task) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     canvas.setAttribute('aria-label', 'Brak obrazu: model nie jest jeszcze wytrenowany.');
     els['check-id'].textContent = lab.status === 'training' ? 'trening trwa' : 'brak modelu';
-    els['check-msg'].textContent = c.msg && noModel ? c.msg : 'Najpierw wytrenuj model. Potem zobaczysz tu jego odpowiedź na nowych obrazach.';
+    els['check-msg'].textContent = lab.status === 'training' ? 'Trening trwa. Odpowiedź modelu pojawi się po jego zakończeniu.' : c.msg && noModel ? c.msg : 'Najpierw wytrenuj model. Potem zobaczysz tu jego odpowiedź na nowych obrazach.';
     els['check-output'].innerHTML = '';
     return;
   }
   els['check-id'].textContent = c.scene.id;
-  els['check-msg'].textContent = c.msg;
+  els['check-msg'].textContent = lab.status === 'training' ? `${c.msg} Trwa nowy trening, więc odpowiada poprzedni model.` : c.msg;
   const ctx = paintImage(canvas, c.scene.img);
   const output = els['check-output'];
   const truthName = c.scene.cls === null ? null : CLASS_NAMES[c.scene.cls];
@@ -2699,7 +3699,7 @@ function renderStartCards() {
     const predText = card.querySelector('[data-pred-text]');
     if (!lab.net) {
       card.dataset.trained = 'false';
-      slot.innerHTML = `<div class="placeholder">Model nie jest wytrenowany<a href="#${TASK_INFO[task].view}">Otwórz laboratorium</a></div>`;
+      slot.innerHTML = `<div class="placeholder">Model nie jest wytrenowany<a href="#${TASK_INFO[task].view}" class="tap-link">${TASK_INFO[task].practice}</a></div>`;
       predText.innerHTML = '';
       return;
     }
@@ -2767,7 +3767,7 @@ function renderChoice() {
   if (App.choice === null) { box.innerHTML = ''; box.dataset.task = ''; return; }
   const c = CHOICES[App.choice], info = TASK_INFO[c.task];
   box.dataset.task = c.task;
-  box.innerHTML = `<div class="block tone-${info.tone} edu-block"><p><b>${info.name}.</b> ${c.why} <a href="#${info.view}" style="color:inherit;font-weight:600">Otwórz laboratorium</a></p></div>`;
+  box.innerHTML = `<div class="block tone-${info.tone} edu-block"><p><b>${info.name}.</b> ${c.why} <a href="#${info.view}" style="color:inherit;font-weight:600">${info.practice}</a></p></div>`;
 }
 function renderQuiz(focusNext) {
   const root = document.getElementById('quiz-root');
@@ -2839,6 +3839,7 @@ function renderAll() {
 function resetAll() {
   App.photo = newPhotoState();
   renderPhotoViews();
+  netLab.reset();
   TASKS.forEach(task => {
     const lab = App.labs[task];
     if (lab.run.worker) lab.run.worker.terminate();
@@ -2848,7 +3849,7 @@ function resetAll() {
     rebindLab(task);
     nextAnnotScene(task);
   });
-  App.progress = {}; App.results = {}; App.choice = null;
+  App.progress = {}; App.results = {}; App.choice = null; App.scrollByView = {};
   storageWrite();
   App.quiz = { index: 0, score: 0, picked: null, wrongTasks: [], finished: false };
   renderAll();
@@ -2856,18 +3857,26 @@ function resetAll() {
 }
 
 // ─── Listeners ───
+function viewFromHash(hash) {
+  let name = '';
+  try { name = decodeURIComponent(hash.replace(/^#/, '')); } catch (err) { name = ''; }
+  return VIEWS.includes(name) ? name : 'start';
+}
 function setViewFromHash(animate, focusTitle) {
-  const name = decodeURIComponent(location.hash.replace(/^#/, ''));
-  const view = VIEWS.includes(name) ? name : 'start';
+  const view = viewFromHash(location.hash);
   const changed = view !== App.view;
   TASKS.forEach(annotTimerPause);
   App.view = view;
   TASKS.forEach(annotTimerResume);
+  renderPhotoViews();
   renderView(animate && changed);
+  // Built on first open: the untrained baseline takes a moment to compute.
+  if (view === 'trening') netLab.onShow();
   if (changed) {
-    window.scrollTo(0, 0);
+    window.scrollTo(0, App.scrollByView[view] || 0);
     const active = navEl.querySelector(`a[data-view="${view}"]`);
-    if (active && active.scrollIntoView) active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    // Only the menu's own sideways scroll on phones: scrollIntoView would also pull the page back up to the header.
+    if (active) navEl.scrollLeft += active.getBoundingClientRect().left - navEl.getBoundingClientRect().left - 16;
     if (focusTitle) { const title = viewEls[view].querySelector('.app-title'); if (title) title.focus({ preventScroll: true }); }
     announce(`Widok: ${VIEW_LABELS[view]}`);
   }
@@ -2922,8 +3931,8 @@ function bindLab(task) {
         pushUndo(a); a.mask = new Uint8Array(PIXELS); a.msg = ''; a.msgKind = ''; renderAnnot(task); break;
       case 'train': startTraining(task); break;
       case 'stop': stopTraining(task); break;
-      case 'check-new': newCheckScene(task, 'normal'); break;
-      case 'check-hard': newCheckScene(task, 'hard'); break;
+      case 'check-new': newCheckScene(task, 'normal'); markChecked(task); break;
+      case 'check-hard': newCheckScene(task, 'hard'); markChecked(task); break;
       default:
     }
   });
@@ -2939,8 +3948,11 @@ function bindStart() {
   const canvas = document.getElementById('inspector-canvas');
   const ins = App.inspector;
   const pick = event => { const cell = cellFromEvent(event, canvas); ins.x = cell.x; ins.y = cell.y; renderInspector(); };
-  canvas.addEventListener('pointerdown', event => { event.preventDefault(); canvas.setPointerCapture(event.pointerId); pick(event); });
-  canvas.addEventListener('pointermove', pick);
+  // Touch: a tap picks a pixel and a swipe scrolls the page, because this canvas allows vertical panning.
+  const isTouch = event => event.pointerType === 'touch';
+  canvas.addEventListener('pointerdown', event => { if (isTouch(event)) return; event.preventDefault(); canvas.setPointerCapture(event.pointerId); pick(event); });
+  canvas.addEventListener('pointermove', event => { if (!isTouch(event)) pick(event); });
+  canvas.addEventListener('pointerup', event => { if (isTouch(event)) pick(event); });
   canvas.addEventListener('keydown', event => {
     const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
     if (!arrows[event.key]) return;
@@ -2987,12 +3999,14 @@ function shortcutsBlocked(target) {
 }
 function onShortcut(event) {
   if (event.ctrlKey || event.metaKey || event.altKey) return;
-  if (helpDialog.open || resetDialog.open) return;
+  if (helpDialog.open || resetDialog.open || progressDialog.open) return;
   const target = event.target, key = event.key;
   if (key === '?' && !shortcutsBlocked(target)) { event.preventDefault(); helpDialog.showModal(); return; }
   if (shortcutsBlocked(target)) return;
   if (key === 'ArrowLeft' || key === 'ArrowRight') {
-    if (target.closest && target.closest('.record')) return;
+    // Arrows belong to whatever control has focus; only an idle page changes the view.
+    const onControl = target.closest && target.closest('button, a, summary, input, select, textarea, [tabindex]');
+    if (onControl && !onControl.classList.contains('app-title')) return;
     // A table that overflows its scroller keeps the arrows for sideways scrolling.
     const scroller = target.closest && target.closest('.scroll-x');
     if (scroller && scroller.scrollWidth > scroller.clientWidth + 1) return;
@@ -3002,11 +4016,15 @@ function onShortcut(event) {
     if (next >= 0 && next < VIEWS.length) location.hash = VIEWS[next];
     return;
   }
+  if (App.view === 'trening') {
+    if (key === 't' || key === 'T') { event.preventDefault(); netLab.start(); return; }
+    if (/^[1-3]$/.test(key)) { event.preventDefault(); netLab.setTask(netLab.taskIds[Number(key) - 1]); return; }
+  }
   const task = taskOfView(App.view);
   if (task && (key === 't' || key === 'T')) { event.preventDefault(); startTraining(task); return; }
   if (task && (key === 'n' || key === 'N')) {
     event.preventDefault();
-    if (App.labs[task].net) newCheckScene(task, 'normal'); else nextAnnotScene(task);
+    if (App.labs[task].net) { newCheckScene(task, 'normal'); markChecked(task); } else nextAnnotScene(task);
     return;
   }
   if (App.view === 'quiz') {
@@ -3017,6 +4035,10 @@ function onShortcut(event) {
     if (key === 'r' || key === 'R') { event.preventDefault(); photoResetSteps(); return; }
     if (key === 'Enter' && !(target.closest && target.closest('button, a, summary'))) { event.preventDefault(); photoNextStep(); }
   }
+}
+/** On a phone the labelled photo sits below the gallery, so bring it into view. */
+function showPickedPhoto() {
+  if (NARROW_QUERY.matches) document.getElementById('photo-train-scene').scrollIntoView();
 }
 function bindPhotoViews() {
   const onClick = event => {
@@ -3032,6 +4054,7 @@ function bindPhotoViews() {
       renderPhotoViews();
       const again = document.querySelector(`[data-photo-pick="${scene.id}"]`);
       if (again) again.focus({ preventScroll: true });
+      showPickedPhoto();
     }
     if (button.id === 'photo-lab-next') photoNextStep();
     if (button.id === 'photo-lab-reset') photoResetSteps();
@@ -3042,6 +4065,7 @@ function bindPhotoViews() {
     viewEls[view].querySelector('[data-photo-scene]').addEventListener('change', event => {
       App.photo.picked[pool][App.photo.sample] = event.target.value;
       renderPhotoViews();
+      if (pool === 'dataset') showPickedPhoto();
     });
   });
 }
@@ -3049,6 +4073,21 @@ function bindGlobal() {
   window.addEventListener('hashchange', () => setViewFromHash(true, true));
   document.addEventListener('keydown', onShortcut);
   document.addEventListener('visibilitychange', () => { TASKS.forEach(document.hidden ? annotTimerPause : annotTimerResume); });
+  // The app restores each view's position itself; the browser would restore it against the previous view's height.
+  history.scrollRestoration = 'manual';
+  window.addEventListener('scroll', () => { App.scrollByView[App.view] = window.scrollY; }, { passive: true });
+  NARROW_QUERY.addEventListener('change', renderPhotoViews);
+  progressEl.addEventListener('click', () => progressDialog.showModal());
+  // A description opens towards the side that has room.
+  const placeDesc = event => {
+    const el = event.target.closest && event.target.closest('.has-desc');
+    if (!el) return;
+    const rect = el.getBoundingClientRect(), width = 20 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+    el.dataset.descSide = rect.left + width > window.innerWidth && rect.right >= width ? 'right' : 'left';
+  };
+  document.addEventListener('pointerover', placeDesc);
+  document.addEventListener('focusin', placeDesc);
+  document.getElementById('progress-close').addEventListener('click', () => progressDialog.close());
   document.getElementById('help-open').addEventListener('click', () => helpDialog.showModal());
   document.getElementById('help-close').addEventListener('click', () => helpDialog.close());
   document.getElementById('reset-open').addEventListener('click', () => resetDialog.showModal());
@@ -3061,6 +4100,7 @@ function bindGlobal() {
 async function runProbes() {
   const results = [];
   const check = (name, ok) => results.push({ name, ok: !!ok });
+  renderPhotoLab(); renderPhotoTrain();
   const equalBytes = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
   const box = { x: 3, y: 4, w: 10, h: 8 };
   check('IoU: identyczne prostokąty = 1', core.iouBox(box, Object.assign({}, box)) === 1);
@@ -3076,10 +4116,29 @@ async function runProbes() {
   const tokenRgb = token => { const hex = getComputedStyle(document.documentElement).getPropertyValue(token).trim(); return [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255); };
   const rgbDistance = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
   check('Maska: kolor klasy daleko od kolorów owoców', CLASS_MASKS.every(m => core.FRUIT_COLORS.every(variants => variants.every(([rgb]) => rgbDistance(tokenRgb(m.token), rgb) > 0.5))));
+  check('Maska: Twoja maska daleko od kolorów owoców i z własnym wzorem', core.FRUIT_COLORS.every(variants => variants.every(([rgb]) => rgbDistance(tokenRgb(YOUR_MASK.token), rgb) > 0.5)) && CLASS_MASKS.every(m => m.hatch !== YOUR_MASK.hatch));
+  check('Nakładki: obwódka i prostokąt bez koloru owocu', !('yellow' in COLORS) && core.FRUIT_COLORS.every(variants => variants.every(([rgb]) => rgbDistance([1, 1, 1], rgb) > 0.5)));
+  check('Zdjęcia: klasyfikacja nie rysuje prostokąta', !photoSceneSvg('probe', PHOTO_SCENES[0], 'cls', 3).includes('ph-line'));
+  check('Adres: uszkodzony fragment prowadzi do startu', viewFromHash('#%') === 'start' && viewFromHash('#quiz') === 'quiz');
+  check('Galeria leży w karcie treningu, pod suwakami', TASKS.every(task => { const els = labEls[task]; return els['train-card'].contains(els.gallery) && (els[task + '-noise'].compareDocumentPosition(els.gallery) & Node.DOCUMENT_POSITION_FOLLOWING); }));
+  netLab.checkResults().forEach(([name, ok]) => check(`Trening: ${name}`, ok));
+  check('Menu: każdy widok ma krótką nazwę i dłuższy opis', VIEWS.every(v => VIEW_LABELS[v].length <= 12 && VIEW_DESCRIPTIONS[v].length > VIEW_LABELS[v].length));
+  check('Pędzel: etykieta mówi o szerokości', viewEls.segmentacja.textContent.includes('Szerokość pędzla'));
+  check('Nazwy widoków nie używają słowa laboratorium', Object.values(VIEW_LABELS).every(label => !/laboratorium/i.test(label)));
+  if (innerWidth > 1100 && innerHeight >= 700) {
+    const fits = VIEWS.filter(v => viewEls[v].querySelector('[data-el=commit], #photo-lab-next')).every(v => {
+      VIEWS.forEach(x => { viewEls[x].hidden = x !== v; });
+      const bottom = s => viewEls[v].querySelector(s).getBoundingClientRect().bottom + scrollY;
+      const image = viewEls[v].querySelector('[data-el=annot-canvas], svg.photo-scene') ? bottom('[data-el=annot-canvas], svg.photo-scene') : 0;
+      return Math.max(image, bottom('[data-el=commit], #photo-lab-next')) <= innerHeight;
+    });
+    renderView(false);
+    check('Układ: obraz i główny przycisk mieszczą się bez przewijania', fits);
+  }
   const isGrey = bytes => { for (let p = 0; p < PIXELS; p++) if (bytes[p * 4] !== bytes[p * 4 + 1] || bytes[p * 4] !== bytes[p * 4 + 2]) return false; return true; };
   check('Kanał w skali szarości', ['r', 'g', 'b'].every(c => isGrey(channelBytes(App.inspector.bytes, c))));
   check('Zdjęcia: 12 scen, po dwie na obiekt w każdej puli', PHOTO_SCENES.length === 12 && ['inference', 'dataset'].every(pool => Object.keys(PHOTO_SAMPLES).every(k => PHOTO_SCENES.filter(s => s.pool === pool && s.sample === k).length === 2)));
-  check('Zdjęcia: ramka zgodna z obrysem maski', PHOTO_SCENES.every(s => { const pts = s.rings.flat(); return s.bounds[0] === Math.min(...pts.map(q => q[0])) && s.bounds[1] === Math.min(...pts.map(q => q[1])) && s.bounds[2] === Math.max(...pts.map(q => q[0])) && s.bounds[3] === Math.max(...pts.map(q => q[1])); }));
+  check('Zdjęcia: prostokąt zgodny z obrysem maski', PHOTO_SCENES.every(s => { const pts = s.rings.flat(); return s.bounds[0] === Math.min(...pts.map(q => q[0])) && s.bounds[1] === Math.min(...pts.map(q => q[1])) && s.bounds[2] === Math.max(...pts.map(q => q[0])) && s.bounds[3] === Math.max(...pts.map(q => q[1])); }));
   const photosLoad = await Promise.all(PHOTO_SCENES.map(s => { const image = new Image(); image.src = photoSrc(s); return image.decode().then(() => image.naturalWidth > 0, () => false); }));
   check('Zdjęcia: wszystkie pliki się wczytują', photosLoad.every(Boolean));
   const photoCard = document.getElementById('photo-lab-card');
@@ -3097,6 +4156,8 @@ async function runProbes() {
   const hours = calcHours(1000, 2);
   check('Kalkulator: 1000 obrazów i 2 obiekty', Math.abs(hours.cls - 1.3889) < 0.001 && Math.abs(hours.loc - 19.4444) < 0.001 && Math.abs(hours.seg - 43.8889) < 0.001);
   check('Kalkulator: złe dane odrzucone', ['', '0', '-5', 'abc', '1,5', '10000001', '99999999999'].every(v => !validateCalcField('images', v).ok) && ['', '0', '101', '1,5'].every(v => !validateCalcField('objects', v).ok));
+  check('Kalkulator: odstępy między tysiącami przyjęte', ['1234', '1 234', '1\u00A0234', '1\u202F234'].every(v => validateCalcField('images', v).value === 1234) && validateCalcField('images', '1 000 000').value === 1000000);
+  check('Kalkulator: złe grupowanie i ułamki odrzucone', ['12 34', '1 2 3', '1 000,5', '1,5'].every(v => !validateCalcField('images', v).ok));
   check('Kalkulator: granice przyjęte', ['1', '10000000'].every(v => validateCalcField('images', v).ok) && ['1', '100'].every(v => validateCalcField('objects', v).ok));
   check('Plik: .txt, GIF, pusty i ponad 20 MB odrzucone', !validateUpload(new File(['x'], 'a.txt', { type: 'text/plain' })).ok && !validateUpload(new File(['x'], 'a.gif', { type: 'image/gif' })).ok && !validateUpload(new File([], 'a.png', { type: 'image/png' })).ok && !validateUpload({ name: 'a.png', type: 'image/png', size: MAX_UPLOAD_BYTES + 1 }).ok);
   check('Plik: PNG i JPEG przyjęte', validateUpload({ name: 'a.png', type: 'image/png', size: MAX_UPLOAD_BYTES }).ok && validateUpload({ name: 'a.jpg', type: 'image/jpeg', size: 10 }).ok);
@@ -3163,9 +4224,9 @@ function init() {
   App.inspector.x = App.inspector.scene.box.x + Math.floor(App.inspector.scene.box.w / 2);
   App.inspector.y = App.inspector.scene.box.y + Math.floor(App.inspector.scene.box.h / 2);
   App.startScenes = { one: core.genScene({ seed: 2024, cls: 1 }), two: core.genScene({ seed: 5539, cls: 0, mode: 'two' }) };
-  navEl.innerHTML = VIEWS.map(v => `<a href="#${v}" data-view="${v}">${VIEW_LABELS[v]}</a>`).join('');
+  navEl.innerHTML = VIEWS.map(v => `<a class="has-desc" href="#${v}" data-view="${v}" data-desc="${VIEW_DESCRIPTIONS[v]}" aria-description="${VIEW_DESCRIPTIONS[v]}">${VIEW_LABELS[v]}</a>`).join('');
   App.photo = newPhotoState();
-  const templates = { start: startHtml(), dane: daneHtml(), laboratorium: photoLabHtml(), 'dane-do-treningu': photoTrainHtml(), quiz: quizHtml() };
+  const templates = { start: startHtml(), trening: netLab.html(), dane: daneHtml(), laboratorium: photoLabHtml(), 'dane-do-treningu': photoTrainHtml(), quiz: quizHtml() };
   TASKS.forEach(t => { templates[TASK_INFO[t].view] = labHtml(t); });
   VIEWS.forEach(view => {
     const el = document.createElement('div');
@@ -3182,7 +4243,7 @@ function init() {
     rebindLab(task);
   });
   ['compare-table', 'dataset-table'].forEach(id => labelTableCells(document.getElementById(id)));
-  bindStart(); bindDane(); bindQuiz(); bindPhotoViews(); bindGlobal();
+  bindStart(); bindDane(); bindQuiz(); bindPhotoViews(); bindGlobal(); netLab.bind(viewEls.trening);
   setViewFromHash(false, false);
   TASKS.forEach(nextAnnotScene);
   renderInspector(); renderPhotoViews();
