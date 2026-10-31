@@ -377,6 +377,7 @@ canvas { display: block; }
 .notice { margin: 0; padding: 10px 14px; border-radius: var(--r-sm); background: var(--paper-3); color: var(--ink); font-size: var(--body-sm); }
 .slider { display: grid; gap: 2px; }
 .slider input[type=range] { width: 100%; min-height: 44px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.slider input[type=range]:disabled { cursor: not-allowed; opacity: .55; }
 .slider input[type=range]::-webkit-slider-runnable-track { height: 8px; background: var(--track); border-radius: var(--r-pill); }
 .slider input[type=range]::-moz-range-track { height: 8px; background: var(--track); border-radius: var(--r-pill); }
 .slider input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -7px; background: var(--paper); border: 2px solid var(--ink); border-radius: 50%; }
@@ -1372,24 +1373,21 @@ function cvCore() {
   return {
     SIZE, PIXELS, CLASS_NAMES, TEST_SIZE, BASE_SEED, EPOCHS,
     rngFrom, genScene, countClasses, boxOfClass, buildTrainSet, galleryExamples, testSet, labelValues, labelKey, trueLabel,
-    FRUIT_COLORS, iouBox, iouMask, rleEncode, rleDecode, baseline, buildNet, predict, train, runToEnd,
+    FRUIT_COLORS, iouBox, softmaxInto, iouMask, rleEncode, rleDecode, baseline, buildNet, predict, train, runToEnd,
   };
 }
 
 </script>
 <script>
-// ─── Training tab: the convolutional network ported from alternative/index.html ───
-// Its own scope, because the labs above use the same names for a different network and data.
-function createNetLab() {
-  // Constants
+// ─── Training tab: network core ───
+// Network and generated pictures, without any DOM: this function's source also runs inside the
+// training Worker, like cvCore above. Its own scope, because the labs use the same names for a
+// different network and data.
+function netCore(base, palette) {
+  // ─── Constants ───
   function hexRgb(hex) { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
-  // Canvas cannot read CSS variables: literal edulab values.
-  const COLOR = { ink: '#1C1917', ink2: '#44403C', ink3: '#625B53', paper: '#FFFFFF', stone: '#F5F3F0', stone2: '#EAE6E0', line: '#C9C2B7', lineStrong: '#857C69', yellow: '#FFD500', blue: '#1E8FC2', blue6: '#177AA8', green: '#00A651', green6: '#078342', red: '#E5322D', grape: '#7A5AC2', berry: '#C6478B' };
-  const TASK_IDS = ['cls', 'loc', 'seg'];
-  const TASK_NAMES = { cls: 'Klasyfikacja', loc: 'Lokalizacja', seg: 'Segmentacja' };
+  const COLOR = palette;
   const NET_SIZE = 24, NET_CH = 3, NET_PIXELS = NET_SIZE * NET_SIZE, HALF_PIXELS = NET_PIXELS / 4;
-  const NET_CLASSES = ['kot', 'pies', 'samochód'];
-  const NET_CLASS_COLOR = [COLOR.grape, COLOR.berry, COLOR.red];
   const NET_DARK = hexRgb(COLOR.ink), NET_LIGHT = hexRgb(COLOR.stone);
   // Coat and background are drawn at random for every class, so only the shape identifies it.
   const NET_COATS = [COLOR.yellow, COLOR.lineStrong, COLOR.ink2, COLOR.ink3, COLOR.stone2, COLOR.line, COLOR.berry, COLOR.red, COLOR.blue, COLOR.grape].map(hexRgb);
@@ -1397,30 +1395,15 @@ function createNetLab() {
   const C1 = 8, C2 = 16, DENSE = 48, FLAT = HALF_PIXELS / 4 * C2;
   const UPDATES = { cls: 6000, loc: 6000, seg: 8000 };
   const BATCH = 8, LEARNING_RATE = 0.002, TEST_COUNT = 200, TEST_SEED = 424242, TRAIN_SEED = 1000, NOISE_SEED = 500000;
-  const N_STEPS = [20, 60, 200, 600, 2000];
-  const PREVIEW_COUNT = 12;
-  const SLICE_MS = 14, CURVE_POINTS = 24, CURVE_TEST = 40, GALLERY = 8, LIVE_TICK_MS = 250, BASE_SEED = 11, TRY_SEED = 2000000;
+  const CURVE_POINTS = 24, CURVE_TEST = 40, GALLERY = 8, LIVE_TICK_MS = 250;
 
-  // State
-  const newTrain = () => ({ status: 'idle', n: 200, noise: 0, done: 0, runs: [], results: {}, curve: [], previewOffset: 0, seedCounter: 0, tryCounter: 0, stopped: null, tries: { cls: { n: 0, right: 0 }, loc: { n: 0, right: 0 }, seg: { n: 0, right: 0 } } });
-  const state = { task: 'cls', train: newTrain() };
-
-  // Helpers
-  const $ = id => document.getElementById(id);
-  const isVisible = () => App.view === 'trening';
-  const pct = (v, digits = 0) => (v * 100).toFixed(digits).replace('.', ',') + '%';
-  const plNum = n => Math.round(n).toLocaleString('pl-PL');
-  const dec = (v, d = 2) => v.toFixed(d).replace('.', ',');
+  // ─── Helpers ───
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  function setupCanvas(cv, w, h) {
-    const dpr = window.devicePixelRatio || 1;
-    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return ctx;
-  }
+  const rng = base.rngFrom, softmax = base.softmaxInto;
+  const toRect = b => ({ x: b[0], y: b[1], w: b[2] - b[0], h: b[3] - b[1] });
+  const boxIoU = (a, b) => base.iouBox(toRect(a), toRect(b));
 
-  // Network and generated pictures
-function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  // ─── Pictures and network ───
 
 // Training pictures are drawn analytically from simple parts, in unit coordinates of the
 // object's box. Without canvas the same seed gives the same picture in every browser.
@@ -1572,12 +1555,15 @@ function corruptSample(s, rand) {
 // Sample i is the same for every setting, so a bigger set extends a smaller one and
 // raising the noise only corrupts labels, never the pictures.
 const sampleCache = [];
+let lastSet = null;
 function buildTrainSet(n, noise) {
+  if (lastSet && lastSet.n === n && lastSet.noise === noise) return lastSet.out;
   const out = [];
   for (let i = 0; i < n; i++) {
     const s = sampleCache[i] || (sampleCache[i] = makeSample(rng(TRAIN_SEED + i))), r = rng(NOISE_SEED + i);
     out.push(r() < noise ? corruptSample(s, r) : s);
   }
+  lastSet = { n, noise, out };
   return out;
 }
 let testSetCache = null;
@@ -1595,7 +1581,7 @@ function makeNet(task, seed) {
   return {
     task, nOut, t: 0,
     c1: param(C1 * NET_CH * 9, .3, R), b1: param(C1, 0, R), c2: param(C2 * C1 * 9, .2, R), b2: param(C2, 0, R),
-    d1: param(FLAT * DENSE, .08, R), e1: param(DENSE, 0, R), d2: param(DENSE * nOut, .15, R), e2: param(nOut, 0, R), sk: param(C1 * 4, .1, R),
+    d1: param(FLAT * DENSE, .08, R), e1: param(DENSE, 0, R), d2: param(DENSE * nOut, .15, R), e2: param(nOut, 0, R), sk: task === 'seg' ? param(C1 * 4, .1, R) : null,
     a1: new Float32Array(NET_PIXELS * C1), p1: new Float32Array(HALF_PIXELS * C1), i1: new Int32Array(HALF_PIXELS * C1),
     a2: new Float32Array(HALF_PIXELS * C2), p2: new Float32Array(FLAT), i2: new Int32Array(FLAT),
     h: new Float32Array(DENSE), o: new Float32Array(nOut),
@@ -1671,7 +1657,6 @@ function backward(n, pix, dO) {
   convBack(pix, NET_CH, NET_SIZE, n.a1, C1, n.c1, n.b1, da1, n.dx);
 }
 const sigmoid = v => 1 / (1 + Math.exp(-v));
-function softmax(o, st, k, p) { let mx = -Infinity; for (let i = 0; i < k; i++) if (o[st + i] > mx) mx = o[st + i]; let t = 0; for (let i = 0; i < k; i++) { p[i] = Math.exp(o[st + i] - mx); t += p[i]; } for (let i = 0; i < k; i++) p[i] /= t; return p; }
 const SEG_WEIGHT = 20, BOX_WEIGHT = 8, SEG_SHAPE_OK = .5;
 function lossGrad(n, s, d) {
   const o = n.o, p = new Float64Array(4); let L = 0;
@@ -1685,7 +1670,7 @@ function lossGrad(n, s, d) {
   }
   return L;
 }
-const netParams = n => [n.c1, n.b1, n.c2, n.b2, n.d1, n.e1, n.d2, n.e2, n.sk];
+const netParams = n => [n.c1, n.b1, n.c2, n.b2, n.d1, n.e1, n.d2, n.e2, ...(n.sk ? [n.sk] : [])];
 function adamStep(n, lr, bs) {
   n.t++; const c1 = 1 - 0.9 ** n.t, c2 = 1 - 0.999 ** n.t;
   for (const P of netParams(n)) for (let i = 0; i < P.w.length; i++) {
@@ -1693,12 +1678,6 @@ function adamStep(n, lr, bs) {
     P.m[i] = 0.9 * P.m[i] + 0.1 * g; P.v[i] = 0.999 * P.v[i] + 0.001 * g * g;
     P.w[i] -= lr * (P.m[i] / c1) / (Math.sqrt(P.v[i] / c2) + 1e-8);
   }
-}
-function boxIoU(a, b) {
-  const w = Math.min(a[2], b[2]) - Math.max(a[0], b[0]), h = Math.min(a[3], b[3]) - Math.max(a[1], b[1]);
-  if (w <= 0 || h <= 0) return 0;
-  const inter = w * h, u = Math.max(0, a[2] - a[0]) * Math.max(0, a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter;
-  return u > 0 ? inter / u : 0;
 }
 function predict(n, s) {
   const o = forward(n, s.pix), p = new Float64Array(4);
@@ -1731,8 +1710,95 @@ function evaluate(n, test) {
   return { acc: acc / test.length, iou: iou / test.length, shape: shape / test.length };
 }
 function meanLoss(n, list) { let t = 0; for (const s of list) { forward(n, s.pix); t += lossGrad(n, s, null); } return t / list.length; }
+function metricValue(r, task) { return task === 'loc' ? r.iou : r.acc; }
+const netWeights = n => netParams(n).map(P => P.w.slice());
+function loadWeights(n, weights) { netParams(n).forEach((P, i) => P.w.set(weights[i])); }
 
-  // View and training loop
+// ─── Training run ───
+// One yield per training step, so the same run can use a Worker or share the main thread in slices.
+// A value is yielded only when there is something to show; null means "step done, nothing new".
+function* trainRun({ task, n, noise, seed }) {
+  const set = buildTrainSet(n, noise / 100), net = makeNet(task, seed), total = UPDATES[task], d = new Float32Array(net.nOut), R = rng(77 + seed);
+  const curveTest = getTestSet().slice(GALLERY, GALLERY + CURVE_TEST), curveEvery = Math.floor(total / CURVE_POINTS), scale = task === 'seg' ? SEG_WEIGHT : 1;
+  let idx = [], c = 0, emaLoss = null, done = 0, lastTick = 0;
+  while (done < total) {
+    if (!idx.length) { idx = set.map((_, i) => i); for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; } }
+    const s = set[idx.pop()];
+    forward(net, s.pix); const L = lossGrad(net, s, d); backward(net, s.pix, d);
+    emaLoss = emaLoss === null ? L : emaLoss * .97 + L * .03;
+    if (++c === BATCH) { adamStep(net, LEARNING_RATE, BATCH); c = 0; }
+    done++;
+    let point = null;
+    if (done % curveEvery === 0) point = { at: done, train: emaLoss / scale, test: meanLoss(net, curveTest) / scale, metric: metricValue(evaluate(net, curveTest), task) };
+    const now = performance.now(), tick = now - lastTick > LIVE_TICK_MS;
+    if (tick) lastTick = now;
+    yield point || tick ? { type: 'progress', done, point, tick, next: idx.length ? idx[idx.length - 1] : 0, weights: netWeights(net) } : null;
+  }
+  if (c) adamStep(net, LEARNING_RATE, c);
+  return { type: 'done', ...evaluate(net, getTestSet()), weights: netWeights(net) };
+}
+
+  return {
+    NET_SIZE, NET_CH, NET_PIXELS, C1, UPDATES, TEST_COUNT, CURVE_TEST, GALLERY, NET_COATS, NET_BACKGROUNDS, NET_VARIANTS, CAT_VARIANTS, DOG_VARIANTS, CAR_VARIANTS,
+    rng, boxIoU, makeSample, buildTrainSet, getTestSet, makeNet, forward, backward, lossGrad, netParams, loadWeights, predict, segVerdict, evaluate, metricValue, trainRun,
+  };
+}
+function netWorkerSource(palette) {
+  return `const base=(${cvCore.toString()})();
+const net=(${netCore.toString()})(base,${JSON.stringify(palette)});
+self.onmessage=function(e){
+  const gen=net.trainRun(e.data);let item=gen.next();
+  while(!item.done){
+    if(item.value)self.postMessage(item.value,item.value.weights.map(w=>w.buffer));
+    item=gen.next();
+  }
+  self.postMessage(item.value,item.value.weights.map(w=>w.buffer));
+};`;
+}
+
+// ─── Training tab: view ───
+function createNetLab() {
+  // ─── Constants ───
+  // Pictures and charts take their colours from the design tokens, so a theme swap reaches them too.
+  const COLOR_TOKENS = { ink: '--ink', ink2: '--ink-2', ink3: '--ink-3', paper: '--paper', stone: '--paper-2', stone2: '--paper-3', line: '--line-2', lineStrong: '--line-strong', yellow: '--yellow', blue: '--blue', blue6: '--blue-600', green: '--green', green6: '--green-600', red: '--red', grape: '--grape', berry: '--play-berry' };
+  const rootStyle = getComputedStyle(document.documentElement);
+  const COLOR = Object.fromEntries(Object.entries(COLOR_TOKENS).map(([name, token]) => [name, rootStyle.getPropertyValue(token).trim()]));
+  const {
+    NET_SIZE, NET_CH, NET_PIXELS, C1, UPDATES, TEST_COUNT, CURVE_TEST, GALLERY, NET_COATS, NET_BACKGROUNDS, NET_VARIANTS, CAT_VARIANTS, DOG_VARIANTS, CAR_VARIANTS,
+    rng, boxIoU, makeSample, buildTrainSet, getTestSet, makeNet, forward, backward, lossGrad, netParams, loadWeights, predict, segVerdict, evaluate, metricValue, trainRun,
+  } = netCore(core, COLOR);
+  const TASK_IDS = ['cls', 'loc', 'seg'];
+  const TASK_NAMES = { cls: 'Klasyfikacja', loc: 'Lokalizacja', seg: 'Segmentacja' };
+  const NET_CLASSES = ['kot', 'pies', 'samochód'];
+  const NET_CLASS_COLOR = [COLOR.grape, COLOR.berry, COLOR.red];
+  const N_STEPS = [20, 60, 200, 600, 2000];
+  const PREVIEW_COUNT = 12;
+  const SLICE_MS = 14, BASE_SEED = 11, TRY_SEED = 2000000;
+
+  // ─── State ───
+  const newTries = () => ({ n: 0, right: 0, classRight: 0, shapeRight: 0, lastTile: null });
+  const newTrain = () => ({ status: 'idle', n: 200, noise: 0, done: 0, runs: [], results: {}, curve: [], previewOffset: 0, seedCounter: 0, tryCounter: 0, runId: 0, worker: null, engine: null, stopped: {}, tries: { cls: newTries(), loc: newTries(), seg: newTries() } });
+  const state = { task: 'cls', train: newTrain() };
+
+  // ─── Helpers ───
+  const $ = id => document.getElementById(id);
+  const isVisible = () => App.view === 'trening';
+  const dec = (v, d = 2) => comma(v, d);
+  const pct = (v, digits = 0) => comma(v * 100, digits) + '%';
+  const plNum = n => Math.round(n).toLocaleString('pl-PL');
+  // What the selected task shows: only one run exists at a time, and task switching waits for it.
+  function viewStatus() {
+    const t = state.train;
+    return t.status === 'running' ? 'running' : t.stopped[state.task] ? 'stopped' : t.results[state.task] ? 'done' : 'idle';
+  }
+  function setupCanvas(cv, w, h) {
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return ctx;
+  }
+
+  // ─── View ───
 function buildTrening() {
   return `<div class="net-lab">
   <header class="page-head">
@@ -1883,7 +1949,6 @@ function renderPreview() {
   });
   $('previewMeta').textContent = `${plNum(t.n)} obrazów, ${plNum(t.corruptedCount)} z błędem`;
 }
-function metricValue(r, task) { return task === 'loc' ? r.iou : r.acc; }
 function metricFormat(v, task) { return task === 'loc' ? dec(v) : pct(v); }
 function metricSubText(task, r) {
   if (task === 'cls') return 'Trafność: odsetek poprawnych odpowiedzi. Zgadywanie daje około 33%.';
@@ -1995,6 +2060,8 @@ function renderLiveNow(net, s, step, total, n) {
   body.append(tile.el, note);
 }
 function renderLiveIdle(message) {
+  const card = $('liveNow');
+  card.dataset.step = 0; delete card.dataset.answer; delete card.dataset.ok;
   $('liveStep').textContent = message; $('liveBody').innerHTML = '';
 }
 function renderRunTable() {
@@ -2007,27 +2074,35 @@ function renderTry() {
   const t = state.train, r = t.results[state.task], running = t.status === 'running', tries = t.tries[state.task], card = $('tryCard');
   $('tryNew').disabled = !r || running;
   card.dataset.tries = tries.n; card.dataset.right = tries.right;
-  card.dataset.classRight = tries.classRight || 0; card.dataset.shapeRight = tries.shapeRight || 0;
-  $('tryTally').textContent = !tries.n ? '' : state.task === 'seg' ? `Klasa dobrze: ${tries.classRight} z ${tries.n}, kształt dobrze: ${tries.shapeRight} z ${tries.n}` : `Dobrze: ${tries.right} z ${tries.n}`;
+  card.dataset.classRight = tries.classRight; card.dataset.shapeRight = tries.shapeRight;
+  $('tryTally').textContent = !tries.n || running ? '' : state.task === 'seg' ? `Klasa dobrze: ${tries.classRight} z ${tries.n}, kształt dobrze: ${tries.shapeRight} z ${tries.n}` : `Dobrze: ${tries.right} z ${tries.n}`;
+  // The tile shown always belongs to the selected task and its current model.
   if (!r || running) $('tryOut').innerHTML = `<p class="empty">${running ? 'Poczekaj na koniec treningu.' : 'Najpierw wytrenuj sieć.'}</p>`;
-  else if (!tries.n) $('tryOut').innerHTML = '<p class="empty">Wylosuj obraz i zobacz odpowiedź sieci.</p>';
+  else if (tries.lastTile) $('tryOut').replaceChildren(tries.lastTile);
+  else $('tryOut').innerHTML = '<p class="empty">Wylosuj obraz i zobacz odpowiedź sieci.</p>';
 }
 function tryNewImage() {
   const t = state.train, r = t.results[state.task]; if (!r || t.status === 'running') return;
   const s = makeSample(rng(TRY_SEED + t.tryCounter++)), tile = answerTile(r.net, s), tries = t.tries[state.task];
   tries.n++; if (tile.ok) tries.right++;
-  if (tile.verdict) { tries.classRight = (tries.classRight || 0) + (tile.verdict.classOk ? 1 : 0); tries.shapeRight = (tries.shapeRight || 0) + (tile.verdict.shapeOk ? 1 : 0); }
-  const out = $('tryOut'); out.innerHTML = ''; out.appendChild(tile.el);
+  if (tile.verdict) { tries.classRight += tile.verdict.classOk ? 1 : 0; tries.shapeRight += tile.verdict.shapeOk ? 1 : 0; }
+  tries.lastTile = tile.el;
   renderTry(); announce(tile.text);
 }
 function renderTrain() {
   if (!$('trainLab')) return;
-  const t = state.train, lab = $('trainLab'), running = t.status === 'running', task = state.task;
+  const t = state.train, lab = $('trainLab'), running = t.status === 'running', task = state.task, status = viewStatus();
   $('nVal').textContent = plNum(t.n); $('noiseVal').textContent = t.noise + '%';
   $('nRange').value = N_STEPS.indexOf(t.n); $('noiseRange').value = t.noise;
   $('nRange').setAttribute('aria-valuetext', `${plNum(t.n)} obrazów`); $('noiseRange').setAttribute('aria-valuetext', `${t.noise} procent`);
-  lab.dataset.state = t.status; lab.dataset.task = task; lab.dataset.n = t.n; lab.dataset.noise = t.noise; lab.dataset.done = t.done; lab.dataset.updates = UPDATES[task];
+  $('nRange').disabled = $('noiseRange').disabled = running;
+  renderTaskButtons();
+  lab.dataset.state = status; lab.dataset.task = task; lab.dataset.n = t.n; lab.dataset.noise = t.noise; lab.dataset.updates = UPDATES[task];
+  lab.dataset.done = running ? t.done : status === 'done' ? UPDATES[task] : 0;
+  if (!running) delete lab.dataset.liveMetric;
   $('trainBtnLabel').textContent = running ? 'Zatrzymaj' : 'Trenuj';
+  // T only starts a run, so it is not offered next to "Zatrzymaj".
+  $('trainBtn').querySelector('kbd').hidden = running;
   $('trainBtn2').textContent = running ? 'Zatrzymaj' : t.results[task] ? 'Trenuj ponownie' : 'Trenuj';
   const icon = $('trainBtn').querySelector('svg, i');
   if (icon && icon.dataset.want !== (running ? 'square' : 'play')) {
@@ -2044,36 +2119,36 @@ function renderTrain() {
       $('metricNowLabel').textContent = 'Po treningu'; $('metricBig').textContent = metricFormat(metricValue(r, task), task); $('metricSub').textContent = metricSubText(task, r);
       lab.dataset.acc = r.acc.toFixed(3); lab.dataset.iou = r.iou.toFixed(3); lab.dataset.shape = r.shape.toFixed(3);
       renderGallery(r.net); renderWeights(r.net, r.init);
-      renderLiveIdle(`Gotowe: ${plNum(UPDATES[task])} kroków na ${plNum(r.n)} obrazach, w ${dec(r.seconds, 1)} sekundy na Twoim komputerze.`);
-      if (t.stopped !== task) $('trainStatus').textContent = 'Wynik policzono na obrazach, których sieć nie widziała.';
+      renderLiveIdle(`${status === 'stopped' ? 'Poprzedni model' : 'Gotowe'}: ${plNum(UPDATES[task])} kroków na ${plNum(r.n)} obrazach, w ${dec(r.seconds, 1)} sekundy na Twoim komputerze.`);
+      $('trainStatus').textContent = status === 'stopped' ? 'Trening zatrzymany. Nadal działa poprzedni model i jego wynik.' : 'Wynik policzono na obrazach, których sieć nie widziała.';
     } else {
       $('metricNowLabel').textContent = 'Po treningu'; $('metricBig').textContent = '?'; $('metricSub').textContent = metricSubText(task, null);
       delete lab.dataset.acc; delete lab.dataset.iou; delete lab.dataset.shape;
       renderGallery(un.net); renderWeights(un.net, null);
       renderLiveIdle('Sieć ma na razie losowe wagi, więc tylko zgaduje. Odpowiedzi poniżej to jej prawdziwe odpowiedzi bez treningu.');
-      if (t.stopped !== task) $('trainStatus').textContent = 'Naciśnij „Trenuj”, a zobaczysz każdy etap.';
+      $('trainStatus').textContent = status === 'stopped' ? 'Trening zatrzymany. Nie ma wyniku końcowego.' : 'Naciśnij „Trenuj”, a zobaczysz każdy etap.';
     }
   }
   renderChart(); renderRunTable(); renderTrainProgress(); renderTry(); renderMaskLegend();
 }
 function renderTrainProgress() {
-  const t = state.train, total = UPDATES[state.task], p = t.status === 'running' ? Math.round(t.done / total * 100) : t.status === 'done' ? 100 : 0;
+  const t = state.train, total = UPDATES[state.task], status = viewStatus(), p = status === 'running' ? Math.round(t.done / total * 100) : status === 'done' ? 100 : 0;
   $('trainFill').style.width = p + '%'; $('trainProgress').setAttribute('aria-valuenow', p);
 }
 
 // ─── Training loop ───
 function startTraining() {
   const t = state.train;
-  if (t.status === 'running') { t.stop = true; return; }
-  const task = state.task, n = t.n, noise = t.noise, seed = BASE_SEED + t.seedCounter++;
+  if (t.status === 'running') return;
+  const task = state.task, n = t.n, noise = t.noise, seed = BASE_SEED + t.seedCounter++, runId = ++t.runId;
   // Every run starts from different random weights, so repeating a run gives a slightly different result.
-  const set = buildTrainSet(n, noise / 100), net = makeNet(task, seed), total = UPDATES[task], d = new Float32Array(net.nOut), R = rng(77 + seed);
-  const test = getTestSet(), curveTest = test.slice(GALLERY, GALLERY + CURVE_TEST), curveEvery = Math.floor(total / CURVE_POINTS);
+  // This copy of the network only displays progress: the run itself sends its weights here.
+  const set = buildTrainSet(n, noise / 100), net = makeNet(task, seed), total = UPDATES[task], test = getTestSet();
   const init = { c1: net.c1.w.slice(), c2: net.c2.w.slice(), d1: net.d1.w.slice() }, baseline = evaluate(net, test), startedAt = performance.now();
-  Object.assign(t, { status: 'running', stop: false, stopped: null, done: 0, curve: [{ at: 0, metric: metricValue(baseline, task) }] });
-  t.tries[task] = { n: 0, right: 0 }; $('tryOut').innerHTML = '';
-  let idx = [], c = 0, emaLoss = null, lastTick = 0;
-  const lab = $('trainLab'), scale = task === 'seg' ? SEG_WEIGHT : 1;
+  const startPoint = { at: 0, metric: metricValue(baseline, task) };
+  delete t.stopped[task];
+  Object.assign(t, { status: 'running', done: 0, curve: [startPoint] });
+  const lab = $('trainLab');
   renderTrain();
   $('trainStatus').textContent = 'Trening trwa. Liczy go Twój komputer.'; announce('Trening rozpoczęty.');
   $('metricBefore').textContent = metricFormat(metricValue(baseline, task), task); lab.dataset.baseline = metricValue(baseline, task).toFixed(3);
@@ -2081,54 +2156,73 @@ function startTraining() {
   delete lab.dataset.acc; delete lab.dataset.iou; delete lab.dataset.shape;
   if (isVisible()) $('liveSec').scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   renderGallery(net); renderWeights(net, init); renderLiveNow(net, set[0], 0, total, n);
-  const finish = () => {
-    if (c) adamStep(net, LEARNING_RATE, c);
-    if (t.stop) {
-      t.status = 'idle'; t.done = 0; t.stopped = task;
-      $('trainStatus').textContent = 'Trening zatrzymany.'; renderTrain(); announce('Trening zatrzymany.'); return;
-    }
-    const res = evaluate(net, test), run = { task, n, noise, acc: res.acc, iou: res.iou, shape: res.shape, net, baseline, init, curve: t.curve, seconds: (performance.now() - startedAt) / 1000 };
-    t.results[task] = run; t.runs.push(run); t.status = 'done'; t.done = total;
-    renderTrain(); renderTaskButtons();
+  const isCurrent = () => t === state.train && runId === t.runId && t.status === 'running';
+  const finish = data => {
+    loadWeights(net, data.weights);
+    if (t.worker) { t.worker.terminate(); t.worker = null; }
+    const run = { task, n, noise, acc: data.acc, iou: data.iou, shape: data.shape, net, baseline, init, curve: t.curve, seconds: (performance.now() - startedAt) / 1000 };
+    t.results[task] = run; t.runs.push({ task, n, noise, acc: run.acc, iou: run.iou, shape: run.shape }); t.status = 'idle'; t.done = 0;
+    // The tries judged the previous model, which only now stops answering.
+    t.tries[task] = newTries();
+    renderTrain();
     announce(`Trening zakończony. Bez treningu: ${metricFormat(metricValue(baseline, task), task)}. Po treningu: ${metricFormat(metricValue(run, task), task)}.`);
   };
-  const slice = () => {
-    if (t !== state.train) return;
-    if (t.stop) { finish(); return; }
-    const end = performance.now() + SLICE_MS;
-    let newPoint = false;
-    while (t.done < total && performance.now() < end) {
-      if (!idx.length) { idx = set.map((_, i) => i); for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; } }
-      const s = set[idx.pop()];
-      forward(net, s.pix); const L = lossGrad(net, s, d); backward(net, s.pix, d);
-      emaLoss = emaLoss === null ? L : emaLoss * .97 + L * .03;
-      if (++c === BATCH) { adamStep(net, LEARNING_RATE, BATCH); c = 0; }
-      t.done++;
-      if (t.done % curveEvery === 0) {
-        const m = evaluate(net, curveTest);
-        t.curve.push({ at: t.done, train: emaLoss / scale, test: meanLoss(net, curveTest) / scale, metric: metricValue(m, task) });
-        newPoint = true;
-      }
-    }
+  const onMessage = data => {
+    if (!isCurrent()) return;
+    if (data.type === 'done') { finish(data); return; }
+    loadWeights(net, data.weights); t.done = data.done;
+    if (data.point) t.curve.push(data.point);
     lab.dataset.done = t.done; renderTrainProgress();
-    const now = performance.now(), visible = isVisible();
-    if (visible && newPoint) {
-      const last = t.curve[t.curve.length - 1];
-      $('metricBig').textContent = metricFormat(last.metric, task); lab.dataset.liveMetric = last.metric.toFixed(3);
+    if (!isVisible()) return;
+    if (data.point) {
+      $('metricBig').textContent = metricFormat(data.point.metric, task); lab.dataset.liveMetric = data.point.metric.toFixed(3);
       renderGallery(net); renderChart();
     }
-    if (visible && now - lastTick > LIVE_TICK_MS && t.done < total) {
-      lastTick = now;
-      renderLiveNow(net, idx.length ? set[idx[idx.length - 1]] : set[0], t.done, total, n); renderWeights(net, init);
-    }
-    if (t.done >= total) finish(); else setTimeout(slice, 0);
+    if (data.tick && t.done < total) { renderLiveNow(net, set[data.next], t.done, total, n); renderWeights(net, init); }
   };
-  setTimeout(slice, 0);
+  const settings = { task, n, noise, seed };
+  const runOnMain = () => {
+    t.engine = 'main'; lab.dataset.engine = t.engine;
+    const gen = trainRun(settings);
+    const pump = () => {
+      if (!isCurrent()) return;
+      const until = performance.now() + SLICE_MS;
+      let item = gen.next();
+      while (!item.done && !item.value && performance.now() < until) item = gen.next();
+      if (item.value) onMessage(item.value);
+      if (!item.done) setTimeout(pump, 0);
+    };
+    setTimeout(pump, 0);
+  };
+  try {
+    if (typeof Worker === 'undefined' || App.forceMainThread) throw new Error('no worker');
+    const url = URL.createObjectURL(new Blob([netWorkerSource(COLOR)], { type: 'text/javascript' }));
+    const worker = new Worker(url);
+    URL.revokeObjectURL(url);
+    t.worker = worker; t.engine = 'worker'; lab.dataset.engine = t.engine;
+    worker.onmessage = e => onMessage(e.data);
+    worker.onerror = e => {
+      e.preventDefault(); worker.terminate();
+      if (t.worker !== worker) return;
+      t.worker = null;
+      if (isCurrent()) { t.done = 0; t.curve = [startPoint]; runOnMain(); }
+    };
+    worker.postMessage(settings);
+  } catch (err) { t.worker = null; runOnMain(); }
 }
+function stopTraining() {
+  const t = state.train;
+  if (t.status !== 'running') return;
+  if (t.worker) { t.worker.terminate(); t.worker = null; }
+  t.runId++; t.status = 'idle'; t.done = 0; t.stopped[state.task] = true;
+  renderTrain(); announce('Trening zatrzymany.');
+}
+function toggleTraining() { if (state.train.status === 'running') stopTraining(); else startTraining(); }
 
-  // Controls
+  // ─── Controls ───
   function renderTaskButtons() {
-    document.querySelectorAll('[data-net-task]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.netTask === state.task)));
+    const running = state.train.status === 'running';
+    document.querySelectorAll('[data-net-task]').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.netTask === state.task)); b.disabled = running; });
   }
   function renderTrainSettings() {
     const t = state.train;
@@ -2142,7 +2236,7 @@ function startTraining() {
     if (state.train.status === 'running') { announce('Poczekaj na koniec treningu albo go zatrzymaj.'); return; }
     const changed = task !== state.task;
     state.task = task;
-    renderTaskButtons(); renderTrain();
+    renderTrain();
     if (changed) announce('Zadanie: ' + TASK_NAMES[task]);
   }
   function bind(root) {
@@ -2151,7 +2245,7 @@ function startTraining() {
       if (task) { setTask(task.dataset.netTask); return; }
       if (e.target.closest('#previewMore')) { state.train.previewOffset += PREVIEW_COUNT; renderPreview(); return; }
       if (e.target.closest('#tryNew')) { tryNewImage(); return; }
-      if (e.target.closest('[data-train-toggle]')) startTraining();
+      if (e.target.closest('[data-train-toggle]')) toggleTraining();
     });
     root.addEventListener('input', e => {
       if (state.train.status === 'running') return;
@@ -2160,13 +2254,14 @@ function startTraining() {
     });
     window.addEventListener('resize', () => { if (isVisible()) renderChart(); });
   }
-  function onShow() { renderTaskButtons(); renderTrain(); }
+  function onShow() { renderTrain(); }
   function reset() {
+    if (state.train.worker) state.train.worker.terminate();
     state.task = 'cls'; state.train = newTrain();
     if (isVisible()) onShow();
   }
 
-  // Checks for the probes panel
+  // ─── Checks for the probes panel ───
 function gradientErrors(task, layer, seed) {
   const net = makeNet(task, 3), s = makeSample(rng(seed)), d = new Float32Array(net.nOut), P = net[layer], R = rng(seed * 7 + 1), eps = 1e-3, errors = [];
   forward(net, s.pix); lossGrad(net, s, d); backward(net, s.pix, d);
@@ -2196,6 +2291,10 @@ function gradientCheck(task) {
   'Obrazy w klasie różnią się kształtem': () => [0, 1, 2].every(c => { const list = getTestSet().filter(s => s.cls === c), a = list.map(s => (s.box[2] - s.box[0]) / (s.box[3] - s.box[1])); return new Set(list.map(s => s.mask.join())).size >= list.length * .95 && Math.max(...a) / Math.min(...a) > 1.5; }),
   'Maska i prostokąt próbek są spójne': () => getTestSet().slice(0, 40).every(s => { const S = NET_SIZE; let ok = s.mask.some(v => v === s.cls + 1); s.mask.forEach((v, k) => { if (!v) return; const x = (k % S) / S, y = Math.floor(k / S) / S; if (x < s.box[0] || x >= s.box[2] || y < s.box[1] || y >= s.box[3]) ok = false; }); return ok; }),
   'Obiekt zajmuje większość kadru': () => getTestSet().every(s => Math.max(s.box[2] - s.box[0], s.box[3] - s.box[1]) >= .6),
+  'Licznik wag nie obejmuje nieużywanego skrótu': () => { const skip = task => makeNet(task, 1).sk; return !skip('cls') && !skip('loc') && skip('seg').w.length === C1 * 4 && netParams(makeNet('cls', 1)).length === 8 && netParams(makeNet('seg', 1)).length === 9; },
+  'Prostokąt: IoU pół na pół daje 1/3': () => Math.abs(boxIoU([0, 0, .5, 1], [.25, 0, .75, 1]) - 1 / 3) < 1e-6 && boxIoU([0, 0, .1, .1], [.5, .5, .6, .6]) === 0,
+  'Paleta obrazów pochodzi z tokenów': () => Object.values(COLOR).every(v => /^#[0-9a-f]{6}$/i.test(v)),
+  'Te same ustawienia nie budują zbioru od nowa': () => buildTrainSet(60, .2) === buildTrainSet(60, .2) && buildTrainSet(60, .2) !== buildTrainSet(60, .3),
   'Segmentacja ocenia klasę i kształt osobno': () => {
     const S = NET_PIXELS, s = { mask: new Uint8Array(S).fill(1, 0, 100), cls: 0 }, right = segVerdict(s.mask.slice(), s), wrongClass = segVerdict(s.mask.map(v => v ? 2 : 0), s), empty = segVerdict(new Uint8Array(S), s);
     return right.ok && !wrongClass.classOk && wrongClass.shapeOk && !wrongClass.ok && wrongClass.iou === 0 && empty.cls === null && !empty.classOk && !empty.shapeOk;
@@ -2352,6 +2451,7 @@ const App = {
   quiz: { index: 0, score: 0, picked: null, wrongTasks: [], finished: false },
   storageOk: true,
   scrollByView: {},
+  enterAtTop: false,
 };
 const baselines = {};
 
@@ -3027,12 +3127,13 @@ function startTraining(task) {
   const run = lab.run;
   run.id++;
   const runId = run.id;
+  const prevCurve = run.curve;
   run.epoch = 0; run.step = 0; run.curve = []; run.half = false;
   run.epochs = core.EPOCHS[task][lab.images]; run.totalSteps = 0;
   run.settings = currentSettings(task);
   run.startedAt = performance.now();
   // The previous model keeps answering until the new one finishes.
-  run.prev = lab.net ? { metric: lab.metric, classAcc: lab.classAcc } : null;
+  run.prev = lab.net ? { metric: lab.metric, classAcc: lab.classAcc, curve: prevCurve } : null;
   lab.status = 'training'; lab.metric = null; lab.classAcc = null; lab.stale = false;
   lab.check.alert = '';
   if (!lab.net) { lab.check.scene = null; lab.check.pred = null; lab.check.uploaded = false; lab.check.msg = ''; }
@@ -3097,10 +3198,10 @@ function stopTraining(task) {
   if (lab.status !== 'training') return;
   if (run.worker) { run.worker.terminate(); run.worker = null; }
   run.id++;
-  if (run.prev) { lab.metric = run.prev.metric; lab.classAcc = run.prev.classAcc; }
+  if (run.prev) { lab.metric = run.prev.metric; lab.classAcc = run.prev.classAcc; run.curve = run.prev.curve; }
   lab.stale = settingsChanged(lab);
   lab.status = 'stopped';
-  renderTrain(task); renderCheck(task);
+  renderTrain(task); renderCurve(task); renderCheck(task);
   announce(`${TASK_INFO[task].name}: trening przerwany. ${lab.net ? 'Nadal działa poprzedni model.' : 'Nie ma wyniku końcowego.'}`);
 }
 function explainResult(task) {
@@ -3254,7 +3355,7 @@ function photoTrainHtml() {
           <details class="more photo-fold"><summary>Dobre dane to nie tylko etykiety</summary><div class="photo-fold-body">
             <p><b>Różnorodność:</b> różne tła, światło, kąty i przykłady każdej klasy.</p>
             <p><b>Oddzielne zbiory:</b> trening uczy, walidacja pomaga dobierać ustawienia, test sprawdza wynik na nowych danych.</p>
-            <p><b>Spójne oznaczenia:</b> te same zasady dla nazw klas, ramek i granic masek.</p>
+            <p><b>Spójne oznaczenia:</b> te same zasady dla nazw klas, prostokątów i granic masek.</p>
             <p>Zdjęcia do analizy są osobne. Maski są poglądowymi ręcznymi adnotacjami, nie wynikiem modelu.</p>
           </div></details>
           <details class="more photo-fold"><summary>A detekcja, segmentacja instancji i liczba zdjęć?</summary><div class="photo-fold-body">
@@ -3487,7 +3588,10 @@ function renderTrain(task) {
   if (task === 'loc') els['class-acc-text'].textContent = lab.classAcc === null ? 'Trafność klasy: –' : `Trafność klasy: ${comma(lab.classAcc * 100, 1)}%`;
   const explain = els.explain;
   let note = '';
-  if (lab.status === 'stopped') note = lab.net ? 'Trening przerwany. Nadal działa poprzedni model i jego wynik.' : 'Trening przerwany: model nie jest gotowy i nie ma wyniku końcowego.';
+  if (lab.status === 'stopped') {
+    const t = lab.trained;
+    note = lab.net ? `Trening przerwany. Nadal działa poprzedni model i jego wynik: ${t.images} obrazów, ${t.noise}% błędów, różnorodność ${diversityLabel(t.diversity)}.${lab.stale ? ' Suwaki pokazują inne ustawienia, więc wytrenuj ponownie.' : ''}` : 'Trening przerwany: model nie jest gotowy i nie ma wyniku końcowego.';
+  }
   else if (lab.status === 'idle' && App.progress['train-' + task]) note = 'Modele i historia prób nie są zapisywane po odświeżeniu strony. Najlepszy wynik znajdziesz w widoku „Porównanie”. Wytrenuj model ponownie.';
   else if (lab.status === 'done') {
     note = explainResult(task);
@@ -3864,7 +3968,8 @@ function viewFromHash(hash) {
 }
 function setViewFromHash(animate, focusTitle) {
   const view = viewFromHash(location.hash);
-  const changed = view !== App.view;
+  const changed = view !== App.view, enterAtTop = App.enterAtTop;
+  App.enterAtTop = false;
   TASKS.forEach(annotTimerPause);
   App.view = view;
   TASKS.forEach(annotTimerResume);
@@ -3873,7 +3978,7 @@ function setViewFromHash(animate, focusTitle) {
   // Built on first open: the untrained baseline takes a moment to compute.
   if (view === 'trening') netLab.onShow();
   if (changed) {
-    window.scrollTo(0, App.scrollByView[view] || 0);
+    window.scrollTo(0, enterAtTop ? 0 : App.scrollByView[view] || 0);
     const active = navEl.querySelector(`a[data-view="${view}"]`);
     // Only the menu's own sideways scroll on phones: scrollIntoView would also pull the page back up to the header.
     if (active) navEl.scrollLeft += active.getBoundingClientRect().left - navEl.getBoundingClientRect().left - 16;
@@ -4017,7 +4122,7 @@ function onShortcut(event) {
     return;
   }
   if (App.view === 'trening') {
-    if (key === 't' || key === 'T') { event.preventDefault(); netLab.start(); return; }
+    if (key === 't' || key === 'T') { event.preventDefault(); if (!event.repeat) netLab.start(); return; }
     if (/^[1-3]$/.test(key)) { event.preventDefault(); netLab.setTask(netLab.taskIds[Number(key) - 1]); return; }
   }
   const task = taskOfView(App.view);
@@ -4071,6 +4176,11 @@ function bindPhotoViews() {
 }
 function bindGlobal() {
   window.addEventListener('hashchange', () => setViewFromHash(true, true));
+  // A link in the content opens its view from the top. The menu and back/forward return to the saved position.
+  document.addEventListener('click', event => {
+    const link = event.target.closest && event.target.closest('a[href^="#"]');
+    if (link && !navEl.contains(link) && link.getAttribute('href') !== location.hash) App.enterAtTop = true;
+  }, true);
   document.addEventListener('keydown', onShortcut);
   document.addEventListener('visibilitychange', () => { TASKS.forEach(document.hidden ? annotTimerPause : annotTimerResume); });
   // The app restores each view's position itself; the browser would restore it against the previous view's height.
