@@ -92,6 +92,12 @@
   --grape:      #7A5AC2;
   --grape-soft: #7A5AC2;  /* white text 5.2:1 */
   --grape-ink:  #FFFFFF;
+  /* Segmentation masks: hues no fruit or background has, each opposite its fruit's usual colour, so a mask never reads as the object's colour. */
+  --mask-apple:  #19D3F3;
+  --mask-banana: #8A4DFF;
+  --mask-pear:   #FF2BA6;
+  --mask-yours:  #1E8FC2;
+  --mask-mug:    #B6FF1A;
 
   /* Legacy role aliases - older edulab apps use these names */
   --marigold: var(--yellow); --marigold-600: var(--yellow-600); --marigold-soft: var(--yellow-soft); --marigold-ink: var(--yellow-ink);
@@ -381,8 +387,15 @@ canvas { display: block; }
 .prob b { font-family: var(--font-mono); font-weight: 500; text-align: right; }
 .probs { display: grid; gap: 8px; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px; }
-.swatch { width: 12px; height: 12px; border-radius: var(--r-xs); display: inline-block; }
-.swatch-0 { background: var(--red); } .swatch-1 { background: var(--yellow); } .swatch-2 { background: var(--green); }
+.swatch { width: 14px; height: 14px; border: 1px solid var(--ink); border-radius: var(--r-xs); display: inline-block; flex: none; }
+.chip:has(.swatch) { display: inline-flex; align-items: center; gap: 6px; }
+.legend-block { margin-bottom: 12px; }
+.legend-note { margin: 6px 0 0; font-size: var(--body-sm); color: var(--ink); }
+.swatch-0 { background: repeating-linear-gradient(135deg, var(--mask-apple) 0 3px, var(--paper) 3px 6px); }
+.swatch-1 { background: repeating-linear-gradient(45deg, var(--mask-banana) 0 3px, var(--paper) 3px 6px); }
+.swatch-2 { background: repeating-linear-gradient(90deg, var(--mask-pear) 0 3px, var(--paper) 3px 6px); }
+.swatch-mug { background: repeating-linear-gradient(0deg, var(--mask-mug) 0 3px, var(--ink) 3px 6px); }
+.swatch-yours { background: repeating-linear-gradient(135deg, var(--mask-yours) 0 3px, var(--paper) 3px 6px); }
 .upload-label { position: relative; }
 .upload-label input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
 .upload-label:focus-within { box-shadow: var(--focus-ring); }
@@ -414,6 +427,44 @@ td:first-child { color: var(--ink); font-weight: 600; }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 .placeholder a, tbody a { color: var(--ink); }
 td code { font-size: 12px; overflow-wrap: anywhere; white-space: pre-wrap; display: block; padding: 6px 8px; margin-top: 4px; }
+
+/* ─── Photo views ─── */
+.photo-controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: start; margin-bottom: 20px; }
+.photo-controls .field-label { display: block; }
+.photo-controls .input { min-width: 15rem; }
+.photo-layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); gap: 18px; align-items: start; }
+.photo-side { display: grid; gap: 14px; min-width: 0; }
+.photo-scene { display: block; width: min(100%, calc((100svh - 150px) * 1.636)); height: auto; border-radius: var(--r-sm); }
+.photo-word { margin: 4px 0 8px; font-family: var(--font-display); font-size: 28px; font-weight: 700; line-height: 1.2; color: var(--ink); }
+.photo-question { margin: 0; font-family: var(--font-mono); font-size: var(--overline); color: var(--ink-2); }
+.photo-code { display: block; margin-top: 8px; padding: 8px 10px; }
+.photo-legend { margin-top: 12px; }
+.photo-steps { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.photo-steps li { padding: 6px 12px; border: 1px solid var(--line-2); border-radius: var(--r-pill); color: var(--ink-2); font-weight: 600; font-size: var(--body-sm); }
+.photo-steps li[data-active="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.photo-pipeline { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-top: 18px; }
+.photo-explain { margin: 12px 0 0; color: var(--ink); }
+.photo-count { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 14px 0 10px; font-family: var(--font-mono); font-size: var(--overline); color: var(--ink-2); }
+.photo-gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.photo-thumb { display: grid; gap: 4px; padding: 4px; min-width: 0; border: 1.5px solid var(--line-2); border-radius: var(--r-sm); background: var(--surface); color: var(--ink); font-size: var(--caption); text-align: left; cursor: pointer; }
+.photo-thumb[aria-pressed="true"] { border-color: var(--ink); background: var(--paper-3); font-weight: 600; }
+.photo-thumb img { display: block; width: 100%; height: auto; aspect-ratio: 720 / 440; object-fit: cover; border-radius: var(--r-xs); }
+.photo-fold { margin-top: 12px; }
+.photo-fold-body { padding: 4px 14px 14px; }
+.photo-fold-body p { margin: 8px 0 0; font-size: var(--body-sm); color: var(--ink); }
+.photo-fold-body .record { max-height: none; }
+.ph-badge { fill: var(--ink); }
+.ph-badge-text { fill: var(--paper); font-family: var(--font-mono); font-size: 18px; }
+.ph-hint-bg { fill: var(--paper); }
+.ph-hint-text { fill: var(--ink); font-family: var(--font-mono); font-size: 15px; }
+.ph-line-under { fill: none; stroke: var(--ink); stroke-width: 6; }
+.ph-line-dash { fill: none; stroke: var(--yellow); stroke-width: 3; stroke-dasharray: 12 8; }
+.ph-line-frame { fill: none; stroke: var(--paper); stroke-width: 3; }
+.ph-outline { fill: none; stroke: var(--paper); stroke-width: 2; }
+.ph-veil { fill: var(--paper); opacity: .78; }
+.ph-contour { fill: none; stroke: var(--ink); stroke-width: 2.5; }
+.ph-grid { fill: none; stroke: var(--paper); stroke-width: .7; opacity: .6; }
+.ph-hatch-apple { fill: var(--mask-apple); } .ph-hatch-pear { fill: var(--mask-pear); } .ph-hatch-mug { fill: var(--mask-mug); }
 
 /* ─── Calculator ─── */
 .calc-grid { display: grid; grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr); gap: 24px; align-items: start; }
@@ -509,7 +560,14 @@ dialog::backdrop { background: color-mix(in srgb, var(--ink) 50%, transparent); 
   .stack-table td code { margin-top: 0; }
   .class-opts .opt { padding: 9px 4px; font-size: var(--body-sm); }
 }
+@media (max-width: 768px) {
+  .photo-layout { grid-template-columns: minmax(0, 1fr); }
+  .photo-scene { width: 100%; }
+  .photo-controls .input { min-width: 0; width: 100%; }
+  .photo-controls > div { min-width: 0; max-width: 100%; }
+}
 @media (max-width: 479px) {
+  .photo-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 359px) {
@@ -548,6 +606,7 @@ dialog::backdrop { background: color-mix(in srgb, var(--ink) 50%, transparent); 
     <li><kbd>T</kbd> trenuj w bieżącym laboratorium</li>
     <li><kbd>N</kbd> nowy obraz: w kroku „Sprawdź”, gdy jest model, inaczej w kroku „Oznacz”</li>
     <li><kbd>1</kbd>–<kbd>4</kbd> odpowiedź w quizie, <kbd>Enter</kbd> dalej</li>
+    <li>W widoku „Laboratorium”: <kbd>Enter</kbd> następny krok, <kbd>R</kbd> od początku</li>
     <li><kbd>?</kbd> ta lista, <kbd>Esc</kbd> zamknięcie</li>
     <li>Na kanwach: strzałki, Shift+strzałki, spacja, <kbd>Enter</kbd> zatwierdza</li>
   </ul></div>
@@ -1224,7 +1283,7 @@ function cvCore() {
   return {
     SIZE, PIXELS, CLASS_NAMES, TEST_SIZE, BASE_SEED, EPOCHS,
     rngFrom, genScene, countClasses, boxOfClass, buildTrainSet, galleryExamples, testSet, labelValues, labelKey, trueLabel,
-    iouBox, iouMask, rleEncode, rleDecode, baseline, buildNet, predict, train, runToEnd,
+    FRUIT_COLORS, iouBox, iouMask, rleEncode, rleDecode, baseline, buildNet, predict, train, runToEnd,
   };
 }
 
@@ -1234,8 +1293,8 @@ function cvCore() {
 const core = cvCore();
 const { SIZE, PIXELS, CLASS_NAMES } = core;
 const TASKS = ['cls', 'loc', 'seg'];
-const VIEWS = ['start', 'klasyfikacja', 'lokalizacja', 'segmentacja', 'dane', 'quiz'];
-const VIEW_LABELS = { start: 'Start', klasyfikacja: 'Klasyfikacja', lokalizacja: 'Lokalizacja', segmentacja: 'Segmentacja', dane: 'Dane', quiz: 'Quiz' };
+const VIEWS = ['start', 'klasyfikacja', 'lokalizacja', 'segmentacja', 'dane', 'laboratorium', 'dane-do-treningu', 'quiz'];
+const VIEW_LABELS = { start: 'Start', klasyfikacja: 'Klasyfikacja', lokalizacja: 'Lokalizacja', segmentacja: 'Segmentacja', dane: 'Dane', laboratorium: 'Laboratorium', 'dane-do-treningu': 'Dane do treningu', quiz: 'Quiz' };
 const IMAGE_STEPS = [10, 50, 200, 500];
 const NOISE_STEPS = [0, 10, 20, 40];
 const DEFAULTS = { images: 200, noise: 0, diversity: 'full' };
@@ -1248,8 +1307,30 @@ const RATE_SECONDS = { cls: 5, loc: 35, seg: 79 };
 const STAGE_PX = 384;
 const NO_REFERENCE_TEXT = 'Własne zdjęcie nie ma wzorca, więc IoU nie da się policzyć.';
 // Canvas cannot read CSS variables: literal edulab values.
-const COLORS = { ink: '#1C1917', paper: '#FFFFFF', yellow: '#FFD500', red: '#E5322D', blue: '#1E8FC2', green: '#00A651', stone: '#EAE6E0' };
-const CLASS_COLORS = [COLORS.red, COLORS.yellow, COLORS.green];
+const COLORS = { ink: '#1C1917', paper: '#FFFFFF', yellow: '#FFD500', stone: '#EAE6E0' };
+// A mask is drawn as hatching, not a tint: the fruit's real colour stays visible and each class differs without colour too.
+const CLASS_MASKS = [{ token: '--mask-apple', hatch: 'rising' }, { token: '--mask-banana', hatch: 'falling' }, { token: '--mask-pear', hatch: 'vertical' }];
+const YOUR_MASK = { token: '--mask-yours', hatch: 'rising' };
+// Photographs, places and hand-drawn outlines, in 720×440 coordinates. Copied from the Codex vision-lab; assets/scenes holds the files.
+const PHOTO_SCENES = [{"id":"apple-inference-kitchen","sample":"apple","pool":"inference","file":"apple-inference-kitchen.webp","place":"drewniany blat kuchenny","bounds":[195,151,351,303],"rings":[[[285,151],[283,153],[284,154],[282,155],[281,154],[263,154],[249,157],[248,158],[246,158],[244,159],[239,160],[238,161],[237,161],[229,164],[226,167],[225,167],[216,174],[213,177],[212,179],[208,183],[208,185],[205,188],[200,198],[197,211],[197,213],[196,216],[196,221],[195,221],[195,226],[196,226],[196,237],[198,241],[198,243],[199,245],[200,248],[201,249],[201,253],[202,255],[204,255],[204,256],[205,257],[204,261],[206,262],[208,264],[212,273],[215,276],[216,277],[217,279],[218,280],[220,283],[223,284],[224,286],[223,287],[225,287],[226,289],[228,290],[230,290],[231,291],[233,289],[234,290],[242,295],[244,295],[246,298],[256,301],[258,301],[259,302],[260,302],[262,303],[273,303],[274,302],[277,302],[283,300],[293,299],[294,299],[297,299],[299,297],[301,297],[306,295],[316,289],[324,282],[325,280],[330,274],[339,261],[339,260],[342,255],[347,246],[350,233],[350,230],[351,226],[351,214],[351,213],[351,209],[349,202],[347,196],[343,187],[337,179],[331,172],[330,173],[327,170],[325,170],[324,167],[315,163],[299,157],[294,156],[290,156],[290,155],[290,158],[288,160],[286,164],[286,166],[285,167],[284,172],[281,172],[280,171],[281,170],[281,164],[282,163],[282,161],[283,159],[283,157],[282,158],[282,156],[284,155],[285,156],[286,155],[286,152]]]},{"id":"apple-inference-grass","sample":"apple","pool":"inference","file":"apple-inference-grass.webp","place":"trawnik w parku","bounds":[351,146,535,309],"rings":[[[502,155],[493,151],[492,151],[490,150],[487,150],[484,149],[482,149],[477,147],[467,147],[466,146],[457,147],[450,147],[429,148],[417,149],[404,151],[399,153],[396,154],[395,154],[383,160],[382,162],[382,163],[378,167],[376,167],[374,168],[368,175],[368,176],[364,182],[361,185],[356,198],[355,201],[354,203],[353,211],[352,211],[352,212],[352,213],[351,225],[352,226],[352,233],[353,235],[354,236],[353,238],[355,240],[355,242],[356,244],[355,245],[356,246],[356,250],[360,254],[361,256],[360,259],[362,261],[362,262],[363,264],[364,266],[366,269],[366,271],[370,275],[373,275],[374,276],[375,276],[374,274],[375,273],[377,275],[377,277],[378,279],[382,284],[384,284],[386,286],[387,288],[389,290],[403,290],[405,288],[407,288],[410,292],[411,291],[410,290],[411,289],[412,290],[414,295],[415,296],[415,297],[420,308],[420,309],[437,309],[438,304],[439,305],[439,308],[440,309],[448,309],[451,307],[451,305],[452,304],[454,305],[456,305],[458,307],[459,307],[458,306],[458,305],[465,305],[466,305],[470,309],[473,309],[475,303],[479,296],[479,295],[480,294],[479,292],[476,289],[476,286],[476,285],[476,284],[478,286],[483,287],[484,286],[484,287],[486,284],[486,285],[486,288],[487,289],[490,290],[495,292],[494,293],[489,296],[493,300],[494,299],[495,298],[497,297],[498,297],[498,296],[499,296],[500,295],[500,296],[501,293],[499,286],[497,277],[497,276],[501,279],[500,278],[501,278],[502,278],[505,286],[504,287],[505,290],[511,284],[511,283],[513,282],[514,278],[517,275],[518,274],[520,271],[520,270],[525,261],[530,247],[530,246],[532,238],[533,234],[534,233],[533,230],[534,228],[535,228],[534,227],[534,224],[534,213],[534,212],[534,208],[533,206],[533,205],[532,200],[533,198],[531,195],[531,193],[530,192],[530,190],[529,188],[528,186],[527,182],[527,181],[526,180],[524,178],[523,176],[523,175],[517,167],[509,159],[506,158]]]},{"id":"pear-inference-market","sample":"pear","pool":"inference","file":"pear-inference-market.webp","place":"stragan warzywny","bounds":[167,111,330,353],"rings":[[[294,111],[292,111],[291,112],[289,112],[291,113],[290,115],[289,116],[289,117],[289,118],[286,120],[285,120],[285,119],[285,118],[284,117],[279,120],[271,128],[270,130],[269,130],[268,132],[268,133],[268,132],[268,133],[267,134],[267,135],[264,138],[262,143],[260,144],[253,144],[251,143],[246,143],[246,144],[244,144],[244,145],[243,147],[239,149],[228,159],[226,163],[222,169],[221,172],[215,180],[213,185],[212,186],[211,188],[209,191],[207,195],[200,207],[189,221],[182,230],[176,242],[174,246],[174,247],[173,248],[172,252],[172,255],[171,259],[170,264],[168,266],[168,268],[167,285],[167,287],[167,290],[168,290],[168,293],[169,294],[169,297],[170,298],[170,299],[171,301],[171,303],[172,304],[172,305],[174,308],[174,310],[177,315],[178,317],[187,328],[195,337],[197,337],[200,341],[203,343],[206,345],[209,347],[210,348],[211,348],[212,349],[213,349],[214,350],[215,350],[218,352],[220,352],[229,353],[238,353],[239,353],[242,353],[245,352],[247,352],[254,350],[258,350],[259,349],[266,348],[269,348],[274,347],[285,344],[290,342],[294,339],[296,339],[297,338],[299,337],[300,336],[301,336],[311,326],[312,324],[317,317],[320,311],[322,310],[323,310],[322,308],[324,304],[325,302],[325,301],[326,298],[329,291],[329,286],[330,284],[330,282],[330,281],[330,273],[330,266],[329,262],[329,259],[328,258],[328,255],[327,254],[326,250],[325,248],[325,246],[324,246],[324,244],[321,240],[320,236],[320,233],[317,229],[317,227],[316,226],[315,223],[312,219],[312,218],[311,216],[309,213],[308,209],[307,208],[306,206],[306,204],[305,202],[305,200],[303,195],[303,192],[301,188],[300,184],[298,180],[298,178],[297,177],[293,167],[292,167],[290,164],[290,163],[282,154],[282,152],[280,151],[272,147],[275,141],[277,137],[282,132],[283,132],[285,130],[289,128],[290,128],[291,128],[293,128],[297,128],[299,125],[297,125],[294,123],[294,122],[292,121],[295,120],[295,118],[294,116],[294,115],[295,115],[294,113],[295,112]]]},{"id":"pear-inference-desk","sample":"pear","pool":"inference","file":"pear-inference-desk.webp","place":"biurko do pracy","bounds":[367,97,493,299],"rings":[[[408,97],[407,98],[404,98],[403,101],[403,104],[404,106],[405,109],[408,117],[408,123],[411,133],[411,138],[413,139],[408,141],[402,146],[399,151],[398,154],[397,155],[395,158],[392,167],[391,172],[391,173],[391,174],[386,189],[385,192],[384,193],[383,193],[384,194],[383,195],[379,202],[378,203],[378,205],[376,207],[375,210],[373,212],[373,214],[372,215],[371,218],[369,220],[369,222],[369,224],[369,229],[369,231],[367,233],[367,238],[368,251],[370,259],[371,260],[371,262],[373,264],[375,269],[384,279],[383,280],[395,291],[397,291],[401,294],[403,294],[404,295],[411,295],[413,294],[417,296],[418,296],[419,297],[426,299],[433,298],[439,296],[451,296],[457,294],[461,293],[467,288],[469,287],[477,279],[481,275],[482,272],[484,270],[484,269],[486,266],[487,264],[487,262],[488,261],[488,260],[489,259],[490,256],[490,255],[491,253],[493,244],[493,238],[493,230],[492,227],[492,224],[490,218],[489,216],[488,213],[488,212],[487,211],[486,208],[484,207],[481,201],[478,198],[478,197],[473,191],[473,190],[470,189],[467,183],[466,182],[463,173],[461,169],[461,168],[460,167],[460,166],[454,155],[449,148],[448,147],[448,146],[447,146],[443,141],[437,137],[432,136],[428,136],[429,136],[428,137],[424,137],[423,137],[422,136],[421,134],[420,133],[420,132],[420,130],[418,124],[417,120],[416,117],[416,114],[412,105],[412,103],[413,102],[413,103],[413,99],[412,98],[411,99],[411,97]]]},{"id":"mug-inference-office","sample":"mug","pool":"inference","file":"mug-inference-office.webp","place":"biurko z laptopem","bounds":[222,117,451,318],"rings":[[[263,124],[248,130],[240,135],[239,134],[239,135],[238,136],[235,138],[228,144],[224,151],[224,160],[224,162],[229,169],[233,174],[238,177],[245,180],[246,181],[247,181],[248,182],[249,182],[250,183],[249,183],[246,183],[241,181],[238,181],[233,178],[231,175],[229,174],[230,174],[226,170],[226,169],[223,162],[222,155],[222,160],[223,166],[227,171],[226,172],[225,171],[225,172],[224,171],[223,170],[223,174],[224,178],[225,190],[226,196],[226,202],[227,204],[227,208],[229,216],[229,220],[230,223],[231,233],[232,234],[232,236],[232,237],[232,242],[233,244],[233,250],[234,251],[234,254],[235,256],[236,263],[238,267],[238,270],[241,276],[241,278],[243,281],[245,286],[248,290],[248,294],[250,296],[253,296],[259,302],[259,303],[260,302],[260,304],[262,303],[268,308],[270,308],[271,309],[272,309],[277,312],[279,312],[284,314],[286,314],[287,315],[292,316],[293,317],[297,317],[301,318],[306,318],[307,318],[321,318],[328,317],[332,315],[334,314],[337,314],[338,312],[342,312],[344,310],[345,310],[348,310],[351,308],[359,301],[364,296],[366,296],[382,279],[382,278],[383,276],[384,274],[385,272],[391,272],[396,270],[400,269],[402,269],[407,267],[411,267],[412,267],[416,266],[417,266],[420,266],[423,264],[427,263],[429,261],[432,262],[432,261],[436,258],[439,254],[439,253],[442,250],[445,243],[446,242],[446,240],[447,238],[447,236],[448,235],[450,224],[450,217],[451,216],[450,202],[449,199],[448,195],[446,191],[446,190],[444,187],[443,186],[437,179],[434,178],[433,178],[431,176],[422,174],[403,174],[400,175],[397,175],[395,174],[393,174],[391,172],[391,170],[394,167],[397,159],[396,149],[394,144],[393,143],[393,142],[384,133],[383,133],[381,133],[389,140],[392,145],[393,149],[393,156],[391,161],[389,163],[389,162],[391,157],[391,150],[390,148],[391,147],[390,145],[389,145],[389,144],[386,140],[379,134],[379,132],[370,127],[369,127],[366,126],[363,125],[361,123],[359,122],[358,122],[354,121],[352,120],[350,120],[343,118],[340,118],[338,118],[334,118],[330,117],[312,117],[307,118],[287,119],[282,120],[279,120]],[[429,197],[435,205],[436,206],[438,214],[438,225],[436,228],[436,230],[435,235],[434,235],[433,239],[429,243],[428,243],[426,244],[419,247],[416,248],[414,248],[403,249],[402,250],[394,250],[393,249],[391,249],[390,248],[388,249],[386,246],[383,239],[383,234],[382,231],[382,228],[382,227],[381,211],[382,211],[385,211],[393,202],[397,201],[402,196],[405,196],[406,195],[408,195],[408,194],[419,194]]]},{"id":"mug-inference-patio","sample":"mug","pool":"inference","file":"mug-inference-patio.webp","place":"stół na tarasie","bounds":[187,129,399,310],"rings":[[[191,139],[189,142],[189,173],[189,174],[189,178],[189,179],[189,197],[188,198],[188,199],[188,201],[188,202],[188,219],[187,219],[188,242],[188,250],[189,251],[189,255],[189,256],[189,258],[189,259],[189,261],[190,262],[191,266],[190,272],[191,272],[193,273],[193,277],[192,277],[192,279],[194,279],[195,281],[197,281],[197,282],[198,283],[198,286],[197,286],[200,287],[201,290],[202,291],[203,290],[205,292],[205,293],[206,293],[207,295],[208,295],[217,299],[226,303],[237,305],[241,305],[246,306],[253,306],[272,306],[277,310],[280,310],[287,308],[293,308],[295,307],[299,306],[300,305],[304,305],[308,304],[311,301],[314,301],[314,299],[316,297],[322,297],[325,296],[325,293],[327,291],[327,290],[329,288],[330,286],[331,284],[332,283],[334,282],[334,280],[335,279],[335,277],[336,275],[336,273],[339,270],[347,268],[349,267],[358,265],[374,257],[376,255],[378,254],[388,244],[389,242],[391,240],[394,234],[395,234],[395,233],[395,231],[396,228],[399,219],[399,218],[399,215],[399,199],[398,198],[398,195],[397,194],[398,194],[398,190],[397,188],[397,186],[395,183],[395,181],[395,180],[392,175],[389,172],[388,172],[383,167],[384,166],[383,165],[377,161],[373,161],[371,159],[365,158],[363,158],[356,158],[354,158],[354,159],[352,161],[348,161],[347,162],[344,162],[343,161],[343,159],[342,159],[341,158],[340,154],[339,154],[340,143],[338,142],[337,141],[338,140],[339,138],[335,135],[332,135],[331,134],[329,134],[325,132],[321,132],[317,131],[314,131],[310,130],[296,130],[296,129],[277,129],[276,130],[248,129],[247,130],[242,130],[228,131],[224,131],[217,132],[214,132],[211,133],[212,133],[211,134],[206,134],[204,135],[202,135],[194,137]],[[363,172],[365,173],[369,174],[373,176],[378,181],[378,182],[380,183],[383,188],[384,191],[385,192],[386,198],[386,203],[386,204],[386,205],[386,206],[386,208],[387,209],[387,212],[386,213],[386,220],[384,220],[385,221],[384,222],[384,224],[382,231],[378,236],[376,237],[377,238],[371,242],[372,243],[372,244],[368,247],[367,248],[366,247],[364,248],[364,250],[356,253],[351,253],[349,254],[347,254],[345,253],[347,251],[346,251],[344,250],[342,247],[342,242],[342,233],[343,232],[343,224],[343,216],[342,216],[343,209],[342,208],[342,190],[341,190],[341,187],[342,186],[342,185],[345,181],[347,178],[351,174],[356,172]]]},{"id":"apple-dataset-board","sample":"apple","pool":"dataset","file":"apple-dataset-board.webp","place":"deska kuchenna","bounds":[206,150,338,276],"rings":[[[285,150],[269,150],[268,150],[266,150],[259,152],[249,155],[248,156],[245,157],[238,161],[237,161],[231,166],[217,180],[215,185],[212,189],[211,192],[209,196],[209,201],[208,202],[208,205],[206,207],[207,208],[207,213],[208,213],[207,216],[210,229],[212,231],[212,233],[213,234],[213,237],[217,242],[217,243],[220,246],[220,247],[224,251],[225,253],[237,264],[241,266],[242,268],[244,268],[246,270],[249,270],[250,271],[251,271],[253,273],[256,273],[257,274],[267,276],[274,276],[275,276],[280,275],[285,275],[285,274],[288,275],[290,273],[291,273],[294,271],[296,271],[299,269],[300,270],[300,269],[304,266],[305,266],[310,262],[311,262],[312,261],[314,260],[319,254],[321,252],[320,252],[325,246],[327,242],[329,241],[328,240],[331,234],[331,233],[332,232],[332,230],[334,226],[334,224],[336,224],[335,223],[335,222],[336,218],[337,216],[337,209],[338,208],[338,201],[337,201],[337,194],[334,184],[332,180],[325,170],[319,163],[309,157],[302,154],[299,154],[297,152],[294,152],[292,151],[288,151]]]},{"id":"apple-dataset-denim","sample":"apple","pool":"dataset","file":"apple-dataset-denim.webp","place":"parkowa ławka z kurtką dżinsową","bounds":[415,169,561,298],"rings":[[[527,177],[526,176],[524,176],[519,173],[518,173],[517,172],[514,172],[513,172],[512,172],[511,170],[509,170],[508,171],[506,171],[504,170],[488,169],[487,170],[483,170],[480,171],[477,171],[468,173],[466,174],[464,174],[463,175],[460,175],[454,177],[452,177],[449,180],[443,182],[435,189],[428,197],[421,210],[418,216],[418,218],[417,219],[416,224],[416,228],[415,232],[415,240],[416,241],[417,250],[417,251],[417,252],[417,254],[419,255],[419,257],[420,259],[420,260],[422,263],[422,265],[426,270],[428,274],[440,287],[444,289],[447,292],[448,292],[451,294],[452,294],[452,295],[454,295],[457,297],[458,297],[460,298],[462,298],[488,298],[493,296],[495,296],[496,295],[498,295],[501,294],[507,294],[512,292],[517,292],[520,291],[533,291],[534,290],[534,288],[535,287],[535,285],[549,270],[549,269],[551,267],[553,262],[554,260],[556,254],[558,251],[558,247],[559,246],[560,236],[561,235],[561,233],[560,233],[561,231],[560,229],[560,225],[558,223],[558,217],[557,215],[557,212],[556,211],[556,209],[554,207],[554,205],[552,202],[550,198],[548,195],[548,194],[546,193],[546,191],[545,191],[538,185]]]},{"id":"pear-dataset-table","sample":"pear","pool":"dataset","file":"pear-dataset-table.webp","place":"stół przykryty obrusem","bounds":[143,155,396,314],"rings":[[[395,158],[393,155],[391,155],[391,156],[390,156],[379,165],[374,169],[356,185],[354,186],[352,186],[351,185],[351,184],[351,183],[345,181],[332,181],[331,182],[317,182],[316,182],[312,182],[311,180],[304,180],[302,179],[299,179],[294,178],[292,178],[286,176],[283,175],[282,174],[279,174],[266,169],[263,168],[262,168],[255,166],[250,166],[248,165],[244,165],[243,165],[234,165],[235,165],[234,166],[231,165],[229,164],[228,164],[228,163],[227,163],[226,164],[225,164],[220,164],[218,165],[215,165],[214,166],[212,166],[211,166],[209,166],[199,170],[189,175],[188,177],[182,180],[172,189],[164,197],[158,204],[151,215],[146,226],[146,227],[144,233],[144,235],[143,238],[143,248],[144,250],[145,254],[145,256],[146,261],[148,265],[147,270],[149,270],[150,270],[153,277],[159,286],[159,287],[167,296],[173,300],[176,301],[177,303],[179,303],[180,304],[185,305],[186,306],[189,307],[189,308],[195,308],[196,309],[198,309],[207,311],[212,311],[214,312],[220,312],[222,313],[233,313],[233,314],[235,314],[238,313],[244,313],[246,311],[250,312],[254,309],[255,309],[257,307],[258,307],[260,307],[265,304],[268,305],[271,301],[277,297],[287,290],[288,289],[289,289],[290,288],[307,271],[326,256],[338,244],[353,227],[353,226],[357,220],[357,219],[360,213],[360,212],[363,208],[363,200],[362,198],[362,197],[360,195],[360,193],[375,178],[389,166],[395,163],[396,161],[395,161],[394,159],[395,159]]]},{"id":"pear-dataset-crate","sample":"pear","pool":"dataset","file":"pear-dataset-crate.webp","place":"stół w warsztacie","bounds":[423,116,563,326],"rings":[[[461,116],[460,117],[461,118],[459,121],[461,123],[463,123],[465,124],[467,126],[474,145],[476,148],[478,154],[474,157],[473,158],[468,163],[465,166],[461,175],[457,188],[452,198],[439,214],[430,230],[429,236],[427,238],[425,248],[425,251],[424,254],[424,260],[423,260],[424,270],[425,273],[425,276],[424,277],[426,278],[427,285],[428,286],[428,288],[431,293],[431,294],[433,297],[433,299],[434,299],[435,301],[435,304],[435,305],[436,306],[439,307],[440,308],[440,309],[442,311],[442,312],[443,313],[446,313],[450,317],[449,317],[452,318],[456,320],[456,321],[458,321],[461,323],[462,323],[464,322],[468,323],[469,321],[470,321],[475,323],[480,323],[481,323],[487,324],[490,325],[494,326],[499,326],[505,326],[511,326],[516,323],[518,323],[519,322],[522,322],[523,321],[525,321],[526,321],[527,321],[530,318],[533,317],[534,317],[537,314],[538,314],[544,307],[553,295],[558,286],[560,278],[560,277],[562,273],[562,257],[563,256],[563,255],[562,255],[562,253],[562,250],[560,246],[560,243],[556,231],[552,225],[552,224],[549,219],[547,217],[547,216],[540,203],[528,174],[522,163],[518,158],[513,153],[512,153],[511,152],[506,150],[492,150],[491,150],[493,153],[491,156],[487,158],[484,157],[483,158],[483,157],[483,156],[483,152],[483,153],[482,152],[482,149],[480,147],[480,145],[478,140],[477,139],[477,138],[475,135],[470,128],[469,126],[467,124],[466,121],[462,117],[462,116],[461,117]]]},{"id":"mug-dataset-cafe","sample":"mug","pool":"dataset","file":"mug-dataset-cafe.webp","place":"kawiarniany stolik","bounds":[278,99,550,331],"rings":[[[288,165],[284,171],[279,182],[278,189],[278,199],[279,204],[281,213],[282,214],[282,216],[284,220],[285,221],[285,220],[286,222],[286,221],[287,222],[291,229],[293,231],[292,232],[290,230],[297,239],[303,246],[312,253],[318,257],[320,258],[322,259],[352,276],[355,278],[356,278],[363,284],[367,286],[371,286],[373,289],[376,298],[382,305],[382,306],[383,307],[383,309],[388,314],[395,319],[395,320],[396,319],[404,323],[405,323],[408,325],[409,325],[414,326],[421,328],[426,329],[429,330],[432,330],[436,330],[442,330],[442,331],[458,331],[462,330],[466,330],[467,330],[474,329],[477,328],[479,328],[480,327],[490,324],[499,320],[504,316],[505,315],[506,314],[506,312],[509,308],[509,307],[512,303],[514,298],[515,297],[515,295],[518,291],[519,284],[522,278],[523,277],[523,275],[525,271],[526,270],[528,261],[530,257],[531,251],[532,249],[533,246],[533,242],[538,220],[538,214],[540,207],[540,204],[541,199],[541,196],[542,195],[542,196],[543,192],[544,190],[544,180],[545,177],[545,172],[546,163],[547,159],[546,158],[548,156],[548,153],[549,150],[548,149],[548,150],[546,153],[545,152],[546,151],[546,139],[548,136],[548,135],[549,133],[550,131],[550,127],[548,122],[543,117],[540,115],[530,110],[527,109],[526,109],[525,110],[525,109],[523,108],[524,108],[522,108],[522,107],[521,108],[521,107],[520,107],[519,107],[520,106],[518,107],[518,106],[516,106],[512,105],[510,106],[503,104],[501,104],[495,102],[492,102],[489,101],[485,101],[482,101],[477,101],[476,100],[472,100],[465,100],[465,99],[427,99],[427,100],[417,99],[417,100],[412,100],[408,100],[404,101],[400,101],[395,102],[393,103],[391,103],[388,104],[383,104],[374,107],[373,108],[372,108],[370,109],[370,111],[369,113],[364,118],[362,118],[360,119],[355,119],[354,121],[354,123],[352,126],[351,127],[350,126],[350,132],[349,132],[350,151],[348,153],[346,153],[347,154],[346,154],[342,154],[341,153],[340,153],[339,153],[340,152],[339,152],[337,152],[333,150],[328,150],[328,151],[327,150],[318,150],[317,150],[312,150],[309,151],[307,152],[306,152],[299,155],[293,159]],[[306,173],[313,169],[318,167],[329,167],[332,169],[334,169],[338,172],[342,176],[345,180],[345,181],[346,182],[347,187],[351,189],[357,187],[358,183],[360,183],[361,182],[369,182],[369,183],[369,185],[375,192],[376,206],[375,207],[375,228],[372,229],[367,229],[366,229],[364,249],[362,253],[360,252],[360,250],[359,252],[357,254],[356,255],[355,255],[351,255],[343,252],[341,253],[331,248],[330,247],[325,244],[325,243],[326,243],[325,242],[321,240],[320,239],[314,233],[313,234],[309,231],[302,221],[299,217],[296,213],[294,208],[294,206],[293,202],[293,194],[295,187],[297,184],[297,182],[299,180]]]},{"id":"mug-dataset-workshop","sample":"mug","pool":"dataset","file":"mug-dataset-workshop.webp","place":"stół warsztatowy","bounds":[192,133,419,311],"rings":[[[193,140],[193,154],[193,166],[192,167],[192,213],[193,214],[193,233],[193,242],[193,251],[193,252],[195,254],[195,274],[196,276],[196,279],[194,280],[194,282],[195,282],[196,283],[196,290],[197,291],[197,293],[198,293],[199,295],[200,295],[202,295],[203,296],[206,298],[207,299],[206,299],[210,299],[214,303],[219,306],[233,310],[237,310],[239,311],[242,311],[243,311],[249,311],[251,309],[290,309],[291,308],[303,307],[305,306],[313,305],[316,304],[320,304],[323,302],[327,302],[328,301],[332,301],[335,298],[338,298],[339,296],[342,295],[346,295],[349,292],[351,287],[351,284],[351,281],[355,277],[358,276],[361,273],[362,273],[366,271],[368,271],[372,268],[374,268],[383,263],[384,263],[394,256],[402,249],[406,244],[408,239],[408,237],[409,235],[409,229],[409,221],[410,217],[410,204],[411,204],[413,205],[417,205],[419,202],[418,190],[416,182],[413,177],[413,176],[408,168],[403,163],[402,163],[400,161],[393,158],[392,157],[385,155],[373,155],[371,156],[369,158],[368,158],[366,158],[364,158],[364,157],[362,157],[359,154],[359,140],[358,140],[354,140],[351,137],[339,136],[334,135],[320,135],[319,134],[312,134],[299,134],[298,133],[252,133],[253,133],[253,134],[247,134],[246,134],[215,135],[213,136],[213,138],[212,139],[201,138],[200,137],[201,136],[198,136],[196,136]],[[378,172],[386,180],[388,180],[391,183],[395,191],[395,192],[397,194],[399,199],[400,200],[400,202],[401,202],[401,218],[396,233],[395,234],[395,236],[395,237],[394,239],[386,247],[381,251],[372,255],[367,256],[366,255],[368,255],[368,254],[361,255],[359,255],[356,253],[356,251],[356,242],[356,234],[357,229],[357,214],[356,213],[356,210],[357,208],[358,207],[358,199],[357,199],[357,197],[357,196],[357,193],[357,187],[357,186],[358,185],[360,185],[363,182],[366,178],[370,173],[374,172]]]}];
+const PHOTO_SAMPLES = {
+  apple: { name: 'jabłko', title: 'Jabłko', hatchAngle: 45, classId: 1 },
+  pear: { name: 'gruszka', title: 'Gruszka', hatchAngle: 0, classId: 2 },
+  mug: { name: 'kubek', title: 'Kubek', hatchAngle: 90, classId: 3 },
+};
+const PHOTO_TASKS = {
+  cls: { name: 'Klasyfikacja', short: 'Co jest na obrazie?', icon: 'tag', tone: 'grape', type: 'Etykieta', explain: 'Jedna etykieta dla całego obrazu. Bez informacji o położeniu i kształcie obiektu.', insight: 'Model może rozpoznać jabłko, nie wskazując, gdzie się znajduje. Rozpoznawanie to nie to samo co lokalizowanie.', trainTitle: 'Obraz + etykieta', trainSub: 'Człowiek nazywa to, co jest na obrazie.', training: 'Każdy obraz ma poprawną klasę, na przykład „jabłko”. Potrzebne są też zdjęcia pozostałych klas, na przykład gruszek i kubków.' },
+  loc: { name: 'Klasyfikacja + lokalizacja', short: 'Co to jest i gdzie?', icon: 'scan', tone: 'blue', type: 'Etykieta + ramka', explain: 'Nazwa klasy i prostokąt otaczający jeden obiekt. Ramka zawiera też fragmenty tła.', insight: 'Tu lokalizujemy jeden obiekt. Wyszukiwanie wielu obiektów z osobnymi ramkami to detekcja.', trainTitle: 'Obraz + klasa + ramka', trainSub: 'Człowiek nazywa obiekt i zaznacza jego położenie.', training: 'Dla każdego obrazu zapisz klasę i współrzędne ramki obiektu. Tutaj: piksele, początek układu w lewym górnym rogu.' },
+  seg: { name: 'Segmentacja', short: 'Które piksele do czego należą?', icon: 'paintbrush', tone: 'yellow', type: 'Maska pikseli', explain: 'Każdy piksel otrzymuje klasę. Maska odtwarza kształt obiektu, a nie otaczający go prostokąt.', insight: 'Segmentacja semantyczna nadaje klasy pikselom. Osobne maski dla poszczególnych obiektów to segmentacja instancji.', trainTitle: 'Obraz + maska klas', trainSub: 'Człowiek przypisuje klasy pikselom.', training: 'Do każdego obrazu dołącz maskę o tych samych wymiarach. Każdy piksel maski przechowuje numer klasy, także dla tła.' },
+};
+const PHOTO_STAGES = [
+  { name: 'Obraz', text: 'Zdjęcie wygenerowano w AI. Ramki i maski są oznaczeniami demonstracyjnymi, nie wynikami działającego modelu.' },
+  { name: 'Piksele', text: 'Komputer otrzymuje tablicę liczb: wartości kanałów czerwonego, zielonego i niebieskiego (RGB) dla każdego piksela. Siatka jest powiększeniem poglądowym.' },
+  { name: 'Cechy', text: 'W czasie analizy model łączy wyuczone cechy: od krawędzi i tekstur do bardziej złożonych wzorców. Kontury tutaj są tylko ilustracją.' },
+  { name: 'Wynik', text: 'Postać odpowiedzi zależy od zadania i oznaczeń użytych w treningu. Wynik tej demonstracji jest zapisany z góry, nie obliczony przez AI.' },
+];
+const CHANNEL_NAMES = { r: 'czerwony', g: 'zielony', b: 'niebieski' };
+const RESULT_NAMES = { cls: 'Trafność', loc: 'IoU prostokąta', seg: 'IoU maski' };
 
 const TASK_INFO = {
   cls: {
@@ -1267,8 +1348,8 @@ const TASK_INFO = {
     lead: 'Model mówi, co to jest i gdzie leży jeden obiekt na obrazie.',
     labelOverline: 'Etykieta: 5 wartości na obraz', labelLead: 'Klasa oraz prostokąt (bounding box): x, y, szerokość, wysokość.',
     doTitle: 'Narysuj prostokąt', doText: 'Przeciągnij wokół owocu, wybierz klasę, zatwierdź. Strzałki przesuwają, Shift+strzałki zmieniają rozmiar.',
-    costTitle: 'Praca', costText: 'Ok. 35 s na prostokąt dobrej jakości, 7 s przy „extreme clicking”.',
-    dataTitle: 'Co mierzy IoU', dataText: 'IoU to część wspólna prostokątów podzielona przez ich sumę: od 0 do 1.',
+    costTitle: 'Praca', costText: 'Około 35 sekund na prostokąt dobrej jakości, 7 sekund przy „extreme clicking”.',
+    dataTitle: 'Co mierzy IoU', dataText: 'IoU (Intersection over Union) to część wspólna prostokątów podzielona przez ich sumę: od 0 do 1.',
     metricName: 'Średnie IoU prostokąta', baselineName: 'Stały środkowy prostokąt 16×16',
     relatedHtml: '<ul><li><b>Detekcja:</b> wiele obiektów na obrazie, po jednym prostokącie i klasie na obiekt. Etykiety rosną z liczbą obiektów.</li><li><b>Transfer learning:</b> gotowy trzon sieci zmniejsza liczbę potrzebnych obrazów, ale prostokąty nadal trzeba narysować.</li></ul>',
   },
@@ -1277,20 +1358,20 @@ const TASK_INFO = {
     lead: 'Model przypisuje klasę każdemu pikselowi, więc zna dokładny kształt obiektu.',
     labelOverline: 'Etykieta: 1024 wartości na obraz', labelLead: 'Maska: klasa dla każdego z pikseli obrazu 32×32.',
     doTitle: 'Zamaluj owoc', doText: 'Maluj pędzlem, wybierz klasę, zatwierdź. Strzałki przesuwają kursor, spacja maluje.',
-    costTitle: 'Praca', costText: 'Ok. 79 s na obiekt w COCO, średnio ponad 1,5 h na obraz w Cityscapes.',
-    dataTitle: 'Ile etykiet', dataText: 'Każdy obraz niesie 1024 wartości, więc starcza mniej obrazów, ale każdy kosztuje więcej.',
+    costTitle: 'Praca', costText: 'Około 79 sekund na obiekt w COCO, średnio ponad 1,5 godziny na obraz w Cityscapes.',
+    dataTitle: 'Ile etykiet', dataText: 'Każdy obraz niesie 1024 wartości, więc starcza mniej obrazów, ale każdy kosztuje więcej. IoU (Intersection over Union) to część wspólna masek podzielona przez ich sumę.',
     metricName: 'Średnie IoU obiektu', baselineName: 'Środkowy kwadrat 16×16 jako jabłko',
     relatedHtml: '<ul><li><b>Segmentacja semantyczna:</b> klasa dla piksela, bez rozróżniania dwóch jabłek.</li><li><b>Segmentacja instancji:</b> osobna maska dla każdego obiektu, jak w COCO.</li><li><b>Transfer learning:</b> gotowy trzon sieci pomaga, ale maski pozostają najdroższe.</li></ul>',
   },
 };
 const TABLE_ROWS = [
   ['Etykieta', 'Jedna klasa na obraz', 'Klasa i prostokąt: 5 wartości na obiekt', 'Klasa każdego piksela: maska'],
-  ['Format adnotacji', '<code>{"obraz":"img-00007","klasa":"banan"}</code>', '<code>{"obraz":"img-00007","klasa":"banan",\n"x":4,"y":9,"szerokosc":20,"wysokosc":13}</code>', '<code>{"obraz":"img-00007","klasa":"banan",\n"rle":[297,8,22,12,…]}</code>'],
+  ['Format adnotacji', '<code>{"obraz":"img-00007","klasa":"banan"}</code>', '<code>{"obraz":"img-00007","klasa":"banan",\n"x":4,"y":9,"szerokosc":20,"wysokosc":13}</code>', '<code>{"obraz":"img-00007","klasa":"banan",\n"rle":[297,8,22,12,…]}</code>rle (Run-Length Encoding): długości kolejnych odcinków tła i maski.'],
   ['Narzędzie pracy', 'Przyciski lub skróty klas', 'Rysowanie prostokątów', 'Pędzel lub wielokąty, często z korektą'],
   ['Wyjście modelu', 'Prawdopodobieństwo każdej klasy', 'Prawdopodobieństwa klas i 4 współrzędne', 'Klasa dla każdego piksela'],
   ['Funkcja straty', 'Entropia krzyżowa', 'Entropia krzyżowa + regresja współrzędnych', 'Entropia krzyżowa liczona na pikselach'],
-  ['Miara jakości', 'Trafność', 'IoU prostokąta i trafność klasy', 'IoU maski'],
-  ['Skala zbiorów', 'ImageNet: 1 281 167 obrazów treningowych', 'COCO: 328 tys. obrazów, także prostokąty', 'Cityscapes: 5000 obrazów z dokładną adnotacją'],
+  ['Miara jakości', 'Trafność', 'IoU (Intersection over Union) prostokąta i trafność klasy', 'IoU (Intersection over Union) maski'],
+  ['Skala zbiorów', 'ImageNet: 1 281 167 obrazów treningowych', 'COCO: 328 tysięcy obrazów, także prostokąty', 'Cityscapes: 5000 obrazów z dokładną adnotacją'],
   ['Typowe pułapki', 'Klasa kojarzona z tłem zamiast z obiektem', 'Niedokładne prostokąty, pominięte obiekty', 'Niespójne granice, bardzo wysoki koszt'],
 ];
 const CHOICES = [
@@ -1308,8 +1389,8 @@ const QUIZ = [
   { q: 'Ile wartości etykiety ma w segmentacji jeden obraz 32×32?', a: ['1', '5', '32', '1024'], ok: 3, why: '32 × 32 = 1024 piksele, każdy ma swoją klasę.', task: 'seg' },
   { q: 'Co się dzieje, gdy 40% etykiet w zbiorze treningowym jest błędnych?', a: ['Model uczy się też błędów i na teście wypada gorzej', 'Nic, bo model sam odrzuca błędy', 'Wynik rośnie dzięki różnorodności', 'Trening nie może się zakończyć'], ok: 0, why: 'Etykieta jest dla modelu wzorcem. Sprawdź to suwakiem błędów w laboratorium.', task: 'cls' },
   { q: 'Model uczony tylko na jasnym tle słabo działa na ciemnym. Co jest najbardziej prawdopodobną przyczyną?', a: ['Za mało epok', 'Dane treningowe nie obejmowały takich warunków', 'Zbyt duże obrazy', 'Błąd w zbiorze testowym'], ok: 1, why: 'Model radzi sobie z tym, co widział. Dane muszą pokrywać warunki użycia.', task: 'loc' },
-  { q: 'IoU prostokąta przewidzianego i wzorcowego wynosi 1. Co to znaczy?', a: ['Prostokąty są rozłączne', 'Pokrywają się w połowie', 'Pokrywają się dokładnie', 'Klasa jest poprawna'], ok: 2, why: 'IoU to część wspólna przez sumę, a klasę ocenia się osobno.', task: 'loc' },
-  { q: 'Która adnotacja jednego obiektu jest według podanych stawek najdroższa?', a: ['Klasa obrazu', 'Prostokąt', 'Etykieta tła', 'Obrys maski'], ok: 3, why: 'Stawki: 5 s na klasę, 35 s na prostokąt, 79 s na obrys obiektu.', task: 'seg' },
+  { q: 'IoU prostokąta przewidzianego i wzorcowego wynosi 1. Co to znaczy?', a: ['Prostokąty są rozłączne', 'Pokrywają się w połowie', 'Pokrywają się dokładnie', 'Klasa jest poprawna'], ok: 2, why: 'IoU (Intersection over Union) to część wspólna przez sumę, a klasę ocenia się osobno.', task: 'loc' },
+  { q: 'Która adnotacja jednego obiektu jest według podanych stawek najdroższa?', a: ['Klasa obrazu', 'Prostokąt', 'Etykieta tła', 'Obrys maski'], ok: 3, why: 'Stawki: 5 sekund na klasę, 35 sekund na prostokąt, 79 sekund na obrys obiektu.', task: 'seg' },
 ];
 
 // ─── State ───
@@ -1355,12 +1436,20 @@ const ic = name => `<i data-lucide="${name}" class="ic" aria-hidden="true"></i>`
 function icons(root) { if (window.lucide) window.lucide.createIcons({ root: root || document }); }
 const groupDigits = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 const comma = (value, digits) => value.toFixed(digits).replace('.', ',');
+/** Polish plural for a whole number: 1 piksel, 3 piksele, 5 pikseli. */
+function pluralPl(n, one, few, many) {
+  const tens = n % 100, units = n % 10;
+  if (n === 1) return one;
+  return units >= 2 && units <= 4 && (tens < 12 || tens > 14) ? few : many;
+}
+const countPixels = n => `${groupDigits(n)} ${pluralPl(n, 'piksel', 'piksele', 'pikseli')}`;
+const fmtSecondsExact = seconds => comma(seconds, 1) + ' sekundy';
 function fmtDuration(seconds) {
-  if (seconds < 60) return Math.round(seconds) + ' s';
-  if (seconds < 3600) return Math.round(seconds / 60) + ' min';
+  if (seconds < 60) { const n = Math.round(seconds); return `${n} ${pluralPl(n, 'sekunda', 'sekundy', 'sekund')}`; }
+  if (seconds < 3600) { const n = Math.round(seconds / 60); return `${n} ${pluralPl(n, 'minuta', 'minuty', 'minut')}`; }
   const hours = seconds / 3600;
-  if (hours >= 1000) return groupDigits(Math.round(hours)) + ' h';
-  return comma(hours, 1) + ' h';
+  if (hours >= 1000) { const n = Math.round(hours); return `${groupDigits(n)} ${pluralPl(n, 'godzina', 'godziny', 'godzin')}`; }
+  return comma(hours, 1) + ' godziny';
 }
 const fmtMetric = (task, value) => task === 'cls' ? comma(value * 100, 1) + '%' : comma(value, 3);
 const diversityLabel = value => value === 'light' ? 'tylko jasne tło' : 'pełna';
@@ -1408,17 +1497,36 @@ function paintBytes(canvas, bytes) {
   return ctx;
 }
 const paintImage = (canvas, img) => paintBytes(canvas, imageToBytes(img));
-function drawMask(ctx, canvas, mask, alpha, fixedColor) {
+const hatchTiles = new Map();
+function hatchTile(style, period) {
+  const key = `${style.token}/${style.hatch}/${period}`;
+  if (hatchTiles.has(key)) return hatchTiles.get(key);
+  const tile = document.createElement('canvas');
+  tile.width = tile.height = period;
+  const tctx = tile.getContext('2d');
+  tctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(style.token).trim();
+  for (let y = 0; y < period; y++) for (let x = 0; x < period; x++) {
+    const phase = style.hatch === 'rising' ? x + y : style.hatch === 'falling' ? x - y + period : x;
+    if (phase % period < period / 2) tctx.fillRect(x, y, 1, 1);
+  }
+  hatchTiles.set(key, tile);
+  return tile;
+}
+function drawMask(ctx, canvas, mask, fixedStyle) {
   const scale = canvas.width / SIZE;
-  ctx.globalAlpha = alpha;
+  const period = Math.max(6, Math.round(2 + scale / 2));
   for (let p = 0; p < PIXELS; p++) {
     if (!mask[p]) continue;
-    ctx.fillStyle = fixedColor || CLASS_COLORS[mask[p] - 1];
+    ctx.fillStyle = ctx.createPattern(hatchTile(fixedStyle || CLASS_MASKS[mask[p] - 1], period), 'repeat');
     ctx.fillRect((p % SIZE) * scale, Math.floor(p / SIZE) * scale, scale + 0.5, scale + 0.5);
   }
-  ctx.globalAlpha = 1;
+  drawOutline(ctx, canvas, mask, COLORS.paper);
 }
-function drawOutline(ctx, canvas, mask) {
+function maskLegendHtml() {
+  return `<div class="legend">${CLASS_NAMES.map((n, i) => `<span class="chip chip-stone"><span class="swatch swatch-${i}"></span>${n}</span>`).join('')}</div>
+    <p class="legend-note">Kreskowanie oznacza klasę, a nie kolor owocu.</p>`;
+}
+function drawOutline(ctx, canvas, mask, innerColor = COLORS.yellow) {
   const scale = canvas.width / SIZE;
   const at = (x, y) => x >= 0 && y >= 0 && x < SIZE && y < SIZE && mask[y * SIZE + x];
   const path = () => {
@@ -1433,8 +1541,8 @@ function drawOutline(ctx, canvas, mask) {
     }
     ctx.stroke();
   };
-  ctx.lineWidth = Math.max(3, scale * 0.3); ctx.strokeStyle = COLORS.ink; path();
-  ctx.lineWidth = Math.max(1, scale * 0.12); ctx.strokeStyle = COLORS.yellow; path();
+  ctx.lineWidth = Math.max(2, scale * 0.3); ctx.strokeStyle = COLORS.ink; path();
+  ctx.lineWidth = Math.max(1, scale * 0.12); ctx.strokeStyle = innerColor; path();
 }
 /** kind solid = prediction or the user's box, dashed = reference. Differs without colour too. */
 function drawBox(ctx, canvas, box, kind) {
@@ -1458,7 +1566,7 @@ function drawBox(ctx, canvas, box, kind) {
 }
 function maskClassSummary(counts) {
   const parts = [];
-  for (let c = 0; c < 3; c++) if (counts[c + 1] > 0) parts.push(`${CLASS_NAMES[c]}: ${groupDigits(counts[c + 1])} px`);
+  for (let c = 0; c < 3; c++) if (counts[c + 1] > 0) parts.push(`${CLASS_NAMES[c]}: ${countPixels(counts[c + 1])}`);
   return parts.length ? parts.join(', ') : 'brak pikseli obiektu';
 }
 function validateCalcField(name, raw) {
@@ -1483,7 +1591,7 @@ function validateUpload(file) {
   const typeOk = file.type === 'image/png' || file.type === 'image/jpeg' || (!file.type && /\.(png|jpe?g)$/i.test(file.name));
   if (!typeOk) return { ok: false, msg: 'Ten format nie jest obsługiwany. Wgraj plik PNG lub JPEG.' };
   if (file.size === 0) return { ok: false, msg: 'Plik jest pusty. Wybierz inne zdjęcie.' };
-  if (file.size > MAX_UPLOAD_BYTES) return { ok: false, msg: 'Plik jest większy niż 20 MB. Wybierz mniejsze zdjęcie.' };
+  if (file.size > MAX_UPLOAD_BYTES) return { ok: false, msg: 'Plik jest większy niż 20 megabajtów. Wybierz mniejsze zdjęcie.' };
   return { ok: true };
 }
 /** Loads a file element into an <img>, the path that reports a broken image most reliably. */
@@ -1528,6 +1636,7 @@ function convolve(bytes, filter) {
       sum /= filter.divisor;
       out[to + c] = filter.abs ? Math.abs(sum) : sum;
     }
+    if (filter.abs) out[to] = out[to + 1] = out[to + 2] = Math.max(out[to], out[to + 1], out[to + 2]);
     out[to + 3] = 255;
   }
   return out;
@@ -1536,7 +1645,7 @@ function channelBytes(bytes, channel) {
   if (channel === 'all') return bytes;
   const keep = { r: 0, g: 1, b: 2 }[channel];
   const out = new Uint8ClampedArray(bytes.length);
-  for (let p = 0; p < PIXELS; p++) { out[p * 4 + keep] = bytes[p * 4 + keep]; out[p * 4 + 3] = 255; }
+  for (let p = 0; p < PIXELS; p++) { out[p * 4] = out[p * 4 + 1] = out[p * 4 + 2] = bytes[p * 4 + keep]; out[p * 4 + 3] = 255; }
   return out;
 }
 function cellFromEvent(event, canvas) {
@@ -1565,7 +1674,7 @@ function labHtml(task) {
       <button type="button" data-tool="erase" aria-pressed="false">${ic('eraser')} Gumka</button>
     </div></div>
     <div><span class="field-label">Rozmiar pędzla</span><div class="pills" role="group" aria-label="Rozmiar pędzla">
-      ${[1, 3, 5].map(s => `<button type="button" data-brush="${s}" aria-pressed="${s === 3}">${s} px</button>`).join('')}
+      ${[1, 3, 5].map(s => `<button type="button" data-brush="${s}" aria-pressed="${s === 3}">${countPixels(s)}</button>`).join('')}
     </div></div>
     <div class="btn-row"><button type="button" class="btn" data-el="undo">${ic('undo-2')} Cofnij</button><button type="button" class="btn" data-el="clear">${ic('trash-2')} Wyczyść</button></div>` : '';
   const commit = task === 'cls' ? '' : `<button type="button" class="btn btn-primary" data-el="commit">${ic('check')} Zatwierdź</button>`;
@@ -1593,6 +1702,8 @@ function labHtml(task) {
           ${tools}
           <div class="btn-row">${commit}<button type="button" class="btn" data-el="next">${ic('arrow-right')} Następny obraz</button></div>
           <p class="msg" data-el="annot-msg" role="status"></p>
+          ${task === 'loc' ? '<div class="legend"><span class="chip chip-stone">linia ciągła: Twój prostokąt</span><span class="chip chip-stone">linia przerywana: wzorzec po zatwierdzeniu</span></div>' : ''}
+          ${task === 'seg' ? '<div class="legend"><span class="chip chip-stone"><span class="swatch swatch-yours"></span>Twoja maska</span><span class="chip chip-stone">żółta obwódka: wzorzec po zatwierdzeniu</span></div>' : ''}
           <div class="readout">
             ${hasIou ? '<span><b data-el="annot-iou">–</b>IoU ze wzorcem</span>' : ''}
             ${task === 'seg' ? '<span><b data-el="annot-painted">0</b>oznaczone piksele</span>' : ''}
@@ -1600,7 +1711,7 @@ function labHtml(task) {
             <span><b data-el="annot-pace">–</b><span data-el="annot-pace-label"></span></span>
           </div>
         </div>
-        <div class="rec-wrap"><span class="field-label">Rekord w zbiorze</span><pre class="record" data-el="annot-record" tabindex="0" aria-label="Rekord adnotacji w formacie JSON"></pre></div>
+        <div class="rec-wrap"><span class="field-label">Rekord w zbiorze</span><pre class="record" data-el="annot-record" tabindex="0" aria-label="Rekord adnotacji w formacie JSON"></pre>${task === 'seg' ? '<p class="legend-note">rle (Run-Length Encoding): długości kolejnych odcinków tła i maski.</p>' : ''}</div>
       </div></div>
     </div>
   </div></div></section>
@@ -1641,7 +1752,7 @@ function labHtml(task) {
   <div class="band">
     <div class="card">
       <div class="card-head"><span class="tile-h"><span class="${toneBadge}">${ic('images')}</span><h3>Przykłady ze zbioru treningowego</h3></span><span class="chip chip-stone" data-el="gallery-count"></span></div>
-      <div class="card-body"><div class="gallery" data-el="gallery"></div></div>
+      <div class="card-body">${task === 'seg' ? `<div class="legend-block">${maskLegendHtml()}</div>` : task === 'loc' ? '<div class="legend legend-block"><span class="chip chip-stone">linia przerywana: etykieta ze zbioru</span></div>' : ''}<div class="gallery" data-el="gallery"></div></div>
     </div>
     <div class="band-two">
       <div class="card">
@@ -1671,7 +1782,7 @@ function labHtml(task) {
           <div class="btn-row">
             <button type="button" class="btn" data-el="check-new">${ic('shuffle')} Nowy obraz</button>
             <button type="button" class="btn" data-el="check-hard">${ic('triangle-alert')} Trudny przypadek</button>
-            <label class="btn upload-label">${ic('upload')} Wgraj zdjęcie<input type="file" data-el="check-file" accept="image/png,image/jpeg" aria-label="Wgraj własne zdjęcie PNG lub JPEG, do 20 MB"></label>
+            <label class="btn upload-label">${ic('upload')} Wgraj zdjęcie<input type="file" data-el="check-file" accept="image/png,image/jpeg" aria-label="Wgraj własne zdjęcie PNG lub JPEG, do 20 megabajtów"></label>
           </div>
           ${task === 'seg' ? `<div><span class="field-label">Nakładka</span><div class="pills" role="group" aria-label="Nakładka">
             <button type="button" data-overlay="pred" aria-pressed="true">Predykcja</button>
@@ -1694,7 +1805,7 @@ function startHtml() {
     <div class="concept">
       <div class="row-head"><span class="badge badge-lg tone-ink">${ic('grid-3x3')}</span><h2>Obraz to liczby</h2></div>
       <div class="tiles">
-        <div class="tile"><span class="badge tone-ink">${ic('grid-3x3')}</span><h4>Piksel</h4><p>Kolor punktu to trzy liczby R, G, B od 0 do 255.</p></div>
+        <div class="tile"><span class="badge tone-ink">${ic('grid-3x3')}</span><h4>Piksel</h4><p>Kolor punktu to trzy liczby od 0 do 255: czerwony (Red), zielony (Green) i niebieski (Blue).</p></div>
         <div class="tile"><span class="badge tone-ink">${ic('database')}</span><h4>Obraz 32×32</h4><p>To 1024 piksele, czyli 3072 liczby na wejściu modelu.</p></div>
       </div>
     </div>
@@ -1704,9 +1815,10 @@ function startHtml() {
         <canvas class="stage" id="inspector-canvas" width="${STAGE_PX}" height="${STAGE_PX}" tabindex="0" role="application" aria-label="Obraz 32×32. Strzałki wybierają piksel."></canvas>
         <div class="side">
           <div><span class="field-label">Kanał</span><div class="pills" role="group" aria-label="Kanał koloru">
-            ${[['all', 'Wszystkie'], ['r', 'R'], ['g', 'G'], ['b', 'B']].map(([v, t]) => `<button type="button" data-channel="${v}" aria-pressed="${v === 'all'}">${t}</button>`).join('')}
+            ${[['all', 'Wszystkie'], ['r', 'Czerwony'], ['g', 'Zielony'], ['b', 'Niebieski']].map(([v, t]) => `<button type="button" data-channel="${v}" aria-pressed="${v === 'all'}">${t}</button>`).join('')}
           </div></div>
           <output class="readout" id="inspector-out"></output>
+          <p class="answer" id="inspector-note"></p>
         </div>
       </div></div>
     </div>
@@ -1728,6 +1840,7 @@ function startHtml() {
           <figure><div class="matrix" id="filter-matrix" aria-label="Macierz filtra"></div><figcaption>Macierz filtra</figcaption></figure>
           <figure><canvas id="filter-result" width="${STAGE_PX}" height="${STAGE_PX}" role="img"></canvas><figcaption>Wynik splotu</figcaption></figure>
         </div>
+        <p class="answer" id="filter-note"></p>
       </div>
     </div>
   </div></div></section>
@@ -1768,15 +1881,15 @@ function daneHtml() {
       </div>
       <div id="calc-bars" aria-live="polite">${TASKS.map(t => `<div class="hbar"><div class="hbar-name">${TASK_INFO[t].name}<small data-rate="${t}"></small></div><div class="hbar-track"><span data-bar="${t}"></span></div><div class="hbar-value" data-value="${t}">–</div></div>`).join('')}</div>
     </div></div>
-    <div class="card-foot"><span class="edu-small">Stawki przybliżone: 5 s to oszacowanie robocze, 35 s podają Papadopoulos i in., 79 s wynika z Lin i in.</span></div></div>
+    <div class="card-foot"><span class="edu-small">Stawki przybliżone: 5 sekund to oszacowanie robocze, 35 sekund podają Papadopoulos i inni, 79 sekund wynika z pracy Lin i innych.</span></div></div>
   </div></section>
   <section class="sec"><div class="wrap">
     <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('book-open')}</span><h2>Znane zbiory i źródła</h2></div>
     <div class="card"><div class="scroll-x"><table class="stack-table" id="dataset-table" aria-label="Znane zbiory danych"><thead><tr><th>Zbiór</th><th>Obrazy</th><th>Klasy</th><th>Etykiety</th><th>Koszt adnotacji</th><th>Źródło</th></tr></thead><tbody>
-      <tr><td>ImageNet (ILSVRC 2012)</td><td>1 281 167 treningowych</td><td>1000</td><td>Jedna klasa na obraz</td><td>Oszacowanie robocze: 5 s na obraz</td><td><a href="https://arxiv.org/abs/1409.0575" target="_blank" rel="noopener">Russakovsky i in. 2015</a></td></tr>
-      <tr><td>COCO</td><td>328 tys.</td><td>91 typów obiektów</td><td>2,5 mln instancji z maskami</td><td>Ponad 22 roboczogodziny na 1000 segmentacji („over 22 worker hours per 1,000 segmentations”), czyli ok. 79 s na obiekt</td><td><a href="https://arxiv.org/abs/1405.0312" target="_blank" rel="noopener">Lin i in. 2014</a></td></tr>
-      <tr><td>PASCAL VOC / ILSVRC (prostokąty)</td><td>–</td><td>–</td><td>Prostokąty</td><td>35 s na prostokąt wysokiej jakości, „only 7s per box” przy „extreme clicking”</td><td><a href="https://arxiv.org/abs/1708.02750" target="_blank" rel="noopener">Papadopoulos i in. 2017</a></td></tr>
-      <tr><td>Cityscapes</td><td>5000 dokładnie, 20 000 zgrubnie</td><td>30</td><td>Maski pikselowe</td><td>Średnio ponad 1,5 h na obraz („more than 1.5 h on average for a single image”)</td><td><a href="https://arxiv.org/abs/1604.01685" target="_blank" rel="noopener">Cordts i in. 2016</a></td></tr>
+      <tr><td>ImageNet (ILSVRC 2012)</td><td>1 281 167 treningowych</td><td>1000</td><td>Jedna klasa na obraz</td><td>Oszacowanie robocze: 5 sekund na obraz</td><td><a href="https://arxiv.org/abs/1409.0575" target="_blank" rel="noopener">Russakovsky i inni, 2015</a></td></tr>
+      <tr><td>COCO</td><td>328 tysięcy</td><td>91 typów obiektów</td><td>2,5 miliona instancji z maskami</td><td>Ponad 22 roboczogodziny na 1000 segmentacji („over 22 worker hours per 1,000 segmentations”), czyli około 79 sekund na obiekt</td><td><a href="https://arxiv.org/abs/1405.0312" target="_blank" rel="noopener">Lin i inni, 2014</a></td></tr>
+      <tr><td>PASCAL VOC / ILSVRC (prostokąty)</td><td>–</td><td>–</td><td>Prostokąty</td><td>35 sekund na prostokąt wysokiej jakości, „only 7s per box” przy „extreme clicking”</td><td><a href="https://arxiv.org/abs/1708.02750" target="_blank" rel="noopener">Papadopoulos i inni, 2017</a></td></tr>
+      <tr><td>Cityscapes</td><td>5000 dokładnie, 20 000 zgrubnie</td><td>30</td><td>Maski pikselowe</td><td>Średnio ponad 1,5 godziny na obraz („more than 1.5 h on average for a single image”)</td><td><a href="https://arxiv.org/abs/1604.01685" target="_blank" rel="noopener">Cordts i inni, 2016</a></td></tr>
     </tbody></table></div>
     <div class="card-foot"><span class="edu-small">Ile danych wystarczy? To rząd wielkości: z transfer learningiem często setki przykładów na klasę, od zera tysiące.</span></div></div>
   </div></section>
@@ -2150,6 +2263,171 @@ function renderNav() {
     else link.removeAttribute('aria-current');
   });
 }
+function newPhotoState() {
+  const first = pool => Object.fromEntries(Object.keys(PHOTO_SAMPLES).map(k => [k, PHOTO_SCENES.find(s => s.pool === pool && s.sample === k).id]));
+  return { task: 'cls', sample: 'apple', stage: 0, revealed: false, picked: { inference: first('inference'), dataset: first('dataset') } };
+}
+const photoSrc = scene => `assets/scenes/${scene.file}`;
+const photoCurrent = pool => PHOTO_SCENES.find(s => s.id === App.photo.picked[pool][App.photo.sample]);
+const photoPath = scene => scene.rings.map(ring => ring.map(([x, y], i) => `${i ? 'L' : 'M'}${x} ${y}`).join(' ') + 'Z').join(' ');
+function photoControlsHtml(prefix) {
+  return `<div class="photo-controls">
+    <div><span class="field-label">Zadanie</span><div class="pills" role="group" aria-label="Zadanie">${TASKS.map(t => `<button type="button" data-photo-task="${t}" aria-pressed="false">${PHOTO_TASKS[t].name}</button>`).join('')}</div></div>
+    <div><span class="field-label">Obiekt</span><div class="pills" role="group" aria-label="Obiekt">${Object.keys(PHOTO_SAMPLES).map(k => `<button type="button" data-photo-sample="${k}" aria-pressed="false">${PHOTO_SAMPLES[k].title}</button>`).join('')}</div></div>
+    <div><label class="field-label" for="${prefix}-scene-select">Scena</label><select class="input" id="${prefix}-scene-select" data-photo-scene></select></div>
+  </div>`;
+}
+function photoLabHtml() {
+  return `<header class="page-head"><h1 class="app-title" tabindex="-1">Laboratorium na zdjęciach</h1>
+    <p class="edu-lead">Te same trzy zadania na realistycznych zdjęciach. Zdjęcia wygenerowano w AI, a ramki i maski narysowano ręcznie: ten widok nie uruchamia modelu.</p></header>
+  <section class="sec"><div class="wrap">
+    ${photoControlsHtml('photo-lab')}
+    <div class="photo-layout">
+      <div class="card" id="photo-lab-card">
+        <div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('image')}</span><h3>Obraz wejściowy</h3></span><span class="chip chip-stone">nowe zdjęcie spoza zbioru treningowego</span></div>
+        <div class="card-body"><div id="photo-lab-scene"></div><div id="photo-lab-legend" class="photo-legend"></div>
+          <div class="photo-pipeline">
+            <ol class="photo-steps" id="photo-lab-steps" aria-label="Uproszczony przebieg analizy"></ol>
+            <div class="btn-row"><button type="button" class="btn btn-primary" id="photo-lab-next"></button><button type="button" class="btn" id="photo-lab-reveal"></button><button type="button" class="btn" id="photo-lab-reset">Od początku</button></div>
+          </div>
+          <div class="bar fill-yellow" id="photo-lab-progress" role="progressbar" aria-label="Etapy demonstracji" aria-valuemin="0" aria-valuemax="3" style="margin-top:12px"><span></span></div>
+          <p class="photo-explain" id="photo-lab-explain"></p>
+        </div>
+      </div>
+      <div class="photo-side">
+        <div class="card"><div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('sparkles')}</span><h3>Przykładowa odpowiedź</h3></span><span class="chip chip-stone" id="photo-lab-type"></span></div>
+          <div class="card-body" id="photo-lab-result" role="status"></div>
+          <div class="card-foot"><span class="edu-small">Symulacja edukacyjna: odpowiedź jest zapisana z góry, nie obliczona.</span></div></div>
+        <div class="tile"><span class="badge tone-ink">${ic('lightbulb')}</span><h4>Warto zauważyć</h4><p id="photo-lab-insight"></p></div>
+      </div>
+    </div>
+  </div></section>`;
+}
+function photoTrainHtml() {
+  return `<header class="page-head"><h1 class="app-title" tabindex="-1">Dane do treningu na zdjęciach</h1>
+    <p class="edu-lead">Czego trzeba nauczyć model, pokazane na realistycznych zdjęciach. To mała próbka dydaktyczna ze zdjęć AI, nie wystarczający zbiór do treningu.</p></header>
+  <section class="sec"><div class="wrap">
+    ${photoControlsHtml('photo-train')}
+    <div class="photo-layout">
+      <div class="card" id="photo-train-card">
+        <div class="card-head"><span class="tile-h"><span class="badge tone-ink" id="photo-train-icon"></span><h3 id="photo-train-title"></h3></span></div>
+        <div class="card-body">
+          <p class="answer" id="photo-train-sub" style="margin-top:0"></p>
+          <div class="photo-count"><span>Mini-zbiór treningowy</span><span>6 zdjęć, 3 klasy</span></div>
+          <div class="photo-gallery" id="photo-train-gallery" role="group" aria-label="Zdjęcia przykładowego zbioru treningowego"></div>
+          <p class="answer" id="photo-train-text"></p>
+          <details class="more photo-fold"><summary>Zobacz przykładowy rekord danych</summary><div class="photo-fold-body"><pre class="record" id="photo-train-record"></pre><p>Schemat poglądowy, nie gotowy format dla konkretnej biblioteki. To człowiek dostarcza poprawne odpowiedzi w treningu nadzorowanym.</p></div></details>
+          <details class="more photo-fold"><summary>Dobre dane to nie tylko etykiety</summary><div class="photo-fold-body">
+            <p><b>Różnorodność:</b> różne tła, światło, kąty i przykłady każdej klasy.</p>
+            <p><b>Oddzielne zbiory:</b> trening uczy, walidacja pomaga dobierać ustawienia, test sprawdza wynik na nowych danych.</p>
+            <p><b>Spójne oznaczenia:</b> te same zasady dla nazw klas, ramek i granic masek.</p>
+            <p>Zdjęcia do laboratorium są osobne. Maski są poglądowymi ręcznymi adnotacjami, nie wynikiem modelu.</p>
+          </div></details>
+          <details class="more photo-fold"><summary>A detekcja, segmentacja instancji i liczba zdjęć?</summary><div class="photo-fold-body">
+            <p><b>Detekcja:</b> obraz oraz klasa i ramka każdego obiektu, również gdy obiektów jest wiele. W przeciwieństwie do lokalizacji jednego obiektu model zwraca listę wyników.</p>
+            <p><b>Segmentacja instancji:</b> oddzielna maska i identyfikator dla każdego obiektu. Dwa jabłka mają tę samą klasę, ale inne identyfikatory. Segmentacja semantyczna nie rozdziela ich tożsamości.</p>
+            <p><b>Maska</b> obejmuje widoczny obiekt, nie jego cień. Otwór w uchwycie kubka i przedmioty w tle nie należą do obiektu. Numery klas: 0 = tło, 1 = jabłko, 2 = gruszka, 3 = kubek.</p>
+            <p><b>Liczba zdjęć:</b> nie ma jednej wymaganej liczby. Zależy ona od różnorodności zadania, jakości oznaczeń, wybranego modelu i oczekiwanej skuteczności. Dostosowanie modelu wstępnie wytrenowanego zwykle wymaga mniej danych niż trening od zera.</p>
+            <p><b>Przeciek danych:</b> nie dziel niemal identycznych zdjęć tej samej sceny między trening i test. Rozdzielaj na przykład całe serie lub sesje, aby wynik nie nagradzał zapamiętywania.</p>
+          </div></details>
+        </div>
+      </div>
+      <div class="card"><div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('target')}</span><h3>Tak wygląda poprawne oznaczenie</h3></span></div>
+        <div class="card-body"><div id="photo-train-scene"></div><div id="photo-train-legend" class="photo-legend"></div><p class="answer" id="photo-train-caption"></p></div></div>
+    </div>
+  </div></section>`;
+}
+function photoSceneSvg(prefix, scene, overlay, stage) {
+  const sample = PHOTO_SAMPLES[scene.sample];
+  const [x1, y1, x2, y2] = scene.bounds;
+  const path = photoPath(scene);
+  const hatchId = `${prefix}-hatch`, gridId = `${prefix}-grid`;
+  const hint = text => `<g transform="translate(20 20)"><rect class="ph-hint-bg" width="${text.length * 9.4 + 24}" height="34" rx="7"/><text class="ph-hint-text" x="12" y="22">${text}</text></g>`;
+  const badge = (x, y) => `<rect class="ph-badge" x="${x}" y="${y}" width="${sample.name.length * 11 + 22}" height="30" rx="5"/><text class="ph-badge-text" x="${x + 11}" y="${y + 21}">${sample.name}</text>`;
+  let layer = '';
+  if (overlay === 'cls') layer = `<rect class="ph-line-under" x="12" y="12" width="696" height="416" rx="8"/><rect class="ph-line-frame" x="12" y="12" width="696" height="416" rx="8"/>${badge(26, 26)}`;
+  if (overlay === 'loc') layer = `<rect class="ph-line-under" x="${x1}" y="${y1}" width="${x2 - x1}" height="${y2 - y1}"/><rect class="ph-line-dash" x="${x1}" y="${y1}" width="${x2 - x1}" height="${y2 - y1}"/>${badge(x1, Math.max(4, y1 - 34))}`;
+  if (overlay === 'seg') layer = `<path d="${path}" fill-rule="evenodd" fill="url(#${hatchId})"/><path class="ph-line-under" style="stroke-width:4" d="${path}"/><path class="ph-outline" d="${path}"/>${badge(x1, Math.min(404, y2 + 6))}`;
+  if (overlay === 'none' && stage === 1) layer = `<rect width="720" height="440" fill="url(#${gridId})"/>${hint('Trzy kanały: czerwony, zielony, niebieski')}`;
+  if (overlay === 'none' && stage === 2) layer = `<rect class="ph-veil" width="720" height="440"/><path class="ph-contour" d="${path}"/>${hint('Poglądowy kontur obiektu')}`;
+  return `<svg class="photo-scene" viewBox="0 0 720 440" role="img" aria-label="${sample.title}, ${scene.place}. Zdjęcie wygenerowane w AI.${overlay === 'none' ? '' : ' ' + PHOTO_TASKS[overlay].explain}" data-photo-id="${scene.id}" data-overlay="${overlay}">
+    <defs><pattern id="${hatchId}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(${sample.hatchAngle})"><rect class="ph-hatch-${scene.sample}" width="6" height="12"/></pattern>
+    <pattern id="${gridId}" width="18" height="18" patternUnits="userSpaceOnUse"><path class="ph-grid" d="M18 0H0V18"/></pattern></defs>
+    <image x="0" y="0" width="720" height="440" preserveAspectRatio="none" href="${photoSrc(scene)}"/>${layer}</svg>`;
+}
+function photoLegendHtml(task, sampleKey) {
+  if (task === 'loc') return '<div class="legend"><span class="chip chip-stone">linia przerywana: oznaczenie narysowane ręcznie</span></div>';
+  if (task !== 'seg') return '';
+  return `<div class="legend"><span class="chip chip-stone"><span class="swatch swatch-${({ apple: 0, pear: 2, mug: 'mug' })[sampleKey]}"></span>${PHOTO_SAMPLES[sampleKey].name}</span></div><p class="legend-note">Kreskowanie oznacza klasę, a nie kolor obiektu. Maska jest ręczna, a jej granice są przybliżone.</p>`;
+}
+function photoRecord(scene, task) {
+  const sample = PHOTO_SAMPLES[scene.sample];
+  const record = { obraz: `${scene.id}.jpg`, podzial: 'trening-pokazowy', szerokosc: 720, wysokosc: 440 };
+  if (task !== 'seg') record.klasa = sample.name;
+  if (task === 'loc') record.ramka_x1_y1_x2_y2_w_pikselach = scene.bounds;
+  if (task === 'seg') {
+    record.maska = `${scene.id}_maska.png`;
+    record.numery_klas = { 0: 'tło', 1: 'jabłko', 2: 'gruszka', 3: 'kubek' };
+    record.klasy_w_masce = [0, sample.classId];
+    record.adnotacja = 'przybliżony wielokąt narysowany ręcznie';
+  }
+  return JSON.stringify(record, null, 2);
+}
+function renderPhotoControls(view, pool) {
+  const root = viewEls[view], p = App.photo, current = photoCurrent(pool);
+  setPressed(root, 'data-photo-task', p.task);
+  setPressed(root, 'data-photo-sample', p.sample);
+  root.querySelector('[data-photo-scene]').innerHTML = PHOTO_SCENES.filter(s => s.pool === pool && s.sample === p.sample).map(s => `<option value="${s.id}"${s.id === current.id ? ' selected' : ''}>${s.place}</option>`).join('');
+}
+function renderPhotoLab() {
+  const p = App.photo, scene = photoCurrent('inference'), info = PHOTO_TASKS[p.task], sample = PHOTO_SAMPLES[p.sample];
+  const overlay = p.revealed ? p.task : 'none';
+  const $ = id => document.getElementById(id);
+  renderPhotoControls('laboratorium', 'inference');
+  Object.assign($('photo-lab-card').dataset, { task: p.task, sample: p.sample, stage: p.stage, revealed: p.revealed, photoId: scene.id, overlay });
+  $('photo-lab-scene').innerHTML = photoSceneSvg('photo-lab', scene, overlay, p.stage);
+  $('photo-lab-legend').innerHTML = p.revealed ? photoLegendHtml(p.task, p.sample) : '';
+  $('photo-lab-type').textContent = info.type;
+  $('photo-lab-insight').textContent = info.insight;
+  $('photo-lab-steps').innerHTML = PHOTO_STAGES.map((s, i) => `<li data-active="${i === p.stage}"${i === p.stage ? ' aria-current="step"' : ''}>${s.name}</li>`).join('');
+  $('photo-lab-progress').setAttribute('aria-valuenow', p.stage);
+  $('photo-lab-progress').firstElementChild.style.width = `${p.stage / 3 * 100}%`;
+  $('photo-lab-explain').textContent = PHOTO_STAGES[p.stage].text;
+  $('photo-lab-next').textContent = p.stage === 3 ? 'Powtórz analizę' : 'Następny krok';
+  $('photo-lab-reveal').textContent = p.revealed ? 'Ukryj wynik' : 'Pokaż wynik';
+  $('photo-lab-reveal').setAttribute('aria-pressed', String(p.revealed));
+  const detail = p.task === 'cls' ? 'Klasa obrazu' : p.task === 'loc' ? `Ramka [x₁, y₁, x₂, y₂]<code class="photo-code">[${scene.bounds.join(', ')}]</code>` : 'Maska semantyczna: obiekt i tło';
+  $('photo-lab-result').innerHTML = p.revealed
+    ? `<p class="photo-question">${info.short}</p><p class="photo-word">${p.task === 'seg' ? 'Maska semantyczna' : sample.title}</p><p class="answer" style="margin-top:0">${detail}</p><p class="answer">${info.explain}</p>`
+    : `<p class="photo-question">${info.short}</p><p class="photo-word">Co zobaczy model?</p><p class="answer" style="margin-top:0">Odkryj odpowiedź albo przejdź analizę krok po kroku.</p>`;
+}
+function renderPhotoTrain() {
+  const p = App.photo, scene = photoCurrent('dataset'), info = PHOTO_TASKS[p.task];
+  const $ = id => document.getElementById(id);
+  renderPhotoControls('dane-do-treningu', 'dataset');
+  Object.assign($('photo-train-card').dataset, { task: p.task, sample: p.sample, photoId: scene.id });
+  $('photo-train-icon').innerHTML = ic(info.icon);
+  $('photo-train-title').textContent = info.trainTitle;
+  $('photo-train-sub').textContent = info.trainSub;
+  $('photo-train-text').textContent = info.training;
+  $('photo-train-gallery').innerHTML = PHOTO_SCENES.filter(s => s.pool === 'dataset').map(s => {
+    const label = `${PHOTO_SAMPLES[s.sample].title}: ${s.place}`;
+    return `<button type="button" class="photo-thumb" data-photo-pick="${s.id}" aria-pressed="${s.id === scene.id}"><img src="${photoSrc(s)}" alt="" width="720" height="440" loading="lazy" decoding="async"><span>${label}</span></button>`;
+  }).join('');
+  $('photo-train-record').textContent = photoRecord(scene, p.task);
+  $('photo-train-scene').innerHTML = photoSceneSvg('photo-train', scene, p.task, 3);
+  $('photo-train-legend').innerHTML = photoLegendHtml(p.task, p.sample);
+  $('photo-train-caption').textContent = `${scene.place[0].toUpperCase()}${scene.place.slice(1)}. ${info.explain}`;
+  icons($('photo-train-card'));
+}
+function renderPhotoViews() { renderPhotoLab(); renderPhotoTrain(); }
+function photoNextStep() {
+  const p = App.photo;
+  if (p.stage === 3) { p.stage = 0; p.revealed = false; } else { p.stage += 1; p.revealed = p.stage === 3; }
+  renderPhotoLab();
+  announce(PHOTO_STAGES[p.stage].text);
+}
+function photoResetSteps() { App.photo.stage = 0; App.photo.revealed = false; renderPhotoLab(); }
 function renderView(animate) {
   mainEl.dataset.view = App.view;
   VIEWS.forEach(view => {
@@ -2174,7 +2452,7 @@ function renderAnnot(task) {
     drawBox(ctx, canvas, a.box, 'solid');
   }
   if (task === 'seg') {
-    drawMask(ctx, canvas, a.mask, 0.6, COLORS.blue);
+    drawMask(ctx, canvas, a.mask, YOUR_MASK);
     if (a.committed) drawOutline(ctx, canvas, a.scene.mask);
     else if (document.activeElement === canvas) {
       const scale = canvas.width / SIZE, half = Math.floor(a.brush / 2);
@@ -2308,7 +2586,7 @@ function renderHistory(task) {
   const lab = App.labs[task], els = labEls[task];
   els['history-count'].textContent = String(lab.history.length);
   const cols = task === 'loc' ? 7 : 6;
-  els.history.innerHTML = lab.history.length ? lab.history.map((h, i) => `<tr><td>${i + 1}</td><td class="num">${h.images}</td><td class="num">${h.noise}%</td><td>${diversityLabel(h.diversity)}</td><td class="num">${fmtMetric(task, h.metric)}</td>${task === 'loc' ? `<td class="num">${comma(h.classAcc * 100, 1)}%</td>` : ''}<td class="num">${comma(h.seconds, 1)} s</td></tr>`).join('')
+  els.history.innerHTML = lab.history.length ? lab.history.map((h, i) => `<tr><td>${i + 1}</td><td class="num">${h.images}</td><td class="num">${h.noise}%</td><td>${diversityLabel(h.diversity)}</td><td class="num">${fmtMetric(task, h.metric)}</td>${task === 'loc' ? `<td class="num">${comma(h.classAcc * 100, 1)}%</td>` : ''}<td class="num">${fmtSecondsExact(h.seconds)}</td></tr>`).join('')
     : `<tr><td colspan="${cols}">Po pierwszym treningu pojawi się tu wynik.</td></tr>`;
   labelTableCells(els.history.closest('table'));
 }
@@ -2323,8 +2601,8 @@ function renderGallery(task) {
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = 96;
     const ctx = paintImage(canvas, ex.scene.img);
-    if (task === 'loc') drawBox(ctx, canvas, ex.label.box, 'solid');
-    if (task === 'seg') drawMask(ctx, canvas, ex.label.mask, 0.55);
+    if (task === 'loc') drawBox(ctx, canvas, ex.label.box, 'dashed');
+    if (task === 'seg') drawMask(ctx, canvas, ex.label.mask);
     const shown = CLASS_NAMES[ex.label.cls];
     const truth = core.trueLabel(task, ex.scene);
     fig.dataset.flagged = String(ex.flagged);
@@ -2394,13 +2672,13 @@ function renderCheck(task) {
     if (c.uploaded && c.overlay === 'truth') c.overlay = 'pred';
     setPressed(card, 'data-overlay', c.overlay);
     card.querySelector('[data-overlay="truth"]').disabled = c.uploaded;
-    if (c.overlay === 'pred') drawMask(ctx, canvas, c.pred.mask, 0.6);
-    if (c.overlay === 'truth' && c.scene.mask) drawMask(ctx, canvas, c.scene.mask, 0.6);
+    if (c.overlay === 'pred') drawMask(ctx, canvas, c.pred.mask);
+    if (c.overlay === 'truth' && c.scene.mask) drawMask(ctx, canvas, c.scene.mask);
     const iou = c.scene.mask ? core.iouMask(c.pred.mask, c.scene.mask) : null;
     card.dataset.iou = iou === null ? '' : iou.toFixed(4);
     card.dataset.overlay = c.overlay;
     const truthPart = c.scene.mask ? `<p class="answer"><b>Wzorzec:</b> ${maskClassSummary(core.countClasses(c.scene.mask))}.</p>` : '';
-    output.innerHTML = `<div class="legend">${CLASS_NAMES.map((n, i) => `<span class="chip chip-stone"><span class="swatch swatch-${i}"></span>${n}</span>`).join('')}</div>
+    output.innerHTML = `${maskLegendHtml()}
       ${iou === null ? `<p class="answer">${NO_REFERENCE_TEXT}</p>` : `<div class="readout" style="margin-top:10px"><span><b>${comma(iou, 2)}</b>IoU obiektu</span></div>`}
       <p class="answer"><b>Predykcja:</b> ${maskClassSummary(c.pred.counts)}.</p>${truthPart}`;
     canvas.setAttribute('aria-label', `Obraz ${c.scene.id}. Widoczna nakładka: ${c.overlay === 'pred' ? 'predykcja' : c.overlay === 'truth' ? 'wzorzec' : 'brak'}. Predykcja: ${maskClassSummary(c.pred.counts)}.`);
@@ -2418,10 +2696,11 @@ function renderInspector() {
   const p = (ins.y * SIZE + ins.x) * 4;
   const r = ins.bytes[p], g = ins.bytes[p + 1], b = ins.bytes[p + 2];
   const out = document.getElementById('inspector-out');
-  out.innerHTML = `<span><b>${ins.x}, ${ins.y}</b>kolumna, wiersz</span><span><b>${r}</b>R</span><span><b>${g}</b>G</span><span><b>${b}</b>B</span>`;
+  out.innerHTML = `<span><b>${ins.x}, ${ins.y}</b>kolumna, wiersz</span><span><b>${r}</b>czerwony</span><span><b>${g}</b>zielony</span><span><b>${b}</b>niebieski</span>`;
+  document.getElementById('inspector-note').textContent = ins.channel === 'all' ? 'Obraz w kolorze składa się z trzech kanałów.' : `Skala szarości: im jaśniejszy piksel, tym większa wartość kanału ${CHANNEL_NAMES[ins.channel]}.`;
   const card = document.getElementById('inspector');
   Object.assign(card.dataset, { x: ins.x, y: ins.y, r, g, b, channel: ins.channel });
-  canvas.setAttribute('aria-label', `Obraz 32×32. Piksel kolumna ${ins.x}, wiersz ${ins.y}: R ${r}, G ${g}, B ${b}. Strzałki wybierają piksel.`);
+  canvas.setAttribute('aria-label', `Obraz 32×32. Piksel kolumna ${ins.x}, wiersz ${ins.y}: czerwony ${r}, zielony ${g}, niebieski ${b}. Strzałki wybierają piksel.`);
   setPressed(card, 'data-channel', ins.channel);
 }
 function renderFilter() {
@@ -2433,6 +2712,7 @@ function renderFilter() {
   const result = document.getElementById('filter-result');
   paintBytes(result, convolve(ins.bytes, filter));
   result.setAttribute('aria-label', `Wynik splotu: ${filter.name}.`);
+  document.getElementById('filter-note').textContent = filter.abs ? 'Skala szarości: im jaśniejszy piksel, tym mocniejsza krawędź.' : '';
   document.getElementById('filter-matrix').innerHTML = filter.show.map(v => `<span>${v}</span>`).join('');
 }
 function renderStartCards() {
@@ -2452,7 +2732,7 @@ function renderStartCards() {
       <div class="card-body"><div class="pair-canvases">
         <figure><canvas data-ref-canvas width="192" height="192" role="img"></canvas><figcaption>Wzorzec</figcaption></figure>
         <figure data-pred-slot></figure>
-      </div><p class="answer" data-ref-text></p><p class="answer" data-pred-text></p></div>
+      </div>${task === 'seg' ? `<div style="margin-top:10px">${maskLegendHtml()}</div>` : ''}<p class="answer" data-ref-text></p><p class="answer" data-pred-text></p></div>
     </div>`;
   }).join('');
   TASKS.forEach(task => {
@@ -2468,7 +2748,7 @@ function renderStartCards() {
       card.dataset.refClasses = '1'; card.dataset.refBoxes = '1';
     }
     if (task === 'seg') {
-      drawMask(ctx, refCanvas, scene.mask, 0.6);
+      drawMask(ctx, refCanvas, scene.mask);
       const counts = core.countClasses(scene.mask);
       card.dataset.refClasses = String(counts.slice(1).filter(n => n > 0).length);
       refText = maskClassSummary(counts);
@@ -2497,7 +2777,7 @@ function renderStartCards() {
       text = `${CLASS_NAMES[pred.cls]}, jeden prostokąt`;
       card.dataset.predClasses = '1'; card.dataset.predBoxes = '1';
     } else {
-      drawMask(pctx, predCanvas, pred.mask, 0.6);
+      drawMask(pctx, predCanvas, pred.mask);
       text = maskClassSummary(pred.counts);
       card.dataset.predClasses = String(pred.counts.slice(1).filter(n => n > 0).length);
     }
@@ -2532,11 +2812,11 @@ function renderCalc() {
 function renderResults() {
   const table = document.querySelector('#results-table tbody');
   if (!table) return;
-  const rateText = { cls: '5 s na obraz (oszacowanie)', loc: '35 s na prostokąt', seg: '79 s na obiekt' };
+  const rateText = { cls: '5 sekund na obraz (oszacowanie)', loc: '35 sekund na prostokąt', seg: '79 sekund na obiekt' };
   table.innerHTML = TASKS.map(t => {
     const r = App.results[t] || {};
-    const best = r.best === undefined ? 'brak danych' : fmtMetric(t, r.best);
-    const secs = r.seconds === undefined ? 'brak danych' : (r.seconds < 60 ? comma(r.seconds, 1) + ' s' : fmtDuration(r.seconds));
+    const best = r.best === undefined ? 'brak danych' : `${RESULT_NAMES[t]}: ${fmtMetric(t, r.best)}`;
+    const secs = r.seconds === undefined ? 'brak danych' : (r.seconds < 60 ? fmtSecondsExact(r.seconds) : fmtDuration(r.seconds));
     return `<tr data-task="${t}"><td>${TASK_INFO[t].name}</td><td data-best>${best}</td><td data-seconds>${secs}</td><td>${rateText[t]}</td></tr>`;
   }).join('');
   labelTableCells(table.closest('table'));
@@ -2617,6 +2897,8 @@ function renderAll() {
   renderStartCards(); renderResults(); renderCalc(); renderChoice(); renderQuiz(false);
 }
 function resetAll() {
+  App.photo = newPhotoState();
+  renderPhotoViews();
   TASKS.forEach(task => {
     const lab = App.labs[task];
     if (lab.run.worker) lab.run.worker.terminate();
@@ -2740,7 +3022,7 @@ function bindDane() {
     document.getElementById(id).addEventListener('input', event => { App.calc[name] = event.target.value; renderCalc(); });
   });
   TASKS.forEach(t => {
-    const text = { cls: `${RATE_SECONDS.cls} s na obraz, oszacowanie`, loc: `${RATE_SECONDS.loc} s na obiekt, Papadopoulos i in.`, seg: `${RATE_SECONDS.seg} s na obiekt, Lin i in.` }[t];
+    const text = { cls: `${RATE_SECONDS.cls} sekund na obraz, oszacowanie`, loc: `${RATE_SECONDS.loc} sekund na obiekt, Papadopoulos i inni`, seg: `${RATE_SECONDS.seg} sekund na obiekt, Lin i inni` }[t];
     document.querySelector(`[data-rate="${t}"]`).textContent = text;
   });
   document.getElementById('choose-list').addEventListener('click', event => {
@@ -2792,6 +3074,37 @@ function onShortcut(event) {
     if (/^[1-4]$/.test(key)) { event.preventDefault(); answerQuiz(Number(key) - 1); return; }
     if (key === 'Enter' && !(target.closest && target.closest('button, a, summary'))) { event.preventDefault(); nextQuiz(); }
   }
+  if (App.view === 'laboratorium') {
+    if (key === 'r' || key === 'R') { event.preventDefault(); photoResetSteps(); return; }
+    if (key === 'Enter' && !(target.closest && target.closest('button, a, summary'))) { event.preventDefault(); photoNextStep(); }
+  }
+}
+function bindPhotoViews() {
+  const onClick = event => {
+    const button = event.target.closest('button');
+    if (!button) return;
+    const p = App.photo;
+    if (button.dataset.photoTask) { p.task = button.dataset.photoTask; renderPhotoViews(); }
+    if (button.dataset.photoSample) { p.sample = button.dataset.photoSample; renderPhotoViews(); }
+    if (button.dataset.photoPick) {
+      const scene = PHOTO_SCENES.find(s => s.id === button.dataset.photoPick);
+      p.sample = scene.sample;
+      p.picked.dataset[scene.sample] = scene.id;
+      renderPhotoViews();
+      const again = document.querySelector(`[data-photo-pick="${scene.id}"]`);
+      if (again) again.focus({ preventScroll: true });
+    }
+    if (button.id === 'photo-lab-next') photoNextStep();
+    if (button.id === 'photo-lab-reset') photoResetSteps();
+    if (button.id === 'photo-lab-reveal') { p.revealed = !p.revealed; p.stage = p.revealed ? 3 : 0; renderPhotoLab(); }
+  };
+  [['laboratorium', 'inference'], ['dane-do-treningu', 'dataset']].forEach(([view, pool]) => {
+    viewEls[view].addEventListener('click', onClick);
+    viewEls[view].querySelector('[data-photo-scene]').addEventListener('change', event => {
+      App.photo.picked[pool][App.photo.sample] = event.target.value;
+      renderPhotoViews();
+    });
+  });
 }
 function bindGlobal() {
   window.addEventListener('hashchange', () => setViewFromHash(true, true));
@@ -2821,6 +3134,22 @@ async function runProbes() {
   const binary = sample.mask.map(v => v ? 1 : 0);
   check('RLE: tam i z powrotem', equalBytes(core.rleDecode(core.rleEncode(binary), PIXELS), binary));
   check('RLE: pusta maska to jeden odcinek', core.rleEncode(empty).length === 1);
+  const tokenRgb = token => { const hex = getComputedStyle(document.documentElement).getPropertyValue(token).trim(); return [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255); };
+  const rgbDistance = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  check('Maska: kolor klasy daleko od kolorów owoców', CLASS_MASKS.every(m => core.FRUIT_COLORS.every(variants => variants.every(([rgb]) => rgbDistance(tokenRgb(m.token), rgb) > 0.5))));
+  const isGrey = bytes => { for (let p = 0; p < PIXELS; p++) if (bytes[p * 4] !== bytes[p * 4 + 1] || bytes[p * 4] !== bytes[p * 4 + 2]) return false; return true; };
+  check('Kanał i krawędzie w skali szarości', ['r', 'g', 'b'].every(c => isGrey(channelBytes(App.inspector.bytes, c))) && isGrey(convolve(App.inspector.bytes, FILTERS.vertical)) && isGrey(convolve(App.inspector.bytes, FILTERS.horizontal)));
+  check('Zdjęcia: 12 scen, po dwie na obiekt w każdej puli', PHOTO_SCENES.length === 12 && ['inference', 'dataset'].every(pool => Object.keys(PHOTO_SAMPLES).every(k => PHOTO_SCENES.filter(s => s.pool === pool && s.sample === k).length === 2)));
+  check('Zdjęcia: ramka zgodna z obrysem maski', PHOTO_SCENES.every(s => { const pts = s.rings.flat(); return s.bounds[0] === Math.min(...pts.map(q => q[0])) && s.bounds[1] === Math.min(...pts.map(q => q[1])) && s.bounds[2] === Math.max(...pts.map(q => q[0])) && s.bounds[3] === Math.max(...pts.map(q => q[1])); }));
+  const photosLoad = await Promise.all(PHOTO_SCENES.map(s => { const image = new Image(); image.src = photoSrc(s); return image.decode().then(() => image.naturalWidth > 0, () => false); }));
+  check('Zdjęcia: wszystkie pliki się wczytują', photosLoad.every(Boolean));
+  const photoCard = document.getElementById('photo-lab-card');
+  check('Zdjęcia: widok publikuje stan w atrybutach', ['task', 'sample', 'stage', 'revealed', 'photoId', 'overlay'].every(k => photoCard.dataset[k] !== undefined));
+  check('Zdjęcia: każdy widok ma scenę ze zdjęciem i listę dwóch scen', ['laboratorium', 'dane-do-treningu'].every(view => viewEls[view].querySelector('svg.photo-scene image') && viewEls[view].querySelector('[data-photo-scene]').options.length === 2));
+  check('Dokument: identyfikatory są unikalne', new Set([...document.querySelectorAll('[id]')].map(e => e.id)).size === document.querySelectorAll('[id]').length);
+  check('Zdjęcia: bez wyniku nie ma nakładki', photoCard.dataset.revealed !== 'false' || photoCard.dataset.overlay === 'none');
+  const visibleCopy = Object.values(viewEls).map(v => v.textContent).join(' ');
+  check('Tekst bez skrótów jednostek i kanałów', !/\d(,\d+)? (px|s|min)\b|\d,\d h\b|\b[Oo]k\. | tys\.| mln\b| i in\.|\bnp\.|\b[RGB], [RGB]\b/.test(visibleCopy));
   const again = core.genScene({ seed: 42, cls: 1 });
   check('Generator: to samo ziarno, ten sam obraz', sample.img.every((v, i) => v === again.img[i]));
   const runA = core.runToEnd({ task: 'cls', images: 10, noise: 0, diversity: 'full', epochs: 2 });
@@ -2898,7 +3227,8 @@ function init() {
   App.inspector.y = App.inspector.scene.box.y + Math.floor(App.inspector.scene.box.h / 2);
   App.startScenes = { one: core.genScene({ seed: 2024, cls: 1 }), two: core.genScene({ seed: 5539, cls: 0, mode: 'two' }) };
   navEl.innerHTML = VIEWS.map(v => `<a href="#${v}" data-view="${v}">${VIEW_LABELS[v]}</a>`).join('');
-  const templates = { start: startHtml(), dane: daneHtml(), quiz: quizHtml() };
+  App.photo = newPhotoState();
+  const templates = { start: startHtml(), dane: daneHtml(), laboratorium: photoLabHtml(), 'dane-do-treningu': photoTrainHtml(), quiz: quizHtml() };
   TASKS.forEach(t => { templates[TASK_INFO[t].view] = labHtml(t); });
   VIEWS.forEach(view => {
     const el = document.createElement('div');
@@ -2915,10 +3245,10 @@ function init() {
     rebindLab(task);
   });
   ['compare-table', 'dataset-table'].forEach(id => labelTableCells(document.getElementById(id)));
-  bindStart(); bindDane(); bindQuiz(); bindGlobal();
+  bindStart(); bindDane(); bindQuiz(); bindPhotoViews(); bindGlobal();
   setViewFromHash(false, false);
   TASKS.forEach(nextAnnotScene);
-  renderInspector(); renderFilter();
+  renderInspector(); renderFilter(); renderPhotoViews();
   renderAll();
   renderView(false);
   icons();
