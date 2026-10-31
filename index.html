@@ -409,12 +409,6 @@ canvas { display: block; }
 .answer b { font-weight: 600; }
 .block { margin: 14px 0 0; padding: 14px 18px; border-radius: var(--r-md); }
 .block p { margin: 0; }
-.filter-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 16px; align-items: start; }
-.filter-row figure { margin: 0; display: grid; gap: 6px; }
-.filter-row canvas { width: 100%; max-width: 288px; height: auto; aspect-ratio: 1; border-radius: var(--r-sm); image-rendering: pixelated; }
-.filter-row figcaption { font-family: var(--font-mono); font-size: var(--overline); text-transform: uppercase; letter-spacing: .08em; color: var(--ink); }
-.matrix { display: grid; grid-template-columns: repeat(3, minmax(0, 3.2rem)); gap: 4px; justify-content: start; }
-.matrix span { display: grid; place-items: center; height: 3rem; border-radius: var(--r-xs); background: var(--paper-3); color: var(--ink); font-family: var(--font-mono); font-size: var(--caption); font-variant-numeric: tabular-nums; }
 
 /* ─── Ruled tables ─── */
 .scroll-x { overflow-x: auto; }
@@ -1409,7 +1403,7 @@ const App = {
   labs: { cls: newLabState('cls'), loc: newLabState('loc'), seg: newLabState('seg') },
   progress: {},
   results: {},
-  inspector: { x: 16, y: 16, channel: 'all', filter: 'identity', scene: null, bytes: null },
+  inspector: { x: 16, y: 16, channel: 'all', scene: null, bytes: null },
   startMode: 'one',
   calc: { images: '1000', objects: '2' },
   choice: null,
@@ -1617,30 +1611,6 @@ function decodeUpload(file) {
     image.src = url;
   });
 }
-const FILTERS = {
-  identity: { name: 'Bez zmian', kernel: [0, 0, 0, 0, 1, 0, 0, 0, 0], divisor: 1, abs: false, show: ['0', '0', '0', '0', '1', '0', '0', '0', '0'] },
-  vertical: { name: 'Krawędzie pionowe', kernel: [-1, 0, 1, -2, 0, 2, -1, 0, 1], divisor: 1, abs: true, show: ['-1', '0', '1', '-2', '0', '2', '-1', '0', '1'] },
-  horizontal: { name: 'Krawędzie poziome', kernel: [-1, -2, -1, 0, 0, 0, 1, 2, 1], divisor: 1, abs: true, show: ['-1', '-2', '-1', '0', '0', '0', '1', '2', '1'] },
-  blur: { name: 'Rozmycie', kernel: [1, 2, 1, 2, 4, 2, 1, 2, 1], divisor: 16, abs: false, show: ['1/16', '2/16', '1/16', '2/16', '4/16', '2/16', '1/16', '2/16', '1/16'] },
-};
-function convolve(bytes, filter) {
-  const out = new Uint8ClampedArray(bytes.length);
-  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
-    const to = (y * SIZE + x) * 4;
-    for (let c = 0; c < 3; c++) {
-      let sum = 0;
-      for (let ky = -1; ky <= 1; ky++) for (let kx = -1; kx <= 1; kx++) {
-        const sy = Math.max(0, Math.min(SIZE - 1, y + ky)), sx = Math.max(0, Math.min(SIZE - 1, x + kx));
-        sum += bytes[(sy * SIZE + sx) * 4 + c] * filter.kernel[(ky + 1) * 3 + kx + 1];
-      }
-      sum /= filter.divisor;
-      out[to + c] = filter.abs ? Math.abs(sum) : sum;
-    }
-    if (filter.abs) out[to] = out[to + 1] = out[to + 2] = Math.max(out[to], out[to + 1], out[to + 2]);
-    out[to + 3] = 255;
-  }
-  return out;
-}
 function channelBytes(bytes, channel) {
   if (channel === 'all') return bytes;
   const keep = { r: 0, g: 1, b: 2 }[channel];
@@ -1714,7 +1684,14 @@ function labHtml(task) {
         <div class="rec-wrap"><span class="field-label">Rekord w zbiorze</span><pre class="record" data-el="annot-record" tabindex="0" aria-label="Rekord adnotacji w formacie JSON"></pre>${task === 'seg' ? '<p class="legend-note">rle (Run-Length Encoding): długości kolejnych odcinków tła i maski.</p>' : ''}</div>
       </div></div>
     </div>
-  </div></div></section>
+  </div>
+  <div class="band">
+    <div class="card">
+      <div class="card-head"><span class="tile-h"><span class="${toneBadge}">${ic('images')}</span><h3>Przykłady ze zbioru treningowego</h3></span><span class="chip chip-stone" data-el="gallery-count"></span></div>
+      <div class="card-body">${task === 'seg' ? `<div class="legend-block">${maskLegendHtml()}</div>` : task === 'loc' ? '<div class="legend legend-block"><span class="chip chip-stone">linia przerywana: etykieta ze zbioru</span></div>' : ''}<div class="gallery" data-el="gallery"></div></div>
+    </div>
+  </div>
+  </div></section>
   <section class="sec stone" id="${task}-krok-b"><div class="wrap"><div class="split">
     <div class="concept">
       <div class="row-head"><span class="badge badge-lg tone-${info.tone}">${ic('sliders-horizontal')}</span><h2>Przygotuj dane i wytrenuj</h2></div>
@@ -1750,10 +1727,6 @@ function labHtml(task) {
     </div>
   </div>
   <div class="band">
-    <div class="card">
-      <div class="card-head"><span class="tile-h"><span class="${toneBadge}">${ic('images')}</span><h3>Przykłady ze zbioru treningowego</h3></span><span class="chip chip-stone" data-el="gallery-count"></span></div>
-      <div class="card-body">${task === 'seg' ? `<div class="legend-block">${maskLegendHtml()}</div>` : task === 'loc' ? '<div class="legend legend-block"><span class="chip chip-stone">linia przerywana: etykieta ze zbioru</span></div>' : ''}<div class="gallery" data-el="gallery"></div></div>
-    </div>
     <div class="band-two">
       <div class="card">
         <div class="card-head"><span class="tile-h"><span class="${toneBadge}">${ic('chart-line')}</span><h3>Krzywa straty</h3></span><span class="chip chip-stone" data-el="epoch-chip">epoka 0</span></div>
@@ -1823,28 +1796,7 @@ function startHtml() {
       </div></div>
     </div>
   </div></div></section>
-  <section class="sec stone"><div class="wrap"><div class="split">
-    <div class="concept">
-      <div class="row-head"><span class="badge badge-lg tone-ink">${ic('layers')}</span><h2>Filtr szuka wzorów</h2></div>
-      <div class="tiles">
-        <div class="tile"><span class="badge tone-ink">${ic('grid-3x3')}</span><h4>Splot</h4><p>Okno przesuwa się po obrazie i liczy sumę ważoną sąsiednich pikseli.</p></div>
-        <div class="tile"><span class="badge tone-ink">${ic('workflow')}</span><h4>Sieć uczy się filtrów</h4><p>Nikt ich nie wpisuje: sieć dobiera wagi na podstawie etykiet.</p></div>
-      </div>
-    </div>
-    <div class="card" id="filter-card" data-filter="identity">
-      <div class="card-head"><span class="tile-h"><span class="badge tone-ink">${ic('filter')}</span><h3>Filtr splotowy</h3></span></div>
-      <div class="card-body">
-        <div class="pills" role="group" aria-label="Filtr">${Object.keys(FILTERS).map(k => `<button type="button" data-filter-pick="${k}" aria-pressed="${k === 'identity'}">${FILTERS[k].name}</button>`).join('')}</div>
-        <div class="filter-row" style="margin-top:14px">
-          <figure><canvas id="filter-source" width="${STAGE_PX}" height="${STAGE_PX}" role="img" aria-label="Oryginalny obraz"></canvas><figcaption>Oryginał</figcaption></figure>
-          <figure><div class="matrix" id="filter-matrix" aria-label="Macierz filtra"></div><figcaption>Macierz filtra</figcaption></figure>
-          <figure><canvas id="filter-result" width="${STAGE_PX}" height="${STAGE_PX}" role="img"></canvas><figcaption>Wynik splotu</figcaption></figure>
-        </div>
-        <p class="answer" id="filter-note"></p>
-      </div>
-    </div>
-  </div></div></section>
-  <section class="sec"><div class="wrap">
+  <section class="sec stone"><div class="wrap">
     <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('compass')}</span><h2>Jeden obraz, trzy odpowiedzi</h2></div>
     <div class="pills" role="group" aria-label="Liczba obiektów na scenie">
       <button type="button" data-start-mode="one" aria-pressed="true">Jeden obiekt</button>
@@ -1853,7 +1805,7 @@ function startHtml() {
     <div class="block tone-blue edu-block" id="start-note"><p></p></div>
     <div class="three" id="start-cards" style="margin-top:16px"></div>
   </div></section>
-  <section class="sec stone"><div class="wrap">
+  <section class="sec"><div class="wrap">
     <div class="sec-head"><span class="badge badge-lg tone-ink">${ic('workflow')}</span><h2>Od pikseli do odpowiedzi</h2></div>
     <ol class="chain">
       <li class="link"><b>Piksele</b>3072 liczby na wejściu.</li>
@@ -2703,18 +2655,6 @@ function renderInspector() {
   canvas.setAttribute('aria-label', `Obraz 32×32. Piksel kolumna ${ins.x}, wiersz ${ins.y}: czerwony ${r}, zielony ${g}, niebieski ${b}. Strzałki wybierają piksel.`);
   setPressed(card, 'data-channel', ins.channel);
 }
-function renderFilter() {
-  const ins = App.inspector, filter = FILTERS[ins.filter];
-  const card = document.getElementById('filter-card');
-  card.dataset.filter = ins.filter;
-  setPressed(card, 'data-filter-pick', ins.filter);
-  paintBytes(document.getElementById('filter-source'), ins.bytes);
-  const result = document.getElementById('filter-result');
-  paintBytes(result, convolve(ins.bytes, filter));
-  result.setAttribute('aria-label', `Wynik splotu: ${filter.name}.`);
-  document.getElementById('filter-note').textContent = filter.abs ? 'Skala szarości: im jaśniejszy piksel, tym mocniejsza krawędź.' : '';
-  document.getElementById('filter-matrix').innerHTML = filter.show.map(v => `<span>${v}</span>`).join('');
-}
 function renderStartCards() {
   const box = document.getElementById('start-cards');
   if (!box) return;
@@ -3013,7 +2953,6 @@ function bindStart() {
     const target = event.target.closest('button');
     if (!target) return;
     if (target.dataset.channel) { ins.channel = target.dataset.channel; renderInspector(); }
-    if (target.dataset.filterPick) { ins.filter = target.dataset.filterPick; renderFilter(); }
     if (target.dataset.startMode) { App.startMode = target.dataset.startMode; renderStartCards(); }
   });
 }
@@ -3138,7 +3077,7 @@ async function runProbes() {
   const rgbDistance = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
   check('Maska: kolor klasy daleko od kolorów owoców', CLASS_MASKS.every(m => core.FRUIT_COLORS.every(variants => variants.every(([rgb]) => rgbDistance(tokenRgb(m.token), rgb) > 0.5))));
   const isGrey = bytes => { for (let p = 0; p < PIXELS; p++) if (bytes[p * 4] !== bytes[p * 4 + 1] || bytes[p * 4] !== bytes[p * 4 + 2]) return false; return true; };
-  check('Kanał i krawędzie w skali szarości', ['r', 'g', 'b'].every(c => isGrey(channelBytes(App.inspector.bytes, c))) && isGrey(convolve(App.inspector.bytes, FILTERS.vertical)) && isGrey(convolve(App.inspector.bytes, FILTERS.horizontal)));
+  check('Kanał w skali szarości', ['r', 'g', 'b'].every(c => isGrey(channelBytes(App.inspector.bytes, c))));
   check('Zdjęcia: 12 scen, po dwie na obiekt w każdej puli', PHOTO_SCENES.length === 12 && ['inference', 'dataset'].every(pool => Object.keys(PHOTO_SAMPLES).every(k => PHOTO_SCENES.filter(s => s.pool === pool && s.sample === k).length === 2)));
   check('Zdjęcia: ramka zgodna z obrysem maski', PHOTO_SCENES.every(s => { const pts = s.rings.flat(); return s.bounds[0] === Math.min(...pts.map(q => q[0])) && s.bounds[1] === Math.min(...pts.map(q => q[1])) && s.bounds[2] === Math.max(...pts.map(q => q[0])) && s.bounds[3] === Math.max(...pts.map(q => q[1])); }));
   const photosLoad = await Promise.all(PHOTO_SCENES.map(s => { const image = new Image(); image.src = photoSrc(s); return image.decode().then(() => image.naturalWidth > 0, () => false); }));
@@ -3164,8 +3103,6 @@ async function runProbes() {
   let decodeFailed = false;
   try { await decodeUpload(new File(['to nie jest obraz'], 'zly.png', { type: 'image/png' })); } catch (err) { decodeFailed = true; }
   check('Plik: uszkodzony PNG daje błąd odczytu', decodeFailed);
-  check('Filtr „bez zmian” odtwarza oryginał', equalBytes(convolve(App.inspector.bytes, FILTERS.identity), App.inspector.bytes));
-  check('Filtry krawędzi dają różne wyniki', !equalBytes(convolve(App.inspector.bytes, FILTERS.vertical), convolve(App.inspector.bytes, FILTERS.horizontal)));
   let galleryOk = true;
   TASKS.forEach(task => [[200, 40, 5], [200, 20, 2], [200, 10, 1], [200, 0, 0], [10, 40, 4]].forEach(([images, noise, wanted]) => {
     const list = core.galleryExamples(task, images, noise, 'full');
@@ -3248,7 +3185,7 @@ function init() {
   bindStart(); bindDane(); bindQuiz(); bindPhotoViews(); bindGlobal();
   setViewFromHash(false, false);
   TASKS.forEach(nextAnnotScene);
-  renderInspector(); renderFilter(); renderPhotoViews();
+  renderInspector(); renderPhotoViews();
   renderAll();
   renderView(false);
   icons();
