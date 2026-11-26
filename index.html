@@ -241,7 +241,7 @@ kbd { font-family: var(--font-mono); font-size: var(--caption); background: var(
 .edu-logo { width: 64px; height: 64px; display: block; margin-right: -6px; flex: none; }
 .edu-wordmark { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -.02em; color: var(--ink); }
 .edu-app-title { margin: 0 0 0 2px; padding-left: 14px; border-left: 1px solid var(--line-2, #d9d3c7);
-  font-family: var(--font-display); font-weight: 600; font-size: 19px; letter-spacing: -.01em; line-height: 1.2;
+  font-family: var(--font-display); font-weight: 600; font-size: 38px; letter-spacing: -.02em; line-height: 1.1;
   color: var(--ink-2, #4a4540); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
 @media (max-width: 640px) { .edu-app-title { font-size: 15px; padding-left: 10px; } }
 /* The nav keeps one row: the title gives up its width first (ellipsis) and hides where nothing is left. */
@@ -249,6 +249,15 @@ kbd { font-family: var(--font-mono); font-size: var(--caption); background: var(
 @media (max-width: 1100px) { .edu-app-title { flex: 1 1 0; } }
 @media (max-width: 559px) { .edu-app-title { display: none; } }
 @media (min-width: 1101px) and (max-width: 1379px) { .edu-app-title { display: none; } }
+/* Title 38px where the bar has room, stepped down so it never truncates (16px kept where even the old 19px would not fit) */
+@media (min-width: 641px) and (max-width: 696px) { .edu-app-title { font-size: 30px; } }
+@media (min-width: 769px) and (max-width: 814px) { .edu-app-title { font-size: 30px; } }
+@media (min-width: 1380px) and (max-width: 1608px) { .edu-app-title { font-size: 30px; } }
+@media (min-width: 1380px) and (max-width: 1536px) { .edu-app-title { font-size: 24px; } }
+@media (min-width: 1380px) and (max-width: 1480px) { .edu-app-title { font-size: 19px; } }
+@media (min-width: 1380px) and (max-width: 1436px) { .edu-app-title { font-size: 16px; } }
+@media (min-width: 1701px) and (max-width: 1825px) { .edu-app-title { font-size: 30px; } }
+@media (min-width: 1701px) and (max-width: 1756px) { .edu-app-title { font-size: 24px; } }
 .nav { display: flex; flex-wrap: wrap; gap: 4px; margin-left: 18px; flex: 1 1 auto; min-width: 0; padding: 5px; }
 .nav::-webkit-scrollbar { display: none; }
 .nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: var(--r-pill); color: var(--ink-2); text-decoration: none; white-space: nowrap; font-weight: 500; transition: background-color .15s; }
@@ -585,7 +594,7 @@ dialog::backdrop { background: color-mix(in srgb, var(--ink) 50%, transparent); 
   .nav { gap: 2px; margin-left: 4px; padding: 3px; }
   .nav a { padding: 8px 5px; }
   .progress-box { width: 108px; }
-  .edu-app-title { font-size: 16px; padding-left: 12px; }
+  .edu-app-title { padding-left: 12px; }
 }
 @media (min-width: 1101px) and (max-height: 800px) {
   :root { --stage: clamp(240px, calc(100svh - 356px), 384px); --photo-reserve: 400px; }
